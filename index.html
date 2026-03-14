@@ -64,6 +64,9 @@
     .finput:focus,.fta:focus{border-color:var(--accent-b);box-shadow:0 0 0 4px rgba(249,115,22,.14)}.finput.invalid{border-color:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.measure-note{margin-top:-2px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.35}
     .nav-row,.step1-actions{display:grid;grid-template-columns:1fr;gap:8px}
+    .step1-actions{grid-template-columns:.9fr 1fr 1.35fr}
+    .act-danger{border:none;background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 10px 20px rgba(220,38,38,.22)}
+    .act-cancel{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}
     .footer-nav{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%)}
     body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
     .footer-nav .act-btn{min-width:0}
@@ -146,8 +149,9 @@
                 </div>
               </div>
               <div class="step1-actions">
+                <button class="act-btn act-cancel" id="btnCancelarCliente">Cancelar</button>
+                <button class="act-btn act-danger" id="btnLimparCliente">↻ Limpar</button>
                 <button class="act-btn act-save" id="btnIrItens">Avançar para Itens →</button>
-                <button class="act-btn act-soft" id="btnLimparCliente">↺ Limpar Campos</button>
               </div>
             </div>
           </div>
@@ -268,7 +272,7 @@
       step1: document.getElementById('step1'), step2: document.getElementById('step2'), step3: document.getElementById('step3'),
       pill1: document.getElementById('pill1'), pill2: document.getElementById('pill2'), pill3: document.getElementById('pill3'),
       cliente: document.getElementById('cliente'), telefone: document.getElementById('telefone'), clienteErro: document.getElementById('clienteErro'), telefoneErro: document.getElementById('telefoneErro'),
-      btnIrItens: document.getElementById('btnIrItens'), btnLimparCliente: document.getElementById('btnLimparCliente'), btnVoltarCliente: document.getElementById('btnVoltarCliente'), btnVoltarItens: document.getElementById('btnVoltarItens'),
+      btnIrItens: document.getElementById('btnIrItens'), btnLimparCliente: document.getElementById('btnLimparCliente'), btnCancelarCliente: document.getElementById('btnCancelarCliente'), btnVoltarCliente: document.getElementById('btnVoltarCliente'), btnVoltarItens: document.getElementById('btnVoltarItens'),
       btnAddItem: document.getElementById('btnAddItem'), btnIrResumo: document.getElementById('btnIrResumo'), btnSalvarRascunho: document.getElementById('btnSalvarRascunho'),
       itemsWrap: document.getElementById('itemsWrap'), summaryText: document.getElementById('summaryText'), areaTotal: document.getElementById('areaTotal'),
       optionValorTotal: document.getElementById('optionValorTotal'), optionValorM2: document.getElementById('optionValorM2'), valorTexto: document.getElementById('valorTexto'),
@@ -340,6 +344,7 @@
     function runSelfTests(){ console.assert(calcItemArea(2, 3) === 6, 'calcItemArea deve multiplicar largura por altura'); console.assert(getItemMeasureLabel(2, 3) === 'Área: 6,00 m²', 'deve mostrar área'); console.assert(getItemMeasureLabel(2, 0) === 'Linear: 2,00 m', 'deve mostrar linear'); console.assert(normalizeLeadingZero('023') === '23', 'zero à esquerda'); console.assert(normalizeMeasureInput('2.5') === '2,5', 'medidas aceitam ponto'); console.assert(numFromInput('2,5') === 2.5, 'aceita vírgula'); console.assert(numFromInput('2.5') === 2.5, 'aceita ponto'); console.assert(validateFullName('teste teste') === true, 'nome válido'); console.assert(validateFullName('teste') === false, 'nome inválido'); console.assert(validatePhone('(11) 3333-3333') === true, 'fixo válido'); console.assert(validatePhone('(11) 9 9999-9999') === true, 'celular válido'); console.assert(validatePhone('(11) 8 9999-9999') === false, 'celular sem 9 inválido'); console.assert(validatePhone('(11) 1999-9999') === false, 'fixo com início inválido'); console.assert(validatePhone('1') === false, 'telefone curto'); }
     els.themeToggle.addEventListener('click', toggleTheme);
     els.btnIrItens.addEventListener('click', () => { if (!validateStep1(true)) { if (!validateFullName(els.cliente.value)) els.cliente.focus(); else els.telefone.focus(); return; } goStep(2); });
+    els.btnCancelarCliente.addEventListener('click', () => { clearClient(); showToast('❎ Cancelado'); });
     els.btnLimparCliente.addEventListener('click', clearClient);
     els.btnVoltarCliente.addEventListener('click', () => goStep(1));
     els.btnVoltarItens.addEventListener('click', () => goStep(2));
