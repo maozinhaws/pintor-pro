@@ -406,7 +406,7 @@ body.kb-open .title-big { font-size: 14px; }
         <div style="display:flex;gap:10px;margin-bottom:24px;align-items:center;">
           <button onclick="homeTab('flash')" title="Orçamento Rápido Flash" style="width:88px;height:88px;border-radius:27px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:4px solid #fed7aa;font-size:38px;cursor:pointer;box-shadow:0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.07)';this.style.boxShadow='0 16px 36px rgba(249,115,22,.6),0 6px 12px rgba(249,115,22,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28)'">⚡</button>
           <button onclick="newOrc()" style="flex:1;height:64px;border-radius:16px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 16px rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;gap:8px;">
-            <span style="font-size:22px;">+</span> Criar Novo Orçamento
+            <span style="font-size:22px;">+</span> Orçamento padrão
           </button>
         </div>
         
@@ -3213,6 +3213,13 @@ const GDrive = {
 
   _waitLibs() {
     const self = this;
+    // Timeout de segurança: se libs não carregarem em 10s, mostra tela de login
+    const libsTimeout = setTimeout(() => {
+      if (!self.gapiInited || !self.gisInited) {
+        self._showLoginScreen();
+        toast('⚠️ Não foi possível conectar ao Google. Verifique sua conexão.');
+      }
+    }, 10000);
     // Espera GAPI carregar
     const checkGapi = setInterval(() => {
       if (typeof gapi !== 'undefined') {
@@ -3224,6 +3231,10 @@ const GDrive = {
             }
             self.gapiInited = true;
             self._tryAutoSignIn();
+          }).catch(() => {
+            clearTimeout(libsTimeout);
+            self._showLoginScreen();
+            toast('⚠️ Erro ao inicializar o Google. Verifique sua conexão.');
           });
         });
       }
@@ -3319,6 +3330,9 @@ const GDrive = {
       }
     } catch(e) {
       console.error('GDrive: erro userinfo', e);
+      this.accessToken = null;
+      this._showLoginScreen();
+      toast('⚠️ Erro ao autenticar. Tente novamente.');
     }
   },
 
@@ -3561,8 +3575,8 @@ const GDrive = {
     const btnWrap = document.getElementById('login-btn-wrap');
     if (loading) loading.style.display = 'none';
     if (btnWrap) btnWrap.style.display = 'flex';
-    // Garante que a tela de login está visível
-    showPage('pg-login');
+    // skipHistory=true evita empilhar pg-login no histórico e causar loop no botão voltar
+    showPage('pg-login', true);
   },
 
   _setStatus(state, msg) {
