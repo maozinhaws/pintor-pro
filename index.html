@@ -3209,6 +3209,10 @@ const GDrive = {
     this._initGis();
     this._initConnectivity();
     this._hookLocalStorage();
+    // Fallback: se libs do Google não carregarem em 8s, mostra botão de login
+    setTimeout(() => {
+      if (!this._gapiReady || !this._gisReady) this._showLoginBtn();
+    }, 8000);
   },
 
   _initGapi() {
