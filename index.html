@@ -3298,7 +3298,9 @@ const GDrive = {
         renderHomeMini();
         renderHomeEvents();
         renderHomeNews();
-        this._findFile();
+        this._findFile().then(() => {
+          if (this.pendingSync) this.scheduleSync();
+        });
       } else {
         showTermsModal();
       }
@@ -3469,15 +3471,15 @@ const GDrive = {
 
   // ── AUTO-SYNC (debounce) ──────────────────────────────────
   scheduleSync() {
+    this.pendingSync = true; // Marca sempre — sync ocorre quando token e conexão disponíveis
     if (!this.accessToken) return;
     if (!navigator.onLine) {
-      this.pendingSync = true;
       this._showOfflineBanner('drive-err');
       this._setStatus('offline', 'Aguardando conexão...');
       return;
     }
     clearTimeout(this.syncTimer);
-    this.syncTimer = setTimeout(() => this.saveToDrive(), this.SYNC_DEBOUNCE);
+    this.syncTimer = setTimeout(() => { this.pendingSync = false; this.saveToDrive(); }, this.SYNC_DEBOUNCE);
   },
 
   // ── HOOK NO LOCALSTORAGE ──────────────────────────────────
