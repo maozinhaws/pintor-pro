@@ -1313,7 +1313,11 @@ body.kb-open .title-big { font-size: 14px; }
     let _exitTimer=null, _skipExit=false;
     function openExitModal(){ if(_skipExit){notifyParentExit();return;} document.getElementById('exitModal').style.display='flex'; document.getElementById('exitSkipCheck').checked=false; const btn=document.getElementById('btnConfirmExit'); btn.style.opacity='0.5'; btn.style.cursor='not-allowed'; let secs=3; clearInterval(_exitTimer); _exitTimer=setInterval(()=>{ secs--; if(secs<=0){clearInterval(_exitTimer);btn.style.opacity='1';btn.style.cursor='pointer';btn.textContent='Sim, sair';}else{btn.textContent=`Aguarde ${secs}s`;} },1000); }
     function closeExitModal(proceed){ clearInterval(_exitTimer); if(document.getElementById('exitSkipCheck').checked)_skipExit=true; document.getElementById('exitModal').style.display='none'; if(proceed)notifyParentExit(); }
-    function notifyParentExit(){ try{ window.parent.postMessage({type:'flash-exit'},'*'); }catch(e){} }
+    function notifyParentExit(){
+      // Auto-salva rascunho antes de sair
+      try { const d={cliente:els.cliente.value.trim(),telefone:els.telefone.value.trim(),items:state.items,valueMode:state.valueMode,valorTexto:els.valorTexto.value,atualizadoEm:new Date().toISOString()}; localStorage.setItem('orcamento-pocket-draft',JSON.stringify(d)); } catch(e){}
+      try{ window.parent.postMessage({type:'flash-exit'},'*'); }catch(e){}
+    }
     els.btnIrItens.addEventListener('click', () => { if (!validateStep1(true)) { if (!validateFullName(els.cliente.value)) els.cliente.focus(); else els.telefone.focus(); return; } goStep(2); });
     els.btnLimparCliente.addEventListener('click', clearClient);
     els.btnVoltarCliente.addEventListener('click', () => goStep(1));
@@ -1786,7 +1790,7 @@ function getStatusBadgeClass(st) {
 }
 
 // DADOS GLOBAIS
-const defCfg = { empresa:'', tel:'', doc:'', emailEmpresa:'', endEmpresa:'', msg:'Olá {cliente}!\\nSegue o resumo do seu orçamento:\\n\\n{detalhes}\\n*Valor Total: {total}*\\n\\nQualquer dúvida estou à disposição.', servicos:'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz', pgto:'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado', statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado', skipDelConfirm:false, skipDirtyConfirm:false, logo:'', gmapsKey:'' };
+const defCfg = { empresa:'', tel:'', doc:'', emailEmpresa:'', endEmpresa:'', msg:'Olá {cliente}!\nSegue o resumo do seu orçamento:\n\n{detalhes}\n*Valor Total: {total}*\n\nQualquer dúvida estou à disposição.', servicos:'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz', pgto:'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado', statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado', skipDelConfirm:false, skipDirtyConfirm:false, logo:'', gmapsKey:'' };
 const S = {
   orcs: JSON.parse(localStorage.getItem('pp-orcs')||'[]'), 
   clientes: JSON.parse(localStorage.getItem('pp-clientes')||'[]'),
@@ -2631,7 +2635,7 @@ function buildWAMsg(orc){
   if(orc.obs) detalhes+=`*Obs Gerais:* ${orc.obs}\n`;
   
   const tFmt = totalValue.toLocaleString('pt-BR',{style:'currency', currency:'BRL'});
-  let finalMsg = (S.config.msg || defCfg.msg).replace('{cliente}', orc.nome || 'Cliente').replace('{detalhes}', detalhes).replace('{total}', tFmt);
+  let finalMsg = (S.config.msg || defCfg.msg).replace(/\\n/g, '\n').replace('{cliente}', orc.nome || 'Cliente').replace('{detalhes}', detalhes).replace('{total}', tFmt);
   
   if(!finalMsg.includes(tFmt)) finalMsg += `\n*Valor Total: ${tFmt}*`;
   
