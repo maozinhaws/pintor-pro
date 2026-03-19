@@ -3249,12 +3249,9 @@ const GDrive = {
 
   _tryStart() {
     if (!this._gapiReady || !this._gisReady) return;
-    const savedEmail = localStorage.getItem('pp-gdrive-email');
-    if (savedEmail) {
-      this.tokenClient.requestAccessToken({ prompt: '', login_hint: savedEmail });
-    } else {
-      this._showLoginBtn();
-    }
+    // GIS Token Flow não suporta login silencioso — popup bloqueado pelo browser
+    // durante carregamento. Sempre exibe o botão; signIn() é chamado pelo usuário.
+    this._showLoginBtn();
   },
 
   // ── CALLBACK DO TOKEN ─────────────────────────────────────
@@ -3271,7 +3268,11 @@ const GDrive = {
   // ── LOGIN / LOGOUT ────────────────────────────────────────
   signIn() {
     if (!this._gisReady) { toast('⏳ Aguarde o carregamento...'); return; }
-    this.tokenClient.requestAccessToken({ prompt: 'consent' });
+    // prompt:'' = usa sessão salva sem forçar consent; login_hint acelera seleção de conta
+    const savedEmail = localStorage.getItem('pp-gdrive-email');
+    const opts = { prompt: '' };
+    if (savedEmail) opts.login_hint = savedEmail;
+    this.tokenClient.requestAccessToken(opts);
   },
 
   signOut() {
