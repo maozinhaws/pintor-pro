@@ -8,11 +8,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ffffff">
 <title>App Pintor Plus</title>
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="icon" href="/favicon.ico">
-<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="shortcut icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-title" content="Pintor+" />
+<link rel="manifest" href="/site.webmanifest" />
 <link rel="privacy-policy" href="/privacy-policy.html">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
@@ -29,6 +30,9 @@
   else { window.addEventListener('resize', onResize); }
   window.addEventListener('load', () => { baseH = window.visualViewport ? window.visualViewport.height : window.innerHeight; });
 })();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+}
 </script>
 <style>
 :root{
@@ -206,7 +210,7 @@ input[type="number"] { font-family: 'Calibri', sans-serif !important; }
 .item-title-inp { background: var(--bg-input) !important; border: 1.5px solid var(--bdr-input) !important; font-size: 14px !important; margin-bottom: 12px !important; }
 .item-title-inp:focus { border-color: var(--am) !important; box-shadow: 0 0 0 2px var(--aml) !important; }
 .item-del { width: 28px !important; height: 28px !important; border-radius: 7px !important; font-size: 13px !important; }
-.price-check-row input[type=number] { height: 44px !important; font-size: 16px !important; border-radius: 11px !important; }
+.price-check-row input[type=number], .price-check-row input[type=text] { height: 44px !important; font-size: 16px !important; border-radius: 11px !important; }
 .pcheck { font-size: 12px !important; gap: 6px !important; }
 .pcheck input { width: 16px !important; height: 16px !important; }
 .item-obs-inp { font-size: 13px !important; border-radius: 11px !important; min-height: 90px !important; }
@@ -225,6 +229,53 @@ input[type="number"] { font-family: 'Calibri', sans-serif !important; }
 .hoov { font-size: 15px !important; }
 .hoas { gap: 6px !important; margin-top: 10px !important; }
 .hoa { height: 38px !important; font-size: 12px !important; border-radius: 9px !important; font-weight: 700 !important; }
+/* ── Modo Acessibilidade — fontes e botões maiores ── */
+body.acessivel .finput, body.acessivel .fsel { height: 56px !important; font-size: 16px !important; }
+body.acessivel .fta { font-size: 16px !important; min-height: 110px !important; }
+body.acessivel .flbl { font-size: 13px !important; }
+body.acessivel .sec-title { font-size: 17px !important; }
+body.acessivel .sec { padding: 18px !important; margin-bottom: 16px !important; }
+body.acessivel .fld { margin-bottom: 16px !important; }
+body.acessivel .act-btn { height: 60px !important; font-size: 16px !important; }
+body.acessivel .add-room-btn { height: 56px !important; font-size: 15px !important; }
+body.acessivel .chk-item { padding: 16px 14px !important; }
+body.acessivel .chk-box { width: 26px !important; height: 26px !important; }
+body.acessivel .chk-lbl { font-size: 16px !important; }
+body.acessivel .toggle-row { padding: 16px 14px !important; }
+body.acessivel .toggle-lbl { font-size: 16px !important; }
+body.acessivel .toggle-sw { width: 50px !important; height: 28px !important; }
+body.acessivel .toggle-sw::after { width: 22px !important; height: 22px !important; top: 3px !important; left: 3px !important; }
+body.acessivel .toggle-sw.on::after { left: 25px !important; }
+body.acessivel .rcard { margin-bottom: 14px !important; }
+body.acessivel .rcard-head, body.acessivel .rcard-body { padding: 16px !important; }
+body.acessivel .rcard-name { font-size: 16px !important; }
+body.acessivel .rcard-del { width: 38px !important; height: 38px !important; }
+body.acessivel .mbox { padding: 12px !important; }
+body.acessivel .minp { font-size: 22px !important; }
+body.acessivel .item-card { padding: 16px !important; margin-top: 14px !important; }
+body.acessivel .item-del { width: 34px !important; height: 34px !important; }
+body.acessivel .price-check-row input[type=number], body.acessivel .price-check-row input[type=text] { height: 52px !important; font-size: 18px !important; }
+body.acessivel .hoc { padding: 18px !important; border-radius: 18px !important; }
+body.acessivel .hon { font-size: 17px !important; }
+body.acessivel .hos { font-size: 14px !important; }
+body.acessivel .hoov { font-size: 17px !important; }
+body.acessivel .hoa { height: 44px !important; font-size: 13px !important; }
+body.acessivel .hoas { gap: 8px !important; margin-top: 14px !important; }
+body.acessivel .hm-name { font-size: 26px !important; }
+/* ── Busca ── */
+.srch-wrap{position:relative;margin-top:10px;}
+.srch-bar{width:100%;height:38px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:100px;padding:0 14px 0 36px;font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);outline:none;-webkit-appearance:none;}
+.srch-bar:focus{border-color:var(--bl);}
+.srch-bar::placeholder{color:var(--ink3);}
+.srch-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink3);pointer-events:none;display:flex;}
+.srch-empty{text-align:center;padding:28px 16px;background:var(--bg-card-alt);border-radius:14px;border:1px solid var(--bdr);font-size:13px;color:var(--ink3);}
+/* ── PWA Banner ── */
+.pwa-banner{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:16px;cursor:pointer;box-shadow:0 6px 18px rgba(124,58,237,.3);}
+.pwa-banner-ico{font-size:22px;flex-shrink:0;}
+.pwa-banner-text{flex:1;}
+.pwa-banner-title{font-size:13px;font-weight:800;}
+.pwa-banner-sub{font-size:11px;opacity:.8;margin-top:2px;}
+.pwa-banner-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;}
 .wizard-nav { display: flex; margin-top: 12px; justify-content: space-between; }
 .wbtn-back, .wbtn-next { height: 44px; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; }
 .wbtn-back { min-width: 100px; padding: 0 16px; background: var(--bg2); border: 1.5px solid var(--bdr); color: var(--ink2); }
@@ -416,6 +467,9 @@ body.kb-open .title-big { font-size: 14px; }
 <symbol id="ico-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
 <symbol id="ico-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></symbol>
 <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="ico-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="ico-headphones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
+<symbol id="ico-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
 </svg>
 
 <div id="offline-banner"></div>
@@ -475,12 +529,22 @@ body.kb-open .title-big { font-size: 14px; }
       </div>
       <div class="scr">
         <div style="display:flex;gap:10px;margin-bottom:24px;align-items:center;">
-          <button onclick="homeTab('flash')" title="Orçamento Rápido Flash" style="width:88px;height:88px;border-radius:27px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:4px solid #fed7aa;font-size:38px;cursor:pointer;box-shadow:0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.07)';this.style.boxShadow='0 16px 36px rgba(249,115,22,.6),0 6px 12px rgba(249,115,22,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28)'"><svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg></button>
+          <button onclick="homeTab('flash')" title="Orçamento Rápido Flash" style="width:88px;height:88px;border-radius:27px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:4px solid #fed7aa;font-size:38px;cursor:pointer;box-shadow:0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.07)';this.style.boxShadow='0 16px 36px rgba(249,115,22,.6),0 6px 12px rgba(249,115,22,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28)'"><svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg><span style="font-size:10px;font-weight:800;letter-spacing:1px;line-height:1;">FLASH</span></button>
           <button onclick="newOrc()" style="flex:1;height:64px;border-radius:16px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 16px rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;gap:8px;">
             Orçamento detalhado
           </button>
         </div>
         
+        <!-- Banner PWA Install -->
+        <div id="pwa-banner" class="pwa-banner" style="display:none;" onclick="installPWA()">
+          <div class="pwa-banner-ico"><svg class="ico" aria-hidden="true" style="width:1.4em;height:1.4em;"><use href="#ico-download"/></svg></div>
+          <div class="pwa-banner-text">
+            <div class="pwa-banner-title">Instale o Pintor Plus</div>
+            <div class="pwa-banner-sub">Acesse offline, sem abrir o browser</div>
+          </div>
+          <button class="pwa-banner-close" onclick="event.stopPropagation();dismissPWABanner()">✕</button>
+        </div>
+
         <div class="sec-title" style="margin-bottom:12px; font-size: 11px; text-transform: uppercase;">Últimos Orçamentos</div>
         <div id="home-orcs-mini"></div>
         <button onclick="homeTab('orcamentos')" style="width:100%; height:40px; border-radius:10px; background:var(--bg-input); color:var(--bl); border:1.5px solid var(--bdr-input); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; margin-bottom:24px;">
@@ -501,6 +565,10 @@ body.kb-open .title-big { font-size: 14px; }
           Aceder à Revista Completa
         </button>
 
+        <div style="text-align:center;padding:8px 0 4px;">
+          <a href="/privacy-policy.html" style="font-size:11px;color:var(--ink3);text-decoration:none;border-bottom:1px solid var(--bdr);">Política de Privacidade e Termos de Uso</a>
+        </div>
+
         <div style="height:24px;"></div>
       </div>
     </div>
@@ -512,8 +580,12 @@ body.kb-open .title-big { font-size: 14px; }
           <div class="title-big">MEUS ORÇAMENTOS</div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
+        <div class="srch-wrap">
+          <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
+          <input type="search" class="srch-bar" id="orc-search" placeholder="Buscar por nome, valor, status, endereço…" oninput="renderOrcamentosList()">
+        </div>
       </div>
-      <div class="scr" id="orcamentos-list-full"></div>
+      <div class="scr"><div id="orcamentos-list-full"></div></div>
     </div>
 
     <div class="page" id="pg-clientes">
@@ -522,6 +594,10 @@ body.kb-open .title-big { font-size: 14px; }
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
           <div class="title-big">MEUS CONTATOS</div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+        </div>
+        <div class="srch-wrap">
+          <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
+          <input type="search" class="srch-bar" id="cli-search" placeholder="Buscar por nome, telefone, CPF, endereço…" oninput="renderClientes()">
         </div>
       </div>
       <div class="scr">
@@ -542,6 +618,10 @@ body.kb-open .title-big { font-size: 14px; }
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
           <div class="title-big">FORNECEDORES</div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+        </div>
+        <div class="srch-wrap">
+          <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
+          <input type="search" class="srch-bar" id="forn-search" placeholder="Buscar por nome, telefone, categoria…" oninput="renderFornecedores()">
         </div>
       </div>
       <div class="scr">
@@ -845,6 +925,23 @@ body.kb-open .title-big { font-size: 14px; }
               <div style="font-size:12px;font-weight:700;color:var(--bl);margin-top:8px;">Alterar Assinatura</div>
             </label>
             <div style="text-align:center;margin-top:6px;"><button onclick="clearSigCfg();_cfgDirty=true;" style="background:none;border:none;font-size:12px;color:var(--rd);cursor:pointer;padding:4px 8px;">Remover Assinatura</button></div>
+          </div>
+        </div>
+
+        <!-- CARD: Acessibilidade -->
+        <div class="cfg-card">
+          <button class="cfg-card-hdr" onclick="toggleCfgCard('cc-acessibilidade')">
+            <span><svg class="ico" aria-hidden="true"><use href="#ico-eye"/></svg></span><span>Acessibilidade</span><span class="cfg-chev">›</span>
+          </button>
+          <div class="cfg-card-body" id="cc-acessibilidade">
+            <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Ativa fontes maiores, botões e espaçamentos aumentados para facilitar leitura e toque.</div>
+            <div class="toggle-row" style="margin-bottom:0;" onclick="var sw=document.getElementById('cfg-acessibilidade-sw');sw.classList.toggle('on');S.config.acessibilidade=sw.classList.contains('on');document.body.classList.toggle('acessivel',S.config.acessibilidade);_cfgDirty=true;">
+              <div>
+                <div class="toggle-lbl">Modo Acessibilidade</div>
+                <div class="toggle-sub">Textos e botões maiores</div>
+              </div>
+              <div class="toggle-sw" id="cfg-acessibilidade-sw"></div>
+            </div>
           </div>
         </div>
 
@@ -1469,16 +1566,17 @@ body.kb-open .title-big { font-size: 14px; }
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('agenda')"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Agenda e Lembretes</div>
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('backup')"><svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg> Backup</div>
       <div class="sidebar-link" onclick="toggleSidebar(); openConfig()"><svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('termos')" style="font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Termos e Serviços</div>
+      <a href="/privacy-policy.html" class="sidebar-link" style="font-weight:400; font-size:13px; color:var(--ink3); text-decoration:none;"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Política de Privacidade</a>
       <div class="sidebar-link" onclick="toggleSidebar(); showTutorial()" style="margin-top:auto; font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial</div>
       <div class="sidebar-link" onclick="toggleSidebar(); showFaq()" style="font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ</div>
+      <div class="sidebar-link" onclick="toggleSidebar(); abrirModalSuporte()" style="font-weight:700; font-size:13px; color:var(--bl);"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg> Suporte / Reportar Bug</div>
       <div class="sidebar-link" onclick="toggleSidebar(); GDrive.signOut()" style="font-weight:700; font-size:13px; color:var(--rd); margin-top:8px; border-top:1px solid var(--bdr); padding-top:16px;"><svg class="ico" aria-hidden="true"><use href="#ico-logout"/></svg> Sair da conta</div>
     </div>
   </div>
 
   <!-- MODAL: RECIBO -->
-  <div id="modal-recibo" class="glass-overlay" style="display:none;">
-    <div class="modal-box" style="max-width:400px;max-height:92vh;overflow-y:auto;padding:20px;">
+  <div id="modal-recibo" class="glass-overlay" style="display:none;align-items:flex-start;overflow-y:auto;padding:max(20px,env(safe-area-inset-top,20px)) 16px max(20px,env(safe-area-inset-bottom,20px));">
+    <div class="modal-box" style="max-width:420px;padding:20px;">
       <div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Gerar Recibo</div>
       <div style="font-size:12px;color:var(--ink3);margin-bottom:18px;">Comprovante simples de pagamento. Não é documento fiscal.</div>
 
@@ -1503,7 +1601,7 @@ body.kb-open .title-big { font-size: 14px; }
             <input type="radio" name="rb-valor-tipo" value="custom" id="rb-valor-custom" onchange="toggleRbValor()">
             Definir valor:
           </label>
-          <input type="number" class="finput" id="rb-valor-input" placeholder="0,00" step="0.01" min="0" style="display:none;">
+          <input type="text" inputmode="decimal" class="finput" id="rb-valor-input" placeholder="0,00" style="display:none;" oninput="this.value=this.value.replace('.',',')">
         </div>
       </div>
 
@@ -1520,6 +1618,43 @@ body.kb-open .title-big { font-size: 14px; }
       <div style="display:flex;gap:10px;margin-top:4px;">
         <button onclick="fecharModalRecibo()" style="flex:1;height:46px;border-radius:12px;background:var(--bg-input);border:1.5px solid var(--bdr-input);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;">Cancelar</button>
         <button onclick="gerarReciboPDF()" style="flex:1;height:46px;border-radius:12px;background:#16A34A;border:none;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ico" aria-hidden="true"><use href="#ico-printer"/></svg> Gerar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SUPORTE / BUG REPORT -->
+  <div id="modal-suporte" class="glass-overlay" style="display:none;align-items:flex-start;overflow-y:auto;padding:max(20px,env(safe-area-inset-top,20px)) 16px max(20px,env(safe-area-inset-bottom,20px));">
+    <div class="modal-box" style="max-width:420px;padding:20px;">
+      <div style="font-size:16px;font-weight:800;color:var(--ink);margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg> Suporte / Reportar Bug</div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:18px;">Enviaremos para <strong>suporte@pintorplus.com</strong> com seus dados de cadastro e o log do app.</div>
+
+      <div class="fld">
+        <label class="flbl">SEUS DADOS (automático)</label>
+        <div id="sp-user-info" style="font-size:13px;color:var(--ink2);background:var(--bg-input);border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;line-height:1.8;">—</div>
+      </div>
+
+      <div class="fld">
+        <label class="flbl">DESCREVA O PROBLEMA</label>
+        <textarea class="fta" id="sp-msg" placeholder="O que aconteceu? Quais passos causaram o bug?" style="min-height:110px;"></textarea>
+      </div>
+
+      <div class="fld">
+        <label class="flbl">IMAGENS / CAPTURAS DE TELA (opcional)</label>
+        <div id="sp-img-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;min-height:0;"></div>
+        <input type="file" id="sp-img-input" accept="image/*" multiple style="display:none;" onchange="addSupportImages(this)">
+        <button onclick="document.getElementById('sp-img-input').click()" style="width:100%;height:40px;border-radius:10px;background:var(--bg-input);border:1.5px dashed var(--bdr-input);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Adicionar imagens</button>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="background:none;border:none;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:var(--bl);cursor:pointer;padding:0;"><svg class="ico" aria-hidden="true"><use href="#ico-eye"/></svg> Ver log técnico incluído</button>
+        <pre id="sp-log" style="display:none;margin-top:8px;font-size:10px;background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:10px;overflow-x:auto;white-space:pre-wrap;color:var(--ink3);max-height:140px;overflow-y:auto;line-height:1.5;"></pre>
+      </div>
+
+      <div id="sp-img-note" style="display:none;margin-bottom:14px;font-size:11px;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;padding:8px 12px;line-height:1.5;">📎 Após clicar em "Abrir Email", anexe as imagens selecionadas ao email antes de enviar.</div>
+
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('modal-suporte').style.display='none'" style="flex:1;height:46px;border-radius:12px;background:var(--bg-input);border:1.5px solid var(--bdr-input);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;">Cancelar</button>
+        <button onclick="enviarSuporte()" style="flex:1;height:46px;border-radius:12px;background:var(--bl);border:none;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Abrir Email</button>
       </div>
     </div>
   </div>
@@ -1938,7 +2073,8 @@ let _tt;
 function _ico(n){return '<svg class="ico" aria-hidden="true"><use href="#ico-'+n+'"/></svg>';}
 function toast(msg){ const el=document.getElementById('toast');if(!el)return; el.innerHTML=msg; el.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), 2600); }
 function f1(n){ return(Math.round((n||0)*10)/10).toFixed(1); }
-function getRoomMeds(r){ let m2=0,ml=0; (r.items||[]).forEach(it=>{const a=parseFloat(it.alt)||0,c=parseFloat(it.comp)||0; if(a&&c)m2+=a*c; else if(a||c)ml+=(a||c);}); return{m2,ml}; }
+function ptFloat(v){if(typeof v==='number')return v||0;let s=String(v).trim();if(s.includes('.')&&s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(',')&&!s.includes('.'))s=s.replace(',','.');return parseFloat(s)||0;}
+function getRoomMeds(r){ let m2=0,ml=0; (r.items||[]).forEach(it=>{const a=ptFloat(it.alt),c=ptFloat(it.comp); if(a&&c)m2+=a*c; else if(a||c)ml+=(a||c);}); return{m2,ml}; }
 function getStatusBadgeClass(st) {
   const s = (st || '').toLowerCase();
   if (s.includes('aprov') || s.includes('concl')) return 'hbg';
@@ -1952,7 +2088,7 @@ function getStatusBadgeClass(st) {
 const GMAPS_KEY = '';
 
 // DADOS GLOBAIS
-const defCfg = { empresa:'', tel:'', doc:'', emailEmpresa:'', endEmpresa:'', msg:'Olá {cliente}!\nSegue o resumo do seu orçamento:\n\n{detalhes}\n*Valor Total: {total}*\n\nQualquer dúvida estou à disposição.', servicos:'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz', pgto:'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado', statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado', skipDelConfirm:false, skipDirtyConfirm:false, logo:'' };
+const defCfg = { empresa:'', tel:'', doc:'', emailEmpresa:'', endEmpresa:'', msg:'Olá {cliente}!\nSegue o resumo do seu orçamento:\n\n{detalhes}\n*Valor Total: {total}*\n\nQualquer dúvida estou à disposição.', servicos:'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz', pgto:'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado', statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado', skipDelConfirm:false, skipDirtyConfirm:false, logo:'', acessibilidade:false };
 const S = {
   orcs: JSON.parse(localStorage.getItem('pp-orcs')||'[]'), 
   clientes: JSON.parse(localStorage.getItem('pp-clientes')||'[]'),
@@ -1972,6 +2108,7 @@ if (S.config && S.config.msg && !S.config.msg.includes('{total}')) {
   S.config.msg += '\\n\\n*Valor Total: {total}*';
   localStorage.setItem('pp-config', JSON.stringify(S.config));
 }
+if (S.config.acessibilidade) document.body.classList.add('acessivel');
 
 S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean);
 S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean);
@@ -2261,7 +2398,7 @@ function calcOrcTotal(orc) {
     const meds = getRoomMeds(r); totalM2 += meds.m2;
     if(r.preco) tot += r.precoPerM2 ? (r.preco*meds.m2) : r.preco;
     (r.items||[]).forEach(it => {
-      if(it.price) tot += it.perMeter ? (it.price * ((parseFloat(it.alt)||0)*(parseFloat(it.comp)||0) || (parseFloat(it.alt)||parseFloat(it.comp)||0))) : it.price;
+      if(it.price) tot += it.perMeter ? (it.price * ((ptFloat(it.alt)*ptFloat(it.comp)) || ptFloat(it.alt)||ptFloat(it.comp))) : it.price;
     });
   });
   if(orc.preco && totalM2) tot += orc.preco * totalM2;
@@ -2273,8 +2410,8 @@ function _updateItemPrecoDisplay() {
   const el = document.getElementById('item-preco-total-display');
   if (!el) return;
   if (!S.tempItem.perMeter || !S.tempItem.price) { el.style.display = 'none'; return; }
-  const alt = parseFloat(S.tempItem.alt) || 0;
-  const comp = parseFloat(S.tempItem.comp) || 0;
+  const alt = ptFloat(S.tempItem.alt);
+  const comp = ptFloat(S.tempItem.comp);
   const m2 = (alt && comp) ? alt * comp : (alt || comp);
   const total = S.tempItem.price * m2;
   el.style.display = 'block';
@@ -2307,7 +2444,7 @@ function renderRooms(){
     const medLabel = medTxt.length ? medTxt.join(' + ') : '—';
 
     const itemsHtml=r.items.map((it,ii)=>{
-      const a=parseFloat(it.alt)||0, c=parseFloat(it.comp)||0; let badge = (a&&c) ? f1(a*c)+' m²' : (a||c) ? f1(a||c)+' ml' : 'Sem medidas';
+      const a=ptFloat(it.alt), c=ptFloat(it.comp); let badge = (a&&c) ? f1(a*c)+' m²' : (a||c) ? f1(a||c)+' ml' : 'Sem medidas';
       return `<div class="item-summary" onclick="editItem(${ri}, ${ii})"><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.name || 'Item '+(ii+1)}</div><div style="font-size:12px; color:var(--ink3); margin-top:3px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${badge} • ${(it.services||[]).length} serv.</div></div><button class="item-del" onclick="event.stopPropagation();removeItem(${ri},${ii})"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>`;
     }).join('');
 
@@ -2322,7 +2459,7 @@ function renderRooms(){
         <div style="margin-bottom:16px;">
           <div style="font-size:13px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;"><svg class="ico" aria-hidden="true"><use href="#ico-banknote"/></svg> ${hasMult?'Preço base do local':'Preço Total Base'}</div>
           <div style="display:flex;gap:10px;align-items:center;">
-            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="number" step="0.01" inputmode="decimal" placeholder="0,00" value="${r.preco||''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'Calibri',sans-serif;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="if(this.value){this.value=parseFloat(this.value).toFixed(2)}; this.style.borderColor='var(--bdr-input)';" oninput="S.rooms[${ri}].preco=parseFloat(this.value)||0;calcTotal();_updatePrecoBaseDisplay(${ri});"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2?'block':'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
+            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="text" inputmode="decimal" placeholder="0,00" value="${r.preco?String(r.preco).replace('.',','):''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'Calibri',sans-serif;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="if(this.value){const v=ptFloat(this.value);this.value=v?v.toFixed(2).replace('.',','):'';S.rooms[${ri}].preco=v;}; this.style.borderColor='var(--bdr-input)';" oninput="this.value=this.value.replace('.',',');S.rooms[${ri}].preco=ptFloat(this.value);calcTotal();_updatePrecoBaseDisplay(${ri});"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2?'block':'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
             <div style="display:flex;flex-direction:column;gap:4px;">
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="fixo" ${!r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=false;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Fixo</label>
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="m2" ${r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=true;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Por m²</label>
@@ -2396,8 +2533,8 @@ function renderItemModal() {
   document.getElementById('item-modal-body').innerHTML = `
     <div class="fld"><label class="flbl">NOME DO ITEM</label><input class="finput item-title-inp" value="${it.name.replace(/"/g,'&quot;')}" placeholder="Ex: Parede Norte" oninput="S.tempItem.name=this.value" onfocus="this.select()"></div>
     <div class="dim2-grid">
-      <div class="mbox"><div class="mlbl">Altura (m)</div><input class="minp" type="number" step="0.01" inputmode="decimal" placeholder="0,00" value="${it.alt||''}" oninput="S.tempItem.alt=this.value;" onblur="if(this.value) this.value=parseFloat(this.value).toFixed(2)" onfocus="this.select()"></div>
-      <div class="mbox"><div class="mlbl">Comprimento (m)</div><input class="minp" type="number" step="0.01" inputmode="decimal" placeholder="0,00" value="${it.comp||''}" oninput="S.tempItem.comp=this.value;" onblur="if(this.value) this.value=parseFloat(this.value).toFixed(2)" onfocus="this.select()"></div>
+      <div class="mbox"><div class="mlbl">Altura (m)</div><input class="minp" type="text" inputmode="decimal" placeholder="0,00" value="${it.alt?String(it.alt).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.alt=this.value;" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.alt=this.value;}" onfocus="this.select()"></div>
+      <div class="mbox"><div class="mlbl">Comprimento (m)</div><input class="minp" type="text" inputmode="decimal" placeholder="0,00" value="${it.comp?String(it.comp).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.comp=this.value;" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.comp=this.value;}" onfocus="this.select()"></div>
     </div>
     
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Fotos do Item</div>
@@ -2419,7 +2556,7 @@ function renderItemModal() {
     
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
     <div class="price-check-row" style="margin-bottom:8px;">
-      <input type="number" step="0.01" inputmode="decimal" placeholder="R$ 0,00" value="${it.price||''}" oninput="S.tempItem.price=parseFloat(this.value)||0;_updateItemPrecoDisplay();" onblur="if(this.value) this.value=parseFloat(this.value).toFixed(2)" onfocus="this.select()">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price?String(it.price).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
       <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter?'checked':''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
     </div>
     <div id="item-preco-total-display" style="display:${it.perMeter&&it.price?'block':'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
@@ -2563,28 +2700,35 @@ async function pickPhoneContactToSave() {
 function openClientPicker() { document.getElementById('client-picker-list').innerHTML = S.clientes.map((c,i) => `<div style="padding:16px; border-bottom:1px solid var(--bdr); cursor:pointer;" onclick="selectClientPicker(${i})"><div style="font-weight:700; font-size:15px; color:var(--ink);">${c.nome}</div><div style="font-size:13px; color:var(--ink3);">${c.tel || ''}</div></div>`).join('') || '<div style="padding:16px; font-size:13px; color:var(--ink3);">Nenhum contato salvo.</div>'; document.getElementById('modal-client-picker').style.display='flex'; }
 function selectClientPicker(i) { const c = S.clientes[i]; document.getElementById('cli-nome').value = c.nome || ''; document.getElementById('cli-tel').value = c.tel || ''; document.getElementById('cli-email').value = c.email || ''; document.getElementById('cli-cpf').value = c.cpf || ''; document.getElementById('cli-logradouro').value = c.end || ''; document.getElementById('modal-client-picker').style.display='none'; toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato selecionado!'); }
 
-function renderClientes() { 
-  const wrap = document.getElementById('clientes-list-full'); 
-  if(!wrap) return; 
-  if(!S.clientes || !S.clientes.length) { 
-    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum contato salvo ainda.</div></div>'; 
-    return; 
-  } 
-  wrap.innerHTML = S.clientes.map((c,i) => `
+function _cliMatch(c, q) {
+  return [c.nome, c.tel, c.email, c.cpf, c.end].some(p => p && String(p).toLowerCase().includes(q));
+}
+function renderClientes() {
+  const wrap = document.getElementById('clientes-list-full');
+  if(!wrap) return;
+  if(!S.clientes || !S.clientes.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum contato salvo ainda.</div></div>';
+    return;
+  }
+  const q = (document.getElementById('cli-search')?.value || '').toLowerCase().trim();
+  const indexed = S.clientes.map((c,i) => ({c,i}));
+  const filtered = q ? indexed.filter(({c}) => _cliMatch(c, q)) : indexed;
+  if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum contato encontrado para "<strong>${q}</strong>".</div>`; return; }
+  wrap.innerHTML = filtered.map(({c, i}) => `
     <div class="hoc" style="margin-bottom:12px;">
       <div class="hon">${c.nome}</div>
       <div class="hos" style="margin-bottom:8px;">${c.tel || 'Sem telefone'}</div>
       ${c.email ? `<div class="hos" style="margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-mail"/></svg> ${c.email}</div>` : ''}
       ${c.end ? `<div class="hos" style="margin-bottom:12px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${c.end}</div>` : ''}
-      
+
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button onclick="editClient(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
         <button onclick="askDelete('Deseja excluir este contato?', () => deleteClient(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
       </div>
-      
+
       <button onclick="exportVCF(${i})" style="width:100%;height:38px;border-radius:10px;background:transparent;color:var(--ink2);border:1px solid var(--bdr);font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Salvar na Agenda do Celular</button>
     </div>
-  `).join(''); 
+  `).join('');
 }
 
 function deleteClient(i) {
@@ -2635,27 +2779,34 @@ function saveEditClient() {
 function exportVCF(i) { const c = S.clientes[i]; const vcf = `BEGIN:VCARD\nVERSION:3.0\nFN:${c.nome}\nTEL;TYPE=CELL:${c.tel||''}\nEND:VCARD`; const blob = new Blob([vcf], {type: 'text/vcard'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${c.nome.replace(/\s+/g,'_')}.vcf`; a.click(); URL.revokeObjectURL(url); toast('Baixando arquivo de contato...'); }
 
 // FORNECEDORES
-function renderFornecedores() { 
-  const wrap = document.getElementById('fornecedores-list-full'); 
-  if(!wrap) return; 
-  if(!S.fornecedores || !S.fornecedores.length) { 
-    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum fornecedor cadastrado.</div></div>'; 
-    return; 
-  } 
-  wrap.innerHTML = S.fornecedores.map((f,i) => `
+function _fornMatch(f, q) {
+  return [f.nome, f.tel, f.cat].some(p => p && String(p).toLowerCase().includes(q));
+}
+function renderFornecedores() {
+  const wrap = document.getElementById('fornecedores-list-full');
+  if(!wrap) return;
+  if(!S.fornecedores || !S.fornecedores.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum fornecedor cadastrado.</div></div>';
+    return;
+  }
+  const q = (document.getElementById('forn-search')?.value || '').toLowerCase().trim();
+  const indexed = S.fornecedores.map((f,i) => ({f,i}));
+  const filtered = q ? indexed.filter(({f}) => _fornMatch(f, q)) : indexed;
+  if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum fornecedor encontrado para "<strong>${q}</strong>".</div>`; return; }
+  wrap.innerHTML = filtered.map(({f, i}) => `
     <div class="hoc" style="margin-bottom:12px; border-left:4px solid var(--am);">
       <div class="hon">${f.nome}</div>
       <div class="hos" style="margin-bottom:4px;">${f.tel || 'Sem telefone'}</div>
       ${f.cat ? `<div class="hbadge hby" style="margin-bottom:12px;">${f.cat}</div>` : ''}
-      
+
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button onclick="editFornecedor(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bg2);color:var(--ink2);border:1px solid var(--bdr);font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
         <button onclick="askDelete('Deseja excluir este fornecedor?', () => deleteFornecedor(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
       </div>
-      
+
       <button onclick="askQuoteFornecedor(${i})" style="width:100%;height:38px;border-radius:10px;background:#25D366;color:#fff;border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Pedir Cotação de Materiais</button>
     </div>
-  `).join(''); 
+  `).join('');
 }
 
 function openEditFornecedor(i) {
@@ -3042,7 +3193,7 @@ async function fetchCep(cep){
 
   function showError() {
     spin.style.opacity='0'; msg.style.display='block'; msg.style.color='var(--rd)';
-    msg.textContent='<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao buscar CEP. Preencha manualmente.';
+    msg.innerHTML='<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao buscar CEP. Preencha manualmente.';
   }
 
   // Tenta fetch normal (funciona no deploy real)
@@ -3132,9 +3283,10 @@ function renderLogoPreview() {
   }
 }
 
-function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; renderLogoPreview(); renderSigPreview(); _cfgDirty = false; showPage('pg-config'); }); }
+function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
 function saveConfig() { 
-  S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '' };
+  S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false };
+  document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
   S.DEFAULT_SERVICES = S.config.servicos.split(',').map(s=>s.trim()).filter(Boolean); 
   if(!S.DEFAULT_SERVICES.length) S.DEFAULT_SERVICES = defCfg.servicos.split(',').map(s=>s.trim()); 
   S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); 
@@ -3163,7 +3315,7 @@ function homeTab(tab){
     document.getElementById('cfg-save-modal').style.display = 'flex';
     return;
   }
-  if(tab === 'config') { openConfig(); return; } if(tab === 'flash') { canNavigateAsync(() => { S.isDirty = false; openFlash(); }); return; } canNavigateAsync(() => { S.isDirty = false; if(tab === 'home') { showPage('pg-home'); renderHomeMini(); renderHomeEvents(); renderHomeNews(); } else if(tab === 'orcamentos') { showPage('pg-orcamentos'); renderOrcamentosList(); } else if(tab === 'clientes') { showPage('pg-clientes'); renderClientes(); } else if(tab === 'fornecedores') { showPage('pg-fornecedores'); renderFornecedores(); } else if(tab === 'agenda') { showPage('pg-agenda'); renderAgenda(); } else if(tab === 'backup') { showPage('pg-backup'); } else if(tab === 'termos') { showPage('pg-termos'); } }); }
+  if(tab === 'config') { openConfig(); return; } if(tab === 'flash') { canNavigateAsync(() => { S.isDirty = false; openFlash(); }); return; } canNavigateAsync(() => { S.isDirty = false; ['orc-search','cli-search','forn-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); if(tab === 'home') { showPage('pg-home'); renderHomeMini(); renderHomeEvents(); renderHomeNews(); } else if(tab === 'orcamentos') { showPage('pg-orcamentos'); renderOrcamentosList(); } else if(tab === 'clientes') { showPage('pg-clientes'); renderClientes(); } else if(tab === 'fornecedores') { showPage('pg-fornecedores'); renderFornecedores(); } else if(tab === 'agenda') { showPage('pg-agenda'); renderAgenda(); } else if(tab === 'backup') { showPage('pg-backup'); } else if(tab === 'termos') { showPage('pg-termos'); } }); }
 
 // ── TERMOS & PRIVACIDADE — LGPD ──────────────────────────────
 const TERMS_VERSION = '1';
@@ -3228,7 +3380,7 @@ function renderHomeMini() {
   
   const wrap=document.getElementById('home-orcs-mini');if(!wrap)return;
   if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
-  wrap.innerHTML=S.orcs.slice(0,3).map((o,i)=>{ let tot = calcOrcTotal(o); const isR=(o.status||'')==='Rascunho'; const rTag=isR?`<span class="badge-rascunho">Rascunho</span>`:''; return `<div class="hoc${isR?' card-rascunho':''}" onclick="editOrc(${i})" style="margin-bottom:9px;cursor:pointer;"><div class="hot" style="margin-bottom:4px;"><div><div class="hon">${o.nome||'(sem nome)'}${rTag}</div><div class="hos">Última edição: ${buildDateLabel(o.tsEdit || o.ts || Date.now())}</div></div><div class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div></div>`; }).join('');
+  wrap.innerHTML=S.orcs.slice(0,3).map((o,i)=>{ let tot = calcOrcTotal(o); const isR=(o.status||'')==='Rascunho'; const rTag=isR?`<span class="badge-rascunho">Rascunho</span>`:''; const badgeHtml=isR?'':(`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`); const waUrl=(()=>{const tel=(o.tel||'').replace(/\D/g,'');return tel?`https://wa.me/55${tel}?text=${encodeURIComponent(buildWAMsg(o))}`:`https://wa.me/?text=${encodeURIComponent(buildWAMsg(o))}`;})(); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:9px;"><div class="hot" style="margin-bottom:6px;"><div><div class="hon">${o.nome||'(sem nome)'}${rTag}</div><div class="hos">${buildDateLabel(o.tsEdit || o.ts || Date.now())}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">${badgeHtml}<div class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div></div><div class="hoas"><button class="hoa wa" onclick="window.open('${waUrl}','_blank')" title="WhatsApp"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25D366" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button><button class="hoa recibo" onclick="abrirModalRecibo(${i})" title="Recibo"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg></button><button class="hoa ok" onclick="editOrc(${i})"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button><button class="hoa" style="background:var(--rdl);color:var(--rd);" onclick="askDelete('Excluir este orçamento?',()=>delOrc(${i}))"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button></div></div>`; }).join('');
 }
 
 // --- MÓDULO: EVENTOS DA SEMANA NA HOME ---
@@ -3315,17 +3467,24 @@ async function renderHomeNews() {
   }
 }
 
+function _orcMatch(o, q) {
+  const tot = calcOrcTotal(o);
+  const parts = [o.nome,o.tel,o.email,o.cpf,o.cep,o.logradouro,o.numero,o.comp,o.bairro,o.cidade,o.end,o.status,o.obs,o.date,o.inicio,o.tipoServico,o.pagNome,o.pagTel,o.pagEnd,(o.pgto||[]).join(' '),tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'',(o.rooms||[]).map(r=>[r.nome,r.obs,(r.items||[]).map(it=>[it.name,it.obs].join(' ')).join(' ')].join(' ')).join(' ')];
+  return parts.some(p=>p&&String(p).toLowerCase().includes(q));
+}
 function renderOrcamentosList() {
+  const q=(document.getElementById('orc-search')?.value||'').toLowerCase().trim();
   const wrap=document.getElementById('orcamentos-list-full');if(!wrap)return;
   if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="newOrc()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>'; return; }
-  wrap.innerHTML=S.orcs.map((o,i)=>{
-    let tot = calcOrcTotal(o); const qtdLocais = (o.rooms||[]).length; const infoTxt = qtdLocais === 1 ? `${o.rooms[0].items?.length || 0} item(ns)` : `${qtdLocais} local(is)`;
-    let hasPhotos = false; (o.rooms||[]).forEach(r => (r.items||[]).forEach(it => { if(it.photos?.length) hasPhotos=true; }));
-    const photoBtnHtml = hasPhotos ? `<button class="hoa" style="background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;" onclick="event.stopPropagation();GPhotos.exportOrcPhotos(${i})" title="Enviar fotos ao Google Drive"><svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg><svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg></button>` : '';
-    const isRascunho = (o.status||'') === 'Rascunho';
-    const rascunhoTag = isRascunho ? `<span class="badge-rascunho">Rascunho</span>` : '';
-    const badgeHtml = isRascunho ? '' : `<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
-    return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:12px;"><div class="hot"><div><div class="hon">${o.nome||'(sem nome)'}${rascunhoTag}</div><div class="hos">Edição: ${buildDateLabel(o.tsEdit || o.ts || Date.now())}</div></div>${badgeHtml}</div><div class="hob"><div class="hood"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${o.end||'—'} · ${infoTxt}</div><div class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div><div class="hoas"><button class="hoa wa" onclick="sendWAIdx(${i})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#25D366;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></button>${photoBtnHtml}<button class="hoa ok" onclick="editOrc(${i})"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button><button class="hoa recibo" onclick="event.stopPropagation();abrirModalRecibo(${i})" title="Gerar Recibo"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Recibo</button><button class="hoa" style="background:var(--rdl);color:var(--rd);" onclick="askDelete('Excluir este orçamento?', ()=>delOrc(${i}))"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button></div></div>`;
+  const indexed = S.orcs.map((o,i)=>({o,i}));
+  const filtered = q ? indexed.filter(({o})=>_orcMatch(o,q)) : indexed;
+  if(!filtered.length){ wrap.innerHTML=`<div class="srch-empty">Nenhum orçamento encontrado para "<strong>${q}</strong>".</div>`; return; }
+  wrap.innerHTML=filtered.map(({o,i})=>{
+    let tot=calcOrcTotal(o); const qtdLocais=(o.rooms||[]).length; const infoTxt=qtdLocais===1?`${o.rooms[0].items?.length||0} item(ns)`:`${qtdLocais} local(is)`;
+    const isRascunho=(o.status||'')==='Rascunho';
+    const rascunhoTag=isRascunho?`<span class="badge-rascunho">Rascunho</span>`:'';
+    const badgeHtml=isRascunho?'':`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
+    return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:12px;"><div class="hot"><div><div class="hon">${o.nome||'(sem nome)'}${rascunhoTag}</div><div class="hos">Edição: ${buildDateLabel(o.tsEdit||o.ts||Date.now())}</div></div>${badgeHtml}</div><div class="hob"><div class="hood"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${o.end||'—'} · ${infoTxt}</div><div class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</div></div><div class="hoas"><button class="hoa wa" onclick="sendWAIdx(${i})"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#25D366;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></button><button class="hoa ok" onclick="editOrc(${i})"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button><button class="hoa recibo" onclick="event.stopPropagation();abrirModalRecibo(${i})" title="Gerar Recibo"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Recibo</button><button class="hoa" style="background:var(--rdl);color:var(--rd);" onclick="askDelete('Excluir este orçamento?',()=>delOrc(${i}))"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button></div></div>`;
   }).join('');
 }
 
@@ -3428,7 +3587,7 @@ function gerarReciboPDF() {
   const tot = calcOrcTotal(o);
   const custom = document.getElementById('rb-valor-custom').checked;
   let valor = custom
-    ? parseFloat(document.getElementById('rb-valor-input').value) || 0
+    ? ptFloat(document.getElementById('rb-valor-input').value)
     : tot;
   if (valor <= 0) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Informe um valor válido.'); return; }
 
@@ -3821,7 +3980,13 @@ const GDrive = {
         error_callback: (err) => {
           console.warn('GDrive: GIS error', err);
           if (err && (err.type === 'popup_blocked_by_browser' || err.type === 'popup_failed_to_open')) {
-            self._showPopupBlockedMsg();
+            // Se há sessão existente, o erro veio do refresh silencioso (_tryStart),
+            // não de uma ação manual do usuário — mostra apenas o banner discreto.
+            if (self._sessionLoaded) {
+              self._showReconnectBanner();
+            } else {
+              self._showPopupBlockedMsg();
+            }
             return;
           }
           if (!self.accessToken) {
@@ -4760,8 +4925,159 @@ const GPhotos = {
   },
 };
 
+// ─── PWA Install Banner ────────────────────────────────────────────────────
+let _deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  if (!localStorage.getItem('pp-pwa-dismissed')) {
+    const el = document.getElementById('pwa-banner');
+    if (el) el.style.display = 'flex';
+  }
+});
+window.addEventListener('appinstalled', () => {
+  const el = document.getElementById('pwa-banner');
+  if (el) el.style.display = 'none';
+  _deferredPrompt = null;
+});
+function installPWA() {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  _deferredPrompt.userChoice.then(() => {
+    const el = document.getElementById('pwa-banner');
+    if (el) el.style.display = 'none';
+    _deferredPrompt = null;
+  });
+}
+function dismissPWABanner() {
+  const el = document.getElementById('pwa-banner');
+  if (el) el.style.display = 'none';
+  localStorage.setItem('pp-pwa-dismissed', '1');
+}
+
+// ─── SUPORTE / BUG REPORT ─────────────────────────────────────────────────
+let _supportImages = [];
+
+function _gerarLogSuporte() {
+  const now = new Date().toLocaleString('pt-BR');
+  const cfg = S.config || {};
+  const session = (() => { try { return JSON.parse(localStorage.getItem('pp-session') || '{}'); } catch(e) { return {}; } })();
+  const gUser = (typeof GDrive !== 'undefined' && GDrive.user) ? GDrive.user : session;
+  const lines = [
+    '=== LOG PINTOR PLUS ===',
+    'Data/Hora: ' + now,
+    'Versão SW:  pintorplus-v13',
+    'UA: ' + navigator.userAgent,
+    '',
+    '--- CONTA GOOGLE ---',
+    'Nome:  ' + (gUser.name || '—'),
+    'Email: ' + (gUser.email || '—'),
+    '',
+    '--- CADASTRO DO APP ---',
+    'Nome empresa: ' + (cfg.nome || '—'),
+    'Telefone:     ' + (cfg.tel || '—'),
+    'Email app:    ' + (cfg.email || '—'),
+    'CNPJ/CPF:     ' + (cfg.cnpj || '—'),
+    'Endereço:     ' + (cfg.end || '—'),
+    '',
+    '--- DADOS ---',
+    'Orçamentos:  ' + (S.orcs ? S.orcs.length : 0),
+    'Clientes:    ' + (S.clientes ? S.clientes.length : 0),
+    'Fornecedores:' + (S.fornecedores ? S.fornecedores.length : 0),
+    'Eventos:     ' + (S.eventos ? S.eventos.length : 0),
+    '',
+    '--- LOCAL STORAGE ---',
+    'pp-gdrive-lastSync: ' + (localStorage.getItem('pp-gdrive-lastSync') || '—'),
+    'pp-gdrive-email:    ' + (localStorage.getItem('pp-gdrive-email') || '—'),
+    '====================='
+  ];
+  return lines.join('\n');
+}
+
+function abrirModalSuporte() {
+  _supportImages = [];
+  const preview = document.getElementById('sp-img-preview');
+  if (preview) preview.innerHTML = '';
+  const imgInput = document.getElementById('sp-img-input');
+  if (imgInput) imgInput.value = '';
+  const msg = document.getElementById('sp-msg');
+  if (msg) msg.value = '';
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = 'none';
+
+  const log = _gerarLogSuporte();
+  const logEl = document.getElementById('sp-log');
+  if (logEl) { logEl.textContent = log; logEl.style.display = 'none'; }
+
+  const session = (() => { try { return JSON.parse(localStorage.getItem('pp-session') || '{}'); } catch(e) { return {}; } })();
+  const gUser = (typeof GDrive !== 'undefined' && GDrive.user) ? GDrive.user : session;
+  const cfg = S.config || {};
+  const infoEl = document.getElementById('sp-user-info');
+  if (infoEl) {
+    infoEl.innerHTML = [
+      gUser.name ? `<strong>${gUser.name}</strong>` : '',
+      gUser.email ? gUser.email : '',
+      cfg.nome ? cfg.nome : '',
+      cfg.tel ? cfg.tel : '',
+      cfg.cnpj ? cfg.cnpj : ''
+    ].filter(Boolean).join('<br>') || '—';
+  }
+
+  document.getElementById('modal-suporte').style.display = 'flex';
+}
+
+function addSupportImages(input) {
+  const files = Array.from(input.files || []);
+  _supportImages = _supportImages.concat(files);
+  const preview = document.getElementById('sp-img-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  _supportImages.forEach((file, idx) => {
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0;';
+    wrap.innerHTML = `<img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr);">
+      <button onclick="_removeSupportImage(${idx})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rd);color:#fff;border:none;font-size:11px;font-weight:800;cursor:pointer;line-height:1;">✕</button>`;
+    preview.appendChild(wrap);
+  });
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = _supportImages.length ? 'block' : 'none';
+}
+
+function _removeSupportImage(idx) {
+  _supportImages.splice(idx, 1);
+  const fakeInput = { files: _supportImages };
+  const preview = document.getElementById('sp-img-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  _supportImages.forEach((file, i) => {
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0;';
+    wrap.innerHTML = `<img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr);">
+      <button onclick="_removeSupportImage(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rd);color:#fff;border:none;font-size:11px;font-weight:800;cursor:pointer;line-height:1;">✕</button>`;
+    preview.appendChild(wrap);
+  });
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = _supportImages.length ? 'block' : 'none';
+}
+
+function enviarSuporte() {
+  const msg = (document.getElementById('sp-msg')?.value || '').trim();
+  if (!msg) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Descreva o problema antes de enviar.'); return; }
+  const log = document.getElementById('sp-log')?.textContent || _gerarLogSuporte();
+  const body = [msg, '', '---', log].join('\n');
+  const subject = 'Bug/Suporte — Pintor Plus';
+  const mailto = `mailto:suporte@pintorplus.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailto);
+  document.getElementById('modal-suporte').style.display = 'none';
+  if (_supportImages.length) {
+    setTimeout(() => toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Lembre-se de anexar as imagens ao email!'), 600);
+  }
+}
+
 </script>
-<footer style="display:none" aria-hidden="true">
+<footer style="display:none">
   <a href="/privacy-policy.html">Política de Privacidade e Termos de Uso — Pintor Plus</a>
 </footer>
 </body>
