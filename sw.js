@@ -1,13 +1,11 @@
-const CACHE_NAME = 'pintorplus-v2';
-const ASSETS = [
-  './',
-  './index.html',
+const CACHE_NAME = 'pintorplus-v3';
+const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap'
 ];
 
 self.addEventListener('install', (evt) => {
   evt.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
   self.skipWaiting();
 });
@@ -30,7 +28,21 @@ self.addEventListener('fetch', (evt) => {
     return;
   }
 
-  // Ativos locais e fontes: cache-first
+  // index.html e raiz do app: network-first (sempre busca versão atualizada)
+  if (url.endsWith('/') || url.includes('index.html') || url === self.location.origin + '/') {
+    evt.respondWith(
+      fetch(evt.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(evt.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(evt.request))
+    );
+    return;
+  }
+
+  // Demais ativos locais e fontes: cache-first
   evt.respondWith(
     caches.match(evt.request).then((cachedResp) => {
       return cachedResp || fetch(evt.request).then((response) => {
