@@ -3380,18 +3380,13 @@ const GDrive = {
 
   _initGapi() {
     const self = this;
+    // Não carrega discovery doc — todas as operações Drive usam fetch() diretamente
+    // Apenas aguarda gapi estar disponível para não travar GIS
     const check = setInterval(() => {
       if (typeof gapi === 'undefined') return;
       clearInterval(check);
-      gapi.load('client', async () => {
-        try {
-          await gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest');
-        } catch(e) {
-          console.warn('GDrive: Drive discovery doc falhou, operações de Drive podem não funcionar.');
-        }
-        self._gapiReady = true;
-        self._tryStart();
-      });
+      self._gapiReady = true;
+      self._tryStart();
     }, 100);
   },
 
@@ -3446,7 +3441,6 @@ const GDrive = {
       return;
     }
     this.accessToken = resp.access_token;
-    gapi.client.setToken({ access_token: resp.access_token });
     if (this._sessionLoaded) {
       // Já está em pg-home: apenas reconecta Drive
       this._hideOfflineBanner();
@@ -3471,7 +3465,6 @@ const GDrive = {
     this.accessToken = null;
     this.user = null;
     this.fileId = null;
-    if (typeof gapi !== 'undefined') gapi.client.setToken(null);
     localStorage.removeItem('pp-gdrive-email');
     localStorage.removeItem('pp-gdrive-lastSync');
     localStorage.removeItem('pp-session');
@@ -3513,25 +3506,31 @@ const GDrive = {
     }
   },
 
-  // ── OPERAÇÕES NO DRIVE ────────────────────────────────────
+  // ── OPERAÇÕES NO DRIVE (fetch direto — sem dependency do gapi discovery doc) ──
   async _findFile() {
     if (!this.accessToken) return;
     try {
-      // Busca pelo nome novo e pelo nome legado (pintor-pro-backup.json)
-      const resp = await gapi.client.drive.files.list({
-        spaces: 'appDataFolder',
-        q: "name = '" + this.FILE_NAME + "' or name = 'pintor-pro-backup.json'",
-        fields: 'files(id,name,modifiedTime)',
-        pageSize: 2,
-        orderBy: 'modifiedTime desc',
-      });
-      const files = resp.result.files || [];
+      const q = encodeURIComponent("name = '" + this.FILE_NAME + "' or name = 'pintor-pro-backup.json'");
+      const r = await fetch(
+        'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' + q +
+        '&fields=files(id,name,modifiedTime)&pageSize=2&orderBy=modifiedTime%20desc',
+        { headers: { Authorization: 'Bearer ' + this.accessToken } }
+      );
+      if (r.status === 401) {
+        this.accessToken = null;
+        this.pendingSync = true;
+        this._showReconnectBanner();
+        return;
+      }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const files = data.files || [];
       this.fileId = files.length > 0 ? files[0].id : null;
       const lastSync = localStorage.getItem('pp-gdrive-lastSync');
       this._setStatus('ok', 'Conectado' + (lastSync ? ' · Último sync: ' + lastSync : ''));
     } catch(e) {
       console.error('GDrive: findFile falhou', e);
-      this._setStatus('err', 'Erro ao buscar arquivo no Drive');
+      this._setStatus('err', 'Erro ao conectar ao Drive');
     }
   },
 
@@ -3595,7 +3594,6 @@ const GDrive = {
         this._setStatus('err', 'Erro ao salvar no Drive');
         if (e.message && e.message.includes('401')) {
           this.accessToken = null;
-          gapi.client.setToken(null);
           // Marca sync pendente para executar após reconexão
           this.pendingSync = true;
           this._showReconnectBanner();
@@ -3612,8 +3610,12 @@ const GDrive = {
     try {
       if (!this.fileId) await this._findFile();
       if (!this.fileId) return null;
-      const resp = await gapi.client.drive.files.get({ fileId: this.fileId, alt: 'media' });
-      return typeof resp.result === 'string' ? JSON.parse(resp.result) : resp.result;
+      const r = await fetch(
+        'https://www.googleapis.com/drive/v3/files/' + this.fileId + '?alt=media',
+        { headers: { Authorization: 'Bearer ' + this.accessToken } }
+      );
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
     } catch(e) {
       console.error('GDrive: readFromDrive falhou', e);
       return null;
