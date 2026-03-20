@@ -2041,7 +2041,15 @@ window.addEventListener('beforeunload', () => {
   if (S.isDirty) _autoSaveRascunho();
 });
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && S.isDirty) _autoSaveRascunho();
+  if (document.visibilityState === 'hidden') {
+    if (S.isDirty) _autoSaveRascunho();
+  } else if (document.visibilityState === 'visible') {
+    // App voltou do background — se sessão existe mas token foi perdido, tenta reconectar silenciosamente
+    if (GDrive._sessionLoaded && !GDrive.accessToken && GDrive._gisReady) {
+      const savedEmail = localStorage.getItem('pp-gdrive-email');
+      if (savedEmail) GDrive.tokenClient.requestAccessToken({ prompt: '', login_hint: savedEmail });
+    }
+  }
 });
 
 // ── CONFIGURAÇÕES: cards colapsáveis + confirmação de saída ────
@@ -3436,6 +3444,12 @@ const GDrive = {
   // ── CALLBACK DO TOKEN ─────────────────────────────────────
   _onToken(resp) {
     if (resp.error) {
+      // immediate_failed = token silencioso não disponível — não é erro do usuário
+      if (resp.error === 'immediate_failed') {
+        if (this._sessionLoaded) this._setStatus('off', 'Drive desconectado');
+        else this._showLoginBtn();
+        return;
+      }
       if (this._sessionLoaded) this._showReconnectBanner();
       else this._showLoginBtn();
       return;
@@ -3849,7 +3863,9 @@ const GCalendar = {
       console.error('GCalendar: erro', e);
       if (e.status === 401) {
         GDrive.accessToken = null;
-        toast('⚠️ Sessão expirada. Reconecte no Backup.');
+        GDrive.pendingSync = true;
+        GDrive._showReconnectBanner();
+        toast('⚠️ Sessão expirada. Toque no banner para reconectar.');
       } else {
         toast('❌ Erro ao enviar: ' + (e.result?.error?.message || e.message || 'desconhecido'));
       }
@@ -3944,7 +3960,8 @@ const GContacts = {
       loading.style.display = 'none';
       if (e.status === 401) {
         GDrive.accessToken = null;
-        toast('⚠️ Sessão expirada. Reconecte no Backup.');
+        GDrive._showReconnectBanner();
+        toast('⚠️ Sessão expirada. Toque no banner para reconectar.');
         modal.style.display = 'none';
       } else {
         list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--rd);">Erro ao carregar contatos.</div>';
@@ -4162,7 +4179,13 @@ const GPhotos = {
       toast('✅ ' + ok + '/' + photos.length + ' foto(s) salvas no Google Drive!');
     } catch (e) {
       console.error('GPhotos: erro', e);
-      toast('❌ Erro ao enviar fotos.');
+      if (e.status === 401 || (e.message && e.message.includes('401'))) {
+        GDrive.accessToken = null;
+        GDrive._showReconnectBanner();
+        toast('⚠️ Sessão expirada. Toque no banner para reconectar.');
+      } else {
+        toast('❌ Erro ao enviar fotos.');
+      }
     }
   },
 
