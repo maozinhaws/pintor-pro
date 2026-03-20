@@ -3351,6 +3351,15 @@ const GDrive = {
 
   // ── INICIALIZAÇÃO ─────────────────────────────────────────
   init() {
+    // ── Detecta retorno de redirect OAuth (implicit flow) ─────
+    // Google redireciona de volta com access_token no hash da URL
+    const _hp = new URLSearchParams(window.location.hash.slice(1));
+    const _redirectToken = _hp.get('access_token');
+    if (_redirectToken) {
+      history.replaceState(null, '', window.location.pathname);
+      this.accessToken = _redirectToken;
+    }
+
     this._initGapi();
     this._initGis();
     this._initConnectivity();
@@ -3364,6 +3373,11 @@ const GDrive = {
         else this._setStatus('off', 'Drive desconectado');
       }
     }, 8000);
+
+    // Se voltou de redirect OAuth: confirma token e reconecta Drive
+    if (_redirectToken) {
+      this._fetchUserInfo();
+    }
   },
 
   // ── SESSÃO LOCAL ──────────────────────────────────────────
@@ -3430,6 +3444,7 @@ const GDrive = {
 
   _tryStart() {
     if (!this._gapiReady || !this._gisReady) return;
+    if (this.accessToken) return; // Já temos token (ex: retorno de redirect OAuth)
     if (this._sessionLoaded) {
       // Sessão local existe: tenta reconectar Drive em background
       const savedEmail = localStorage.getItem('pp-gdrive-email');
@@ -3798,14 +3813,23 @@ const GDrive = {
     el.onclick = () => GDrive.reconnectDrive();
   },
 
-  reconnectDrive() {
+  // Redirect OAuth (implicit flow) — nunca bloqueado pelo navegador
+  _authViaRedirect() {
     const savedEmail = localStorage.getItem('pp-gdrive-email');
-    if (!this._gisReady) { toast('⏳ Aguarde...'); return; }
-    // Usa 'select_account' para garantir que o Google mostre a tela de conta
-    // quando o usuário clica manualmente — token pode ter expirado
-    const opts = { prompt: 'select_account' };
-    if (savedEmail) opts.login_hint = savedEmail;
-    this.tokenClient.requestAccessToken(opts);
+    const params = new URLSearchParams({
+      client_id: this.CLIENT_ID,
+      response_type: 'token',
+      redirect_uri: 'https://pintorplus.com.br/',
+      scope: this.SCOPES,
+      prompt: 'select_account',
+    });
+    if (savedEmail) params.set('login_hint', savedEmail);
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+  },
+
+  reconnectDrive() {
+    // Usa redirect em vez de popup — nunca é bloqueado pelo navegador
+    this._authViaRedirect();
   },
 
   _setStatus(state, msg) {

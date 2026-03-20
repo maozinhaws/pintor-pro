@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pintorplus-v4';
+const CACHE_NAME = 'pintorplus-v5';
 const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap'
 ];
