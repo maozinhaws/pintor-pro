@@ -1,0 +1,14 @@
+{
+  "workflow": {
+    "discuss_mode": "discuss",
+    "text_mode": false
+  },
+  "models": {
+    "executor": "sonnet",
+    "planner": "opus"
+  },
+  "preferences": {
+    "parallel_execution": false,
+    "auto_commit": true
+  }
+}
