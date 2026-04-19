@@ -2,19 +2,19 @@
 
 ## Milestone v1.0: Migração Firebase + Dexie
 
-### Phase 1: Setup de Bibliotecas
+### Phase 1: Setup de Bibliotecas ✅
 **Goal:** Preparar o app.html para novas dependências
 
 **Dependencies:** None
 
 **Plans:**
-- 1.1: Atualizar app.html head com novas libs
-- 1.2: Verificar compatibilidade e CSP inicial
+- 1.1: Atualizar app.html head com novas libs ✅
+- 1.2: Verificar compatibilidade e CSP inicial ✅
 
 **Deliverables:**
-- Dexie.js, Firebase SDK, pdfmake incluídos no HTML
-- html2pdf removido
-- CSP preparado para Firebase domains
+- Dexie.js, Firebase SDK, pdfmake incluídos no HTML ✅
+- html2pdf removido (deferred to Phase 6)
+- CSP preparado para Firebase domains ✅
 
 ---
 
