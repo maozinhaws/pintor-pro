@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(gsd-map-codebase)",
+      "Bash(find . -maxdepth 2 -type f -name *.json)",
+      "Bash(ls -la *.js)",
+      "Bash(ls -la *.html *.css)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Skill(gsd-plan-phase)",
+      "Skill(gsd-progress)",
+      "Skill(gsd-discuss-phase)",
+      "Skill(gsd-new-project)",
+      "Skill(gsd-execute-phase)",
+      "Bash(node:*)"
+    ]
+  }
+}

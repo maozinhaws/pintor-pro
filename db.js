@@ -241,15 +241,17 @@ async function dbMigrateFromLocalStorage() {
     const keys = ['pp-orcs', 'pp-clientes', 'pp-fornecedores', 'pp-config', 'pp-eventos'];
     
     for (const key of keys) {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      
-      // Try to parse (may be encrypted)
+      // Usar _Vault.read se disponível, senão localStorage direto com fallback JSON.parse
       let data = null;
       try {
-        data = JSON.parse(raw);
+        if (typeof _Vault !== 'undefined' && _Vault.read) {
+          data = _Vault.read(key);
+        } else {
+          const raw = localStorage.getItem(key);
+          if (raw) data = JSON.parse(raw);
+        }
       } catch (e) {
-        // Encrypted data - skip for now, Vault will handle it
+        console.warn('[DB] Erro ao ler chave para migração:', key, e);
         continue;
       }
       

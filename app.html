@@ -2475,12 +2475,12 @@ const S = {
 // Limpeza automática se a configuração antiga ainda tiver a imagem da splash salva globalmente
 if (S.config.logo === 'https://lh3.googleusercontent.com/d/1mwtQDispSbBU3HBvLa0T46vOoHAmWNNN') {
   S.config.logo = '';
-  _Vault.save('pp-config', JSON.stringify(S.config));
+  _saveConfig();
 }
 
 if (S.config && S.config.msg && !S.config.msg.includes('{total}')) {
   S.config.msg += '\\n\\n*Valor Total: {total}*';
-  _Vault.save('pp-config', JSON.stringify(S.config));
+  _saveConfig();
 }
 if (S.config.acessibilidade) document.body.classList.add('acessivel');
 
@@ -2492,18 +2492,45 @@ S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.tri
 function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function _safeUrl(u) { try { const p = new URL(u); return (p.protocol==='https:'||p.protocol==='http:') ? u : ''; } catch(e) { return ''; } }
 
-function _saveOrcs() {
+async function _saveOrcs() {
   const json = JSON.stringify(S.orcs);
   try {
     _Vault.save('pp-orcs', json);
+    if (typeof dbSaveOrcs !== 'undefined') await dbSaveOrcs();
   } catch(e) {
-    console.error('_saveOrcs: localStorage cheio', e);
-    // Fallback 1: sessionStorage como cópia de emergência
+    console.error('_saveOrcs erro:', e);
     try { sessionStorage.setItem('pp-orcs-emergency', json); } catch(_) {}
-    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive urgentemente.');
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive.');
   }
-  // Espelho no sessionStorage para recovery em caso de crash
   try { sessionStorage.setItem('pp-orcs-mirror', json); } catch(_) {}
+}
+
+async function _saveClientes() {
+  try {
+    _saveClientes();
+    if (typeof dbSaveClientes !== 'undefined') await dbSaveClientes();
+  } catch(e) { console.error('_saveClientes erro:', e); }
+}
+
+async function _saveFornecedores() {
+  try {
+    _saveFornecedores();
+    if (typeof dbSaveFornecedores !== 'undefined') await dbSaveFornecedores();
+  } catch(e) { console.error('_saveFornecedores erro:', e); }
+}
+
+async function _saveEventos() {
+  try {
+    _saveEventos();
+    if (typeof dbSaveEventos !== 'undefined') await dbSaveEventos();
+  } catch(e) { console.error('_saveEventos erro:', e); }
+}
+
+async function _saveConfig() {
+  try {
+    _saveConfig();
+    if (typeof dbSaveConfig !== 'undefined') await dbSaveConfig();
+  } catch(e) { console.error('_saveConfig erro:', e); }
 }
 
 // ENGENHARIA: GOOGLE MAPS PLACES AUTOCOMPLETE
@@ -2645,7 +2672,7 @@ function checkAlarms() {
     }
   });
   if(modified) {
-    _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+    _saveEventos();
     if(document.getElementById('pg-agenda').classList.contains('active')) renderAgenda();
   }
 }
@@ -3171,7 +3198,7 @@ function extractClient(orc) {
   const idx = S.clientes.findIndex(c => c.tel.replace(/\D/g,'') === tStr);
   if(idx >= 0) { S.clientes[idx].nome = orc.nome; S.clientes[idx].apelido = orc.apelido||''; S.clientes[idx].email = orc.email; S.clientes[idx].end = orc.end; S.clientes[idx].cpf = orc.cpf; S.clientes[idx].tsEdit = Date.now(); if(orc.apelido) S.clientes[idx].notas = '[ref: '+orc.apelido+']'; }
   else { S.clientes.push({nome: orc.nome, apelido: orc.apelido||'', tel: orc.tel, email: orc.email, end: orc.end, cpf: orc.cpf, tsEdit: Date.now(), notas: orc.apelido ? '[ref: '+orc.apelido+']' : ''}); }
-  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  _saveClientes();
 }
 
 function saveOrc(silent = false){
@@ -3246,7 +3273,7 @@ async function pickPhoneContactToSave() {
           end: c.address?.[0]?.formatted || ''
         });
       });
-      _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+      _saveClientes();
       renderClientes();
       toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ${contacts.length} contatos importados!`);
     }
@@ -3290,7 +3317,7 @@ function renderClientes() {
 
 function deleteClient(i) {
   S.clientes.splice(i, 1);
-  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  _saveClientes();
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Contato removido!');
 }
@@ -3327,7 +3354,7 @@ function saveEditClient() {
   if(i === -1) S.clientes.push(data);
   else S.clientes[i] = data;
   
-  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  _saveClientes();
   document.getElementById('modal-edit-client').style.display = 'none';
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato salvo!');
@@ -3397,7 +3424,7 @@ function saveEditFornecedor() {
   if(i === -1) S.fornecedores.push(data);
   else S.fornecedores[i] = data;
   
-  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+  _saveFornecedores();
   document.getElementById('modal-edit-fornecedor').style.display = 'none';
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Fornecedor salvo!');
@@ -3405,7 +3432,7 @@ function saveEditFornecedor() {
 
 function deleteFornecedor(i) {
   S.fornecedores.splice(i, 1);
-  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+  _saveFornecedores();
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Fornecedor removido!');
 }
@@ -3570,7 +3597,7 @@ async function salvarEvento() {
   const newEv = {tit, dat, hora, avisoVal, avisoUnid, repete, alarmado:false, id:Date.now(), tsEdit: Date.now()};
   S.eventos.push(newEv);
   S.eventos.sort((a,b)=>new Date(a.dat+'T'+a.hora) - new Date(b.dat+'T'+b.hora));
-  _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+  _saveEventos();
   document.getElementById('modal-evento').style.display='none';
   calSelDate = dat; [calYear, calMonth] = dat.split('-').map(Number); calMonth--;
   renderAgenda();
@@ -4112,7 +4139,7 @@ function saveConfig() {
   if(!S.DEFAULT_SERVICES.length) S.DEFAULT_SERVICES = defCfg.servicos.split(',').map(s=>s.trim()); 
   S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); 
   try {
-    _Vault.save('pp-config', JSON.stringify(S.config));
+    _saveConfig();
     _cfgDirty = false;
     toast('<svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações salvas!');
     populateStatusSelect(); loadGoogleMaps(); homeTab('home');
@@ -4128,7 +4155,7 @@ function exportBackup() { const data = { versao: 1, dataGeracao: new Date().toIS
 function handleBackupFile(input) { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { try { const data = JSON.parse(e.target.result); if(!data.orcs || !data.config) throw new Error("Formato inválido"); pendingBackupData = data; openBackupModal(); } catch(err) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro no backup'); } }; reader.readAsText(file); input.value = ''; }
 function openBackupModal() { document.activeElement?.blur(); document.activeElement?.blur(); document.getElementById('backup-confirm-modal').style.display = 'flex'; const btn = document.getElementById('btn-force-replace'); btn.classList.add('btn-disabled'); let secs = 3; btn.textContent = `Substituir Tudo (${secs}s)`; clearInterval(backupTimerHandle); backupTimerHandle = setInterval(() => { secs--; if(secs <= 0) { clearInterval(backupTimerHandle); btn.classList.remove('btn-disabled'); btn.textContent = 'Substituir Tudo'; } else { btn.textContent = `Substituir Tudo (${secs}s)`; } }, 1000); }
 function closeBackupModal(proceed) { clearInterval(backupTimerHandle); document.getElementById('backup-confirm-modal').style.display = 'none'; if(!proceed) pendingBackupData = null; }
-function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; _Vault.save('pp-config', JSON.stringify(S.config)); _saveOrcs(); _Vault.save('pp-clientes', JSON.stringify(S.clientes)); _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); _Vault.save('pp-eventos', JSON.stringify(S.eventos)); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
+function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; _saveConfig(); _saveOrcs(); _saveClientes(); _saveFornecedores(); _saveEventos(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
 function homeTab(tab){
   // Se estiver em config com alterações não salvas, pede confirmação antes de sair
   if (tab !== 'config' && typeof _cfgDirty !== 'undefined' && _cfgDirty && document.getElementById('pg-config')?.classList.contains('active')) {
@@ -5264,10 +5291,10 @@ sessionStorage.removeItem("pp-auth-redirect-done");
         S.eventos = data.eventos || [];
         if (data.config) S.config = Object.assign({}, S.config, data.config);
         _saveOrcs();
-        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
-        _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
-        _Vault.save('pp-eventos', JSON.stringify(S.eventos));
-        _Vault.save('pp-config', JSON.stringify(S.config));
+        _saveClientes();
+        _saveFornecedores();
+        _saveEventos();
+        _saveConfig();
         toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados do Drive carregados!');
       } else {
         // Dispositivo já usado antes — mescla, mantendo versão mais recente de cada item
@@ -5291,7 +5318,7 @@ sessionStorage.removeItem("pp-auth-redirect-done");
             if ((imp.tsEdit || 0) > (localCl[idx].tsEdit || 0)) { localCl[idx] = imp; changed = true; }
           } else { localCl.push(imp); changed = true; }
         });
-        if (changed) { S.clientes = localCl; _Vault.save('pp-clientes', JSON.stringify(S.clientes)); }
+        if (changed) { S.clientes = localCl; _saveClientes(); }
 
         // Fornecedores: mescla usando tsEdit e nome
         const localForn = S.fornecedores || [];
@@ -5301,7 +5328,7 @@ sessionStorage.removeItem("pp-auth-redirect-done");
             if ((imp.tsEdit || 0) > (localForn[idx].tsEdit || 0)) { localForn[idx] = imp; changed = true; }
           } else { localForn.push(imp); changed = true; }
         });
-        if (changed) { S.fornecedores = localForn; _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); }
+        if (changed) { S.fornecedores = localForn; _saveFornecedores(); }
 
         // Eventos: mescla usando tsEdit e id
         const localEvts = S.eventos || [];
@@ -5311,7 +5338,7 @@ sessionStorage.removeItem("pp-auth-redirect-done");
             if ((imp.tsEdit || 0) > (localEvts[idx].tsEdit || 0)) { localEvts[idx] = imp; changed = true; }
           } else { localEvts.push(imp); changed = true; }
         });
-        if (changed) { S.eventos = localEvts; _Vault.save('pp-eventos', JSON.stringify(S.eventos)); }
+        if (changed) { S.eventos = localEvts; _saveEventos(); }
         if (changed) toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados sincronizados do Drive');
       }
 
@@ -5867,13 +5894,15 @@ const _Vault = {
 // Inicializa quando DOM pronto — Dexie DB primeiro, depois Vault e GDrive
 async function _startApp() {
   try {
-    // Initialize Dexie.js database and migrate data if needed
+    // 1. Initialize Vault first (needed for decryption during migration)
+    await _Vault.init();
+
+    // 2. Initialize Dexie.js database and migrate data if needed
     if (typeof PP_DB !== 'undefined') {
       await dbInit();
     }
-    // Also initialize Vault for encrypted storage fallback
-    await _Vault.init();
-    // Initialize Google Drive
+
+    // 3. Initialize Google Drive
     GDrive.init();
   } catch (e) {
     console.error("[PP] Erro crítica na inicialização:", e);
@@ -6134,7 +6163,7 @@ const GContacts = {
         } else { skipped++; }
       }
       if (added) {
-        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+        _saveClientes();
         renderClientes();
       }
       toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ' + added + ' importado(s)' + (skipped ? ', ' + skipped + ' já existia(m)' : ''));

@@ -815,6 +815,7 @@ async function pickPhoneContactToSave() {
         });
       });
       _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+      if (typeof dbSaveClientes === 'function') dbSaveClientes();
       renderClientes();
       toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ${contacts.length} contatos importados!`);
     }
