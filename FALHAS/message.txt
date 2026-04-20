@@ -126,10 +126,6 @@ async function dbSaveOrcs() {
     }));
     await PP_DB.orcs.bulkPut(records);
     console.log('[DB] Orçamentos salvos:', records.length);
-    // Fire-and-forget: sync com Firestore
-    if (typeof PP_Sync !== 'undefined' && PP_Sync._enabled) {
-      PP_Sync.upload('orcs', S.orcs).catch(() => {});
-    }
   } catch (e) {
     console.error('[DB] Error saving orcs:', e);
     // Fallback to localStorage
@@ -151,10 +147,6 @@ async function dbSaveClientes() {
       notas: c.notas || ''
     }));
     await PP_DB.clientes.bulkPut(records);
-    // Fire-and-forget: sync com Firestore
-    if (typeof PP_Sync !== 'undefined' && PP_Sync._enabled) {
-      PP_Sync.upload('clientes', S.clientes).catch(() => {});
-    }
   } catch (e) {
     console.error('[DB] Error saving clientes:', e);
     _saveClientesLegacy();
@@ -171,10 +163,6 @@ async function dbSaveFornecedores() {
       tsEdit: f.tsEdit || Date.now()
     }));
     await PP_DB.fornecedores.bulkPut(records);
-    // Fire-and-forget: sync com Firestore
-    if (typeof PP_Sync !== 'undefined' && PP_Sync._enabled) {
-      PP_Sync.upload('fornecedores', S.fornecedores).catch(() => {});
-    }
   } catch (e) {
     console.error('[DB] Error saving fornecedores:', e);
     _saveFornecedoresLegacy();
@@ -195,10 +183,6 @@ async function dbSaveEventos() {
       tsEdit: e.tsEdit || Date.now()
     }));
     await PP_DB.eventos.bulkPut(records);
-    // Fire-and-forget: sync com Firestore
-    if (typeof PP_Sync !== 'undefined' && PP_Sync._enabled) {
-      PP_Sync.upload('eventos', S.eventos).catch(() => {});
-    }
   } catch (e) {
     console.error('[DB] Error saving eventos:', e);
     _saveEventosLegacy();
@@ -208,10 +192,6 @@ async function dbSaveEventos() {
 async function dbSaveConfig() {
   try {
     await PP_DB.config.put({ id: 'main', ...S.config });
-    // Fire-and-forget: sync com Firestore
-    if (typeof PP_Sync !== 'undefined' && PP_Sync._enabled) {
-      PP_Sync.upload('config', S.config).catch(() => {});
-    }
   } catch (e) {
     console.error('[DB] Error saving config:', e);
     _Vault.save('pp-config', JSON.stringify(S.config));
@@ -261,17 +241,15 @@ async function dbMigrateFromLocalStorage() {
     const keys = ['pp-orcs', 'pp-clientes', 'pp-fornecedores', 'pp-config', 'pp-eventos'];
     
     for (const key of keys) {
-      // Usar _Vault.read se disponível, senão localStorage direto com fallback JSON.parse
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      
+      // Try to parse (may be encrypted)
       let data = null;
       try {
-        if (typeof _Vault !== 'undefined' && _Vault.read) {
-          data = _Vault.read(key);
-        } else {
-          const raw = localStorage.getItem(key);
-          if (raw) data = JSON.parse(raw);
-        }
+        data = JSON.parse(raw);
       } catch (e) {
-        console.warn('[DB] Erro ao ler chave para migração:', key, e);
+        // Encrypted data - skip for now, Vault will handle it
         continue;
       }
       

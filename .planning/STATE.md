@@ -23,7 +23,9 @@ Phase 4: Firestore CRUD + Sincronização
 - Login com Google via Firebase ✅
 - Session gerenciada por Firebase Auth ✅
 - old GIS loop code removido ✅
-- CSP updated for Firebase domains
+- CSP updated for Firebase domains ✅
+- XSS Vulnerabilities fully patched with `_esc()` sanitation ✅
+- Inline scripts extracted to `app_main.js` for strict CSP `script-src` ✅
 
 ## Last Updated
-2026-04-18
+2026-04-20
