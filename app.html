@@ -41,6 +41,75 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js"></script>
+  // Initialize Firebase (Compat)
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  const PP_Auth = {
+    provider: new firebase.auth.GoogleAuthProvider(),
+    init() {
+      this.provider.addScope('https://www.googleapis.com/auth/drive.appdata');
+      this.provider.addScope('https://www.googleapis.com/auth/drive.file');
+      this.provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
+      this.provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+      
+      auth.onAuthStateChanged(user => {
+        console.log('[PP-AUTH] onAuthStateChanged | email:', user?.email);
+        if (user) {
+          this._handleUser(user);
+        } else {
+          this._handleLogout();
+        }
+      });
+    },
+    async signIn() {
+      try {
+        const result = await auth.signInWithPopup(this.provider);
+        const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
+        const token = credential.accessToken;
+        if (token) {
+          GDrive.accessToken = token;
+          console.log('[PP-AUTH] Google Access Token obtido');
+        }
+      } catch (error) {
+        console.error('[PP-AUTH] Erro no login:', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          alert('Erro ao entrar com Google: ' + error.message);
+        }
+      }
+    },
+    async signOut() {
+      try {
+        await auth.signOut();
+        // GDrive.signOut() será chamado pelo listener
+      } catch (e) {
+        console.error('[PP-AUTH] Erro no logout:', e);
+      }
+    },
+    _handleUser(user) {
+      GDrive.user = {
+        name: user.displayName,
+        email: user.email,
+        picture: user.photoURL
+      };
+      GDrive._sessionLoaded = true;
+      GDrive._showLoggedIn();
+      // Se já temos o token de uma sessão anterior ou do login recente
+      if (GDrive.accessToken) {
+        GDrive._findFile();
+      } else {
+        // Fallback: se não temos token, tentamos forçar o login silencioso ou mostrar reconexão
+        GDrive._setStatus('off', 'Drive aguardando token...');
+      }
+    },
+    _handleLogout() {
+      if (GDrive._sessionLoaded) {
+        GDrive.signOut();
+      }
+    }
+  };
+  PP_Auth.init();
+</script>
 <script>
 (function() {
   const THRESHOLD = 0.75; 
@@ -2432,7 +2501,7 @@ body.kb-open .title-big { font-size: 14px; }
 </div>
 
 <!-- Google Identity Services + GAPI -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- GIS removido em favor do Firebase Auth -->
 <script src="https://apis.google.com/js/api.js" async defer></script>
 
 <script>
@@ -4964,217 +5033,26 @@ const GDrive = {
 
   // ── INICIALIZAÇÃO ─────────────────────────────────────────
   init() {
-    // ── Detecta retorno de redirect OAuth (implicit flow) ─────
-    // Google redireciona de volta com access_token no hash da URL
-    // Limpa flag anti-loop de redirect OAuth (caso navegador tenha sido reiniciado
-    // durante fluxo de auth pendente — evita loop infinito)
-    sessionStorage.removeItem('pp-auth-redirect-done');
-    const _hp = new URLSearchParams(window.location.hash.slice(1));
-    const _redirectToken = _hp.get('access_token');
-    if (_redirectToken) {
-      history.replaceState(null, '', window.location.pathname);
-      this.accessToken = _redirectToken;
-    }
-
-    this._initGapi();
-    this._initGis();
     this._initConnectivity();
     this._hookLocalStorage();
-    // Carrega sessão local imediatamente — não espera Google
-    this._loadLocalSession();
-    // Fallback: se libs do Google não carregarem em 8s
-    setTimeout(() => {
-      if (!this._gapiReady || !this._gisReady) {
-        if (!this._sessionLoaded) this._showLoginBtn();
-        else this._setStatus('off', 'Drive desconectado');
-      }
-    }, 8000);
-
-    // Se voltou de redirect OAuth: confirma token e reconecta Drive
-    if (_redirectToken) {
-      this._fetchUserInfo();
-    }
-    window.addEventListener("focus", () => { if (this.accessToken && !this.isSyncing) this._findFile(); });
     this.periodicCheck();
+    window.addEventListener("focus", () => { if (this.accessToken && !this.isSyncing) this._findFile(); });
+    console.log('[GDrive] Inicializado em modo integrado ao Firebase Auth');
   },
 
-  // ── SESSÃO LOCAL ──────────────────────────────────────────
-  _loadLocalSession() {
-    console.log('[PP-AUTH] _loadLocalSession start | sessionLoaded=', this._sessionLoaded, '| guestMode=', this.guestMode);
-    try {
-      const raw = localStorage.getItem('pp-session');
-      if (!raw) {
-        console.log('[PP-AUTH] _loadLocalSession: sem pp-session');
-        // Verifica modo convidado
-        if (localStorage.getItem('pp-guest-mode') === '1') {
-          this.guestMode = true;
-          _showGuestBanner();
-          showPage('pg-home');
-          renderHomeMini(); renderHomeEvents(); renderHomeNews();
-        }
-        return;
-      }
-      const s = JSON.parse(raw);
-      if (!s || !s.email) return;
-      console.log('[PP-AUTH] _loadLocalSession: sessão encontrada email=', s.email);
-      this.user = s;
-      this._sessionLoaded = true;
-      // Bloqueia qualquer redirect para login enquanto GIS ainda não confirmou o token.
-      // Auto-libera em 15s como safety-net caso GIS não responda.
-sessionStorage.removeItem("pp-auth-redirect-done");
-      this._userInitiatedAuth = false; // impede que erro de GIS cause redirect automático
-      this._restoringSession = true;
-      setTimeout(() => { this._restoringSession = false; }, 15000);
-      this._showLoggedIn();
-      this._setStatus('off', 'Reconectando ao Drive...');
-      if (_hasAcceptedTerms(s.email)) {
-        showPage('pg-home');
-        renderHomeMini(); renderHomeEvents(); renderHomeNews();
-      } else {
-        showTermsModal();
-      }
-    } catch(e) { /* sessão inválida — aguarda login */ }
-  },
+  // ── SESSÃO E AUTH (Firebase gerenciado) ───────────────────
+  _loadLocalSession() { },
+  _initGapi() { this._gapiReady = true; },
+  _initGis() { this._gisReady = true; },
+  _tryStart() { },
+  _onToken() { },
 
-  _initGapi() {
-    const self = this;
-    // Não carrega discovery doc — todas as operações Drive usam fetch() diretamente
-    // Apenas aguarda gapi estar disponível para não travar GIS
-    const check = setInterval(() => {
-      if (typeof gapi === 'undefined') return;
-      clearInterval(check);
-      self._gapiReady = true;
-      self._tryStart();
-    }, 100);
-  },
-
-  _initGis() {
-    const self = this;
-    const check = setInterval(() => {
-      if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) return;
-      clearInterval(check);
-      self.tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: self.CLIENT_ID,
-        scope: self.SCOPES,
-        callback: (resp) => self._onToken(resp),
-        error_callback: (err) => {
-          console.warn('[PP-AUTH] error_callback | type=', err?.type, '| sessionLoaded=', self._sessionLoaded, '| restoringSession=', self._restoringSession, '| err=', err);
-          const now = Date.now();
-          const redirectDone = sessionStorage.getItem("pp-auth-redirect-done");
-          if (redirectDone) {
-            console.error("[PP-AUTH] Loop de redirecionamento evitado.");
-            self._setStatus("err", "Erro de autenticação");
-            return;
-          }
-          if (err && (err.type === 'popup_blocked_by_browser' || err.type === 'popup_failed_to_open')) {
-            self._restoringSession = false;
-            if (self._sessionLoaded) {
-              // Já está logado: mostra banner de reconexão
-              self._showReconnectBanner();
-            } else {
-              // No login: popup bloqueado → usa redirect automaticamente (sem popup, sem clique extra)
-            sessionStorage.setItem('pp-auth-redirect-done', '1');
-              self._authViaRedirect();
-            }
-            return;
-          }
-          self._restoringSession = false;
-          if (!self.accessToken) {
-            if (self._sessionLoaded) {
-              self._setStatus('off', 'Drive desconectado');
-            } else {
-              self._showLoginBtn();
-            }
-          }
-        },
-      });
-      self._gisReady = true;
-      self._tryStart();
-    }, 100);
-  },
-
-  _tryStart() {
-    console.log('[PP-AUTH] _tryStart | gapiReady=', this._gapiReady, '| gisReady=', this._gisReady, '| sessionLoaded=', this._sessionLoaded, '| restoringSession=', this._restoringSession, '| accessToken=', !!this.accessToken);
-    if (!this._gapiReady || !this._gisReady) return;
-    if (this.accessToken) return; // Já temos token (ex: retorno de redirect OAuth)
-    if (this._sessionLoaded) {
-      // Bloqueia redirect automático enquanto sessão está sendo restaurada pelo GIS
-      if (this._restoringSession) { this._setStatus('off', 'Reconectando ao Drive...'); return; }
-      // Sessão local existe: tenta reconectar Drive em background
-      const savedEmail = localStorage.getItem('pp-gdrive-email');
-      if (savedEmail) {
-        this.tokenClient.requestAccessToken({ prompt: '', login_hint: savedEmail });
-      } else {
-        // Sem email salvo — status silencioso, usuário reconecta pelo backup
-        this._setStatus('off', 'Drive desconectado');
-      }
-    } else if (!this.guestMode) {
-      // Primeira vez: mostra botão de login
-      this._showLoginBtn();
-    }
-  },
-
-  // ── CALLBACK DO TOKEN ─────────────────────────────────────
-  _onToken(resp) {
-    console.log('[PP-AUTH] _onToken | error=', resp.error, '| sessionLoaded=', this._sessionLoaded, '| restoringSession=', this._restoringSession);
-    if (resp.error) {
-      // immediate_failed = renovação silenciosa não disponível — app continua normalmente em background
-      if (resp.error === 'immediate_failed') {
-        this._restoringSession = false;
-        if (this._userInitiatedAuth) {
-          // Usuário clicou em reconectar → escalona direto para seletor de conta (sem 2º clique)
-          this._userInitiatedAuth = false;
-          const hint = localStorage.getItem('pp-gdrive-email');
-          this.tokenClient.requestAccessToken({ prompt: 'select_account', ...(hint ? { login_hint: hint } : {}) });
-          return;
-        }
-        if (this._sessionLoaded) this._setStatus('off', 'Drive desconectado');
-        else this._showLoginBtn();
-        return;
-      }
-      // Qualquer outro erro: com sessão → banner de reconexão, sem sessão → botão de login
-      this._restoringSession = false;
-      this._userInitiatedAuth = false;
-      if (this._sessionLoaded) this._showReconnectBanner();
-      else this._showLoginBtn();
-      return;
-    }
-    this.accessToken = resp.access_token;
-    sessionStorage.removeItem("pp-auth-redirect-done");
-    this._restoringSession = false;
-    this._userInitiatedAuth = false;
-
-    // ── Agenda renovação silenciosa antes do token expirar ────
-    clearTimeout(this._tokenRefreshTimer);
-    const expiresIn = (parseInt(resp.expires_in) || 3600) - 120; // renova 2 min antes
-    this._tokenRefreshTimer = setTimeout(() => {
-      if (!this.accessToken || !this.tokenClient) return;
-      const hint = localStorage.getItem('pp-gdrive-email');
-      this.tokenClient.requestAccessToken({ prompt: '', ...(hint ? { login_hint: hint } : {}) });
-    }, expiresIn * 1000);
-
-    if (this._sessionLoaded) {
-      // Já está em pg-home: apenas reconecta Drive
-      this._hideOfflineBanner();
-      this._findFile().then(() => { if (this.pendingSync) this.scheduleSync(); });
-    } else {
-      this._fetchUserInfo();
-    }
-  },
-
-  // ── LOGIN / LOGOUT ────────────────────────────────────────
   signIn() {
-    if (!this._gisReady) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Aguarde o carregamento...'); return; }
-    // prompt:'' = usa sessão salva sem forçar consent; login_hint acelera seleção de conta
-    const savedEmail = localStorage.getItem('pp-gdrive-email');
-    const opts = { prompt: 'select_account' };
-    if (savedEmail) opts.login_hint = savedEmail;
-    this.tokenClient.requestAccessToken(opts);
+    PP_Auth.signIn();
   },
 
   signOut() {
     clearTimeout(this._tokenRefreshTimer);
-    if (this.accessToken) google.accounts.oauth2.revoke(this.accessToken, () => {});
     this.accessToken = null;
     this.user = null;
     this.fileId = null;
@@ -5184,11 +5062,12 @@ sessionStorage.removeItem("pp-auth-redirect-done");
     localStorage.removeItem('pp-gdrive-lastSync');
     localStorage.removeItem('pp-session');
     localStorage.removeItem('pp-guest-mode');
+    localStorage.removeItem('pp-gdrive-at');
     this._sessionLoaded = false;
     _hideGuestBanner();
     this._showLoggedOut();
     this._showLoginBtn();
-    toast(' Desconectado do Google');
+    toast('Desconectado');
   },
 
   // ── INFO DO USUÁRIO ───────────────────────────────────────
