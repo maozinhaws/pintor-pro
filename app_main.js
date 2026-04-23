@@ -1,242 +1,7 @@
-
-  // Firebase Config — projeto: orcamento-app-pintor
-  const firebaseConfig = {
-    apiKey: "AIzaSyDxSqHbuiDBEZJ4B05p18eT4_iZK_wmrU4",
-    authDomain: "orcamento-app-pintor.firebaseapp.com",
-    projectId: "orcamento-app-pintor",
-    storageBucket: "orcamento-app-pintor.firebasestorage.app",
-    messagingSenderId: "290456904743",
-    appId: "1:290456904743:web:da539006fef01524ea1a02",
-    measurementId: "G-ERMCR2XL0S"
-  };
-
-  // Initialize Firebase (Compat)
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const dbFS = firebase.firestore();
-
-  const PP_Auth = {
-    provider: new firebase.auth.GoogleAuthProvider(),
-    init() {
-      this.provider.addScope('https://www.googleapis.com/auth/drive.appdata');
-      this.provider.addScope('https://www.googleapis.com/auth/drive.file');
-      this.provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
-      this.provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-      
-      auth.onAuthStateChanged(user => {
-        console.log('[PP-AUTH] onAuthStateChanged | email:', user?.email);
-        if (user) {
-          this._handleUser(user);
-        } else {
-          this._handleLogout();
-        }
-      });
-    },
-    async signIn() {
-      try {
-        const result = await auth.signInWithPopup(this.provider);
-        const credential = firebase.auth.GoogleAuthProvider.credentialFromResult(result);
-        const token = credential.accessToken;
-        if (token) {
-          GDrive.accessToken = token;
-          console.log('[PP-AUTH] Google Access Token obtido');
-        }
-      } catch (error) {
-        console.error('[PP-AUTH] Erro no login:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
-          alert('Erro ao entrar com Google: ' + error.message);
-        }
-      }
-    },
-    async signOut() {
-      try {
-        await auth.signOut();
-        // GDrive.signOut() será chamado pelo listener
-      } catch (e) {
-        console.error('[PP-AUTH] Erro no logout:', e);
-      }
-    },
-    _handleUser(user) {
-      GDrive.user = {
-        name: user.displayName,
-        email: user.email,
-        picture: user.photoURL
-      };
-      GDrive._sessionLoaded = true;
-      GDrive._showLoggedIn();
-      // Se já temos o token de uma sessão anterior ou do login recente
-      if (GDrive.accessToken) {
-        GDrive._findFile();
-      } else {
-        // Fallback: se não temos token, tentamos forçar o login silencioso ou mostrar reconexão
-        GDrive._setStatus('off', 'Drive aguardando token...');
-      }
-      // ── Firestore Sync: ativar e baixar dados da nuvem ──
-      if (typeof PP_Sync !== 'undefined') {
-        PP_Sync.setUser(user.uid);
-        PP_Sync.downloadAll().catch(e => console.warn('[PP-AUTH] Sync download falhou:', e.message));
-      }
-    },
-    _handleLogout() {
-      // ── Firestore Sync: desativar ──
-      if (typeof PP_Sync !== 'undefined') {
-        PP_Sync.clearUser();
-      }
-      if (GDrive._sessionLoaded) {
-        GDrive.signOut();
-      }
-    }
-  };
-  PP_Auth.init();
-
-
-
-(function() {
-  const THRESHOLD = 0.75; 
-  let baseH = window.innerHeight;
-  function onResize() {
-    const vv = window.visualViewport;
-    const curH = vv ? vv.height : window.innerHeight;
-    const ratio = curH / baseH;
-    document.body.classList.toggle('kb-open', ratio < THRESHOLD);
-  }
-  if (window.visualViewport) { window.visualViewport.addEventListener('resize', onResize); } 
-  else { window.addEventListener('resize', onResize); }
-  window.addEventListener('load', () => { baseH = window.visualViewport ? window.visualViewport.height : window.innerHeight; });
-})();
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      // Periodic Background Sync — notificações mesmo com app fechado (Chrome/Android)
-      if ('periodicSync' in reg) {
-        reg.periodicSync.register('pp-check-alarms', { minInterval: 15 * 60 * 1000 }).catch(() => {});
-      }
-    }).catch(() => {});
-  });
-}
-
-
-
-    const state = { currentStep: 1, items: [], modalPhotos: [], modalSelectedServices: [], editItemId: null, valueMode: null, theme: 'light', cameraStream: null, torchOn: false };
-    const els = {
-      step1: document.getElementById('step1'), step2: document.getElementById('step2'), step3: document.getElementById('step3'),
-      pill1: document.getElementById('pill1'), pill2: document.getElementById('pill2'), pill3: document.getElementById('pill3'),
-      cliente: document.getElementById('cliente'), apelido: document.getElementById('apelido'), telefone: document.getElementById('telefone'), clienteErro: document.getElementById('clienteErro'), telefoneErro: document.getElementById('telefoneErro'),
-      btnIrItens: document.getElementById('btnIrItens'), btnLimparCliente: document.getElementById('btnLimparCliente'), btnVoltarCliente: document.getElementById('btnVoltarCliente'), btnVoltarItens: document.getElementById('btnVoltarItens'),
-      btnAddItem: document.getElementById('btnAddItem'), btnIrResumo: document.getElementById('btnIrResumo'), btnSalvarRascunho: document.getElementById('btnSalvarRascunho'),
-      itemsWrap: document.getElementById('itemsWrap'), summaryText: document.getElementById('summaryText'), areaTotal: document.getElementById('areaTotal'),
-      optionValorTotal: document.getElementById('optionValorTotal'), optionValorM2: document.getElementById('optionValorM2'), valorTexto: document.getElementById('valorTexto'),
-      itemModal: document.getElementById('itemModal'), btnFecharModal: document.getElementById('btnFecharModal'), btnCancelarItem: document.getElementById('btnCancelarItem'), btnSalvarItem: document.getElementById('btnSalvarItem'),
-      modalNome: document.getElementById('modalNome'), modalLargura: document.getElementById('modalLargura'), modalAltura: document.getElementById('modalAltura'), modalArea: document.getElementById('modalArea'), modalObs: document.getElementById('modalObs'),
-      btnAbrirCamera: document.getElementById('btnAbrirCamera'), modalFotosGaleria: document.getElementById('modalFotosGaleria'), modalPhotoCards: document.getElementById('modalPhotoCards'), cameraErro: document.getElementById('cameraErro'),
-      cameraModal: document.getElementById('cameraModal'), btnFecharCamera: document.getElementById('btnFecharCamera'), btnCapturarFoto: document.getElementById('btnCapturarFoto'), btnEnviarFotos: document.getElementById('btnEnviarFotos'),
-      cameraVideo: document.getElementById('cameraVideo'), cameraCanvas: document.getElementById('cameraCanvas'), cameraThumbs: document.getElementById('cameraThumbs'),
-      toast: document.getElementById('toast'), hero: document.getElementById('hero'), transitionOverlay: document.getElementById('transitionOverlay'), splashScreen: document.getElementById('splashScreen'), screen: document.getElementById('screen')
-    };
-    let toastTimer = null;
-    function showToast(msg){ els.toast.textContent = msg; els.toast.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => els.toast.classList.remove('on'), 2200); }
-    function formatNum(v){ return Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-    function money(v){ return Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-    function digitsOnly(value){ return String(value || '').replace(/\D/g, ''); }
-    function normalizeLeadingZero(value){ const str = String(value || '').trim(); if (!str) return ''; if (!/^\d+(?:[.,]\d+)?$/.test(str)) return str; const normalized = str.replace(',', '.'); const num = Number(normalized); if (!Number.isFinite(num)) return str; return num % 1 === 0 ? String(Math.trunc(num)) : String(num).replace('.', ','); }
-    function normalizeDecimalInput(value){ let v = String(value || '').replace(/[^0-9.,]/g, ''); const firstSep = v.search(/[.,]/); if (firstSep !== -1) { const head = v.slice(0, firstSep + 1); const tail = v.slice(firstSep + 1).replace(/[.,]/g, ''); v = head + tail; } return v; }
-    function normalizeMeasureInput(value){ let v = normalizeDecimalInput(value).replace(/\./g, ','); if (/^0\d/.test(v) &amp;&amp; !v.startsWith('0,')) v = v.replace(/^0+/, ''); return v; }
-    function numFromInput(value){ return Number(String(value || '').replace(',', '.')) || 0; }
-    function formatPhone(value){ var raw=digitsOnly(value); if(raw.length>11){ if(raw.startsWith('55')) raw=raw.slice(2); } var digits=raw.slice(0,11); if(!digits) return ''; if(digits.length<3) return `(${digits}`; if(digits.length<=6) return `(${digits.slice(0,2)}) ${digits.slice(2)}`; if(digits.length<=10) return `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}`; return `(${digits.slice(0,2)}) ${digits.slice(2,3)} ${digits.slice(3,7)}-${digits.slice(7)}`; }
-    function validateFullName(value){ const v = String(value || '').trim().replace(/\s+/g, ' '); return /^[A-Za-z\u00C0-\u00FF]+(?:['-]?[A-Za-z\u00C0-\u00FF]+)*\s+[A-Za-z\u00C0-\u00FF]+/.test(v); }
-    function validatePhone(value){ const digits = digitsOnly(value); if (digits.length === 11) { return /^[1-9][0-9]$/.test(digits.slice(0,2)) &amp;&amp; digits[2] === '9'; } if (digits.length === 10) { return /^[1-9][0-9]$/.test(digits.slice(0,2)) &amp;&amp; /^[2-8]$/.test(digits[2]); } return false; }
-    function setFieldError(inputEl, errorEl, show){ inputEl.classList.toggle('invalid', !!show); errorEl.classList.toggle('show', !!show); }
-    function validateStep1(showErrors){ const nameOk = validateFullName(els.cliente.value); const phoneOk = validatePhone(els.telefone.value); if (showErrors || els.cliente.value.trim()) setFieldError(els.cliente, els.clienteErro, !nameOk); if (showErrors || els.telefone.value.trim()) setFieldError(els.telefone, els.telefoneErro, !phoneOk); return nameOk &amp;&amp; phoneOk; }
-    function calcItemArea(l, a){ const lv = numFromInput(l); const av = numFromInput(a); return lv > 0 &amp;&amp; av > 0 ? lv * av : 0; }
-    function getItemMeasureLabel(l, a){ const lv = numFromInput(l); const av = numFromInput(a); if (lv > 0 &amp;&amp; av > 0) return `\u00C1rea: ${formatNum(lv * av)} m\u00B2`; if (lv > 0 || av > 0) return `Linear: ${formatNum(lv || av)} m`; return 'Linear: 0,00 m'; }
-    function runTransition(){ const o = els.transitionOverlay; o.innerHTML = ''; const line = document.createElement('div'); line.className = 'bolt-line'; o.appendChild(line); [12,24,36,48,60,72,84].forEach((top, idx) => { const bolt = document.createElement('div'); bolt.className = 'bolt-icon'; bolt.textContent = '\u26A1'; bolt.style.top = `${top}%`; bolt.style.right = `${4 + idx * 5}%`; bolt.style.animationDelay = `${idx * 0.05}s`; o.appendChild(bolt); }); o.classList.remove('run'); void o.offsetWidth; o.classList.add('run'); setTimeout(() => { o.classList.remove('run'); o.innerHTML = ''; }, 720); }
-    function renderSteps(){ els.step1.classList.toggle('active', state.currentStep === 1); els.step2.classList.toggle('active', state.currentStep === 2); els.step3.classList.toggle('active', state.currentStep === 3); els.pill1.style.width = state.currentStep >= 1 ? '100%' : '0%'; els.pill2.style.width = state.currentStep >= 2 ? '100%' : '0%'; els.pill3.style.width = state.currentStep >= 3 ? '100%' : '0%'; els.hero.classList.toggle('dimmed', state.currentStep !== 1); }
-    function goStep(n){ if (n < 1 || n > 3 || n === state.currentStep) return; runTransition(); state.currentStep = n; renderSteps(); updateSummary(); }
-    function hideSplash(){ if (!els.splashScreen) return; setTimeout(() => els.splashScreen.classList.add('hide'), 3000); setTimeout(() => els.splashScreen.style.display = 'none', 3800); }
-    function clearClient(){ els.cliente.value = ''; if(els.apelido)els.apelido.value=''; els.telefone.value = ''; setFieldError(els.cliente, els.clienteErro, false); setFieldError(els.telefone, els.telefoneErro, false); updateSummary(); showToast('\u21BA Dados do cliente limpos'); }
-    function openItemModal(){ document.activeElement?.blur(); document.activeElement?.blur(); state.editItemId = null; state.modalPhotos = []; state.modalSelectedServices = []; _nomePickFirst=true; _obsPickFirst=true; els.modalNome.value = ''; els.modalLargura.value = ''; els.modalAltura.value = ''; els.modalObs.value = ''; els.modalFotosGaleria.value = ''; els.modalArea.textContent = 'Linear: 0,00 m'; els.cameraErro.classList.remove('show'); renderModalPhotos(); els.itemModal.classList.add('open'); }
-    function openEditItemModal(id){ document.activeElement?.blur(); document.activeElement?.blur(); var item=state.items.find(function(x){return x.id===id;}); if(!item)return; state.editItemId=id; state.modalPhotos=[...(item.fotos||[])]; state.modalSelectedServices=[...(item.services||[])]; _nomePickFirst=false; _obsPickFirst=false; var lv=item.largura>0?String(item.largura).replace('.',','):''; var av=item.altura>0?String(item.altura).replace('.',','):''; els.modalNome.value=item.nome||''; els.modalLargura.value=lv; els.modalAltura.value=av; els.modalObs.value=item.observacao||''; els.modalFotosGaleria.value=''; updateModalArea(); els.cameraErro.classList.remove('show'); renderModalPhotos(); els.itemModal.classList.add('open'); }
-    window.openEditItemModal=openEditItemModal;
-    function closeItemModal(){ els.itemModal.classList.remove('open'); closeCameraModal(); }
-    function updateModalArea(){ els.modalArea.textContent = getItemMeasureLabel(els.modalLargura.value, els.modalAltura.value); }
-    function renderModalPhotos(){ if (!state.modalPhotos.length) { els.modalPhotoCards.innerHTML = ''; els.cameraThumbs.innerHTML = ''; return; } els.modalPhotoCards.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;photo-card&quot;><button class=&quot;photo-remove&quot; type=&quot;button&quot; onclick=&quot;removeModalPhoto(${i})&quot;>\u2715</button><img src=&quot;${src}&quot; alt=&quot;Foto ${i+1}&quot;></div>`).join(''); els.cameraThumbs.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;camera-thumb&quot;><img src=&quot;${src}&quot; alt=&quot;Min ${i+1}&quot;></div>`).join(''); }
-    function removeModalPhoto(i){ state.modalPhotos.splice(i, 1); renderModalPhotos(); }
-    window.removeModalPhoto = removeModalPhoto;
-    function handleModalPhotos(files){ Array.from(files||[]).forEach(f => { const r = new FileReader(); r.onload = e => { state.modalPhotos.push(e.target.result); renderModalPhotos(); }; r.readAsDataURL(f); }); els.modalFotosGaleria.value = ''; }
-    async function openCameraModal(){ document.activeElement?.blur(); document.activeElement?.blur(); els.cameraErro.classList.remove('show'); try { if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { els.cameraErro.classList.add('show'); return; } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); state.cameraStream = stream; state.torchOn = false; els.cameraVideo.srcObject = stream; els.cameraModal.classList.add('open'); renderModalPhotos(); const _track = stream.getVideoTracks()[0]; const _caps = _track.getCapabilities ? _track.getCapabilities() : {}; const _bt = document.getElementById('btnTorch'); const _zc = document.getElementById('zoomControl'); const _zs = document.getElementById('zoomSlider'); if(_bt &amp;&amp; _caps.torch){ _bt.style.display='flex'; _bt.onclick=function(){ state.torchOn=!state.torchOn; _track.applyConstraints({advanced:[{torch:state.torchOn}]}); _bt.style.background=state.torchOn?'rgba(251,191,36,0.8)':'rgba(255,255,255,0.15)'; }; } if(_zc &amp;&amp; _zs &amp;&amp; _caps.zoom){ _zs.min=_caps.zoom.min; _zs.max=_caps.zoom.max; _zs.step=(_caps.zoom.max-_caps.zoom.min)/20; _zs.value=_caps.zoom.min; _zc.style.display='block'; _zs.oninput=function(){ _track.applyConstraints({advanced:[{zoom:parseFloat(_zs.value)}]}); }; } } catch(err) { els.cameraErro.classList.add('show'); showToast(err&amp;&amp;err.name==='NotAllowedError' ? '\u26A0\uFE0F Permiss\u00E3o negada' : '\u26A0\uFE0F C\u00E2mera indispon\u00EDvel'); } }
-    function stopCameraStream(){ if (state.cameraStream) { state.cameraStream.getTracks().forEach(t => t.stop()); state.cameraStream = null; } els.cameraVideo.srcObject = null; state.torchOn = false; const _bt=document.getElementById('btnTorch'); if(_bt)_bt.style.display='none'; const _zc=document.getElementById('zoomControl'); if(_zc)_zc.style.display='none'; }
-    function closeCameraModal(){ els.cameraModal.classList.remove('open'); stopCameraStream(); }
-    function captureCameraPhoto(){ const v = els.cameraVideo; if (!v.videoWidth) { showToast('\u26A0\uFE0F Aguarde a c\u00E2mera'); return; } const c = els.cameraCanvas; c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); state.modalPhotos.push(c.toDataURL('image/jpeg', 0.75)); renderModalPhotos(); showToast('\uD83D\uDCF8 Foto capturada'); }
-    function submitCameraPhotos(){ if (!state.modalPhotos.length) { showToast('\u26A0\uFE0F Capture ao menos uma foto'); return; } closeCameraModal(); showToast('\u2705 Fotos adicionadas'); }
-    function saveItem(){ els.modalLargura.value = normalizeMeasureInput(els.modalLargura.value); els.modalAltura.value = normalizeMeasureInput(els.modalAltura.value); const nome = els.modalNome.value.trim(); if (!nome) { showToast('\u26A0\uFE0F Informe o nome do item'); return; } const newItem = { id: state.editItemId || String(Date.now()+Math.random()), nome, largura: numFromInput(els.modalLargura.value), altura: numFromInput(els.modalAltura.value), area: calcItemArea(els.modalLargura.value, els.modalAltura.value), medidaLabel: getItemMeasureLabel(els.modalLargura.value, els.modalAltura.value), observacao: els.modalObs.value.trim(), services: [...(state.modalSelectedServices||[])], fotos: [...state.modalPhotos] }; if (state.editItemId) { const idx = state.items.findIndex(function(x){ return x.id === state.editItemId; }); if (idx >= 0) state.items[idx] = newItem; state.editItemId = null; } else { state.items.push(newItem); } closeItemModal(); renderItems(); updateSummary(); showToast('\u2705 Item salvo'); }
-    function removeItem(id){ state.items = state.items.filter(x => x.id !== id); renderItems(); updateSummary(); }
-    window.removeItem = removeItem;
-    function escapeHtml(s){ return String(s||'').replace(/&amp;/g,'&amp;amp;').replace(/</g,'&amp;lt;').replace(/>/g,'&amp;gt;').replace(/&quot;/g,'&amp;quot;'); }
-    function renderItems(){ if (!state.items.length) { els.itemsWrap.innerHTML = '<div class=&quot;empty-box&quot;>Nenhum item salvo ainda.<br>Toque em <strong>Adicionar Novo Item</strong>.</div>'; return; } els.itemsWrap.innerHTML = state.items.map((x,i) => `<div class=&quot;list-card&quot; onclick=&quot;openEditItemModal('${x.id}')&quot; style=&quot;cursor:pointer;&quot;><div class=&quot;list-head&quot;><div style=&quot;flex:1;&quot;><div class=&quot;list-title&quot;>${i+1}. ${escapeHtml(x.nome)}</div><div class=&quot;list-measure&quot;>${escapeHtml(x.medidaLabel)}</div></div><div style=&quot;display:flex;gap:6px;align-items:center;&quot;><span style=&quot;font-size:11px;color:#94a3b8;font-weight:600;&quot;>\u270F\uFE0F</span><button class=&quot;list-del&quot; onclick=&quot;event.stopPropagation();removeItem('${x.id}')&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2&quot;/></svg></button></div></div></div>`).join(''); }
-    function getTotalArea(){ return state.items.reduce((s,x) => s + Number(x.area||0), 0); }
-    function updateSummary(){ const cli = els.cliente.value.trim()||'N\u00E3o informado'; const tel = els.telefone.value.trim()||'N\u00E3o informado'; const ta = getTotalArea(); els.areaTotal.textContent = `${formatNum(ta)} m\u00B2`; let t = `Cliente: ${cli}\nTelefone: ${tel}\n\u00C1rea total: ${formatNum(ta)} m\u00B2`; if (!state.items.length) t += '\n\nItens: nenhum item salvo ainda.'; else { t += '\n\nItens:'; state.items.forEach((x,i) => { t += `\n${i+1}. ${x.nome} | ${x.medidaLabel}`; }); } const vb = numFromInput(els.valorTexto.value); if (state.valueMode==='total'&amp;&amp;vb>0) t += `\n\nValor total: ${money(vb)}`; if (state.valueMode==='m2'&amp;&amp;vb>0) t += `\n\nValor por m\u00B2: ${money(vb)}\nEstimativa: ${money(ta*vb)}`; els.summaryText.textContent = t;  const tc = document.getElementById('flashTotalCalc'); if(tc){ if(state.valueMode==='m2'&amp;&amp;vb>0){ tc.style.display='block'; tc.textContent = ta>0 ? '= R$ '+money(ta*vb)+' ('+formatNum(ta)+' m²)' : 'Adicione itens com medidas para calcular'; }else{ tc.style.display='none'; } } }
-    function saveDraft(){ const d = { cliente: els.cliente.value.trim(), apelido: els.apelido ? els.apelido.value.trim() : '', telefone: els.telefone.value.trim(), items: state.items, valueMode: state.valueMode, valorTexto: els.valorTexto.value, atualizadoEm: new Date().toISOString() }; localStorage.setItem('orcamento-pocket-draft', JSON.stringify(d)); showToast('\uD83D\uDCBE Rascunho salvo!'); setTimeout(() => { try { window.parent.postMessage({ type: 'flash-exit' }, '*'); } catch(e) {} }, 800); }
-    function setValueMode(mode){ state.valueMode = state.valueMode===mode ? null : mode; const tA=state.valueMode==='total', m2A=state.valueMode==='m2'; els.optionValorTotal.classList.toggle('active',tA); els.optionValorTotal.setAttribute('aria-pressed',tA?'true':'false'); els.optionValorM2.classList.toggle('active',m2A); els.optionValorM2.setAttribute('aria-pressed',m2A?'true':'false'); updateSummary(); }
-    function setupSwipe(){ let sx=0,sy=0,cx=0,tk=false; els.screen.addEventListener('touchstart',e=>{ if(els.itemModal.classList.contains('open')||els.cameraModal.classList.contains('open'))return; const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY; cx=t.clientX; tk=true; },{passive:true}); els.screen.addEventListener('touchmove',e=>{ if(!tk)return; cx=e.changedTouches[0].clientX; },{passive:true}); els.screen.addEventListener('touchend',e=>{ if(!tk||els.itemModal.classList.contains('open')||els.cameraModal.classList.contains('open'))return; const t=e.changedTouches[0]; const dx=(t.clientX||cx)-sx; const dy=Math.abs(t.clientY-sy); tk=false; if(dy>60||Math.abs(dx)<42)return; if(dx<0){if(state.currentStep===1){if(validateStep1(true))goStep(2);}else if(state.currentStep===2)goStep(3);}else{if(state.currentStep===3)goStep(2);else if(state.currentStep===2)goStep(1);} },{passive:true}); }
-    // Modal sair com timer
-    function openExitModal(){ document.activeElement?.blur(); document.activeElement?.blur(); document.getElementById('exitModal').style.display='flex'; }
-    function closeExitModal(proceed){ document.getElementById('exitModal').style.display='none'; if(proceed)notifyParentExit(); }
-    function saveDraftAndExit(){ document.getElementById('exitModal').style.display='none'; saveDraft(); }
-    function notifyParentExit(){
-      // Sai sem salvar
-      try{ window.parent.postMessage({type:'flash-exit'}, '*'); }catch(e){}
-    }
-    els.btnIrItens.addEventListener('click', () => { if (!validateStep1(true)) { if (!validateFullName(els.cliente.value)) els.cliente.focus(); else els.telefone.focus(); return; } goStep(2); });
-    els.btnLimparCliente.addEventListener('click', clearClient);
-    els.btnVoltarCliente.addEventListener('click', () => goStep(1));
-    els.btnVoltarItens.addEventListener('click', () => goStep(2));
-    els.btnAddItem.addEventListener('click', openItemModal);
-    els.btnIrResumo.addEventListener('click', () => goStep(3));
-    els.btnSalvarRascunho.addEventListener('click', saveDraft);
-    els.btnFecharModal.addEventListener('click', closeItemModal);
-    els.btnCancelarItem.addEventListener('click', closeItemModal);
-    els.btnSalvarItem.addEventListener('click', saveItem);
-    els.modalLargura.addEventListener('input', () => { els.modalLargura.value = normalizeMeasureInput(els.modalLargura.value); updateModalArea(); });
-    els.modalAltura.addEventListener('input', () => { els.modalAltura.value = normalizeMeasureInput(els.modalAltura.value); updateModalArea(); });
-    els.btnAbrirCamera.addEventListener('click', openCameraModal);
-    els.modalFotosGaleria.addEventListener('change', e => handleModalPhotos(e.target.files));
-    document.getElementById('modalFotosGaleriaBtn').addEventListener('change', e => handleModalPhotos(e.target.files));
-    els.btnFecharCamera.addEventListener('click', closeCameraModal);
-    els.btnCapturarFoto.addEventListener('click', captureCameraPhoto);
-    els.btnEnviarFotos.addEventListener('click', submitCameraPhotos);
-    els.optionValorTotal.addEventListener('click', () => setValueMode('total'));
-    els.optionValorM2.addEventListener('click', () => setValueMode('m2'));
-    els.optionValorTotal.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();setValueMode('total');} });
-    els.optionValorM2.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' '){e.preventDefault();setValueMode('m2');} });
-    els.valorTexto.addEventListener('input', () => { els.valorTexto.value = normalizeDecimalInput(els.valorTexto.value); updateSummary(); });
-    els.cliente.addEventListener('input', () => { els.cliente.value = els.cliente.value.replace(/\s+/g,' ').replace(/^\s+/,''); validateStep1(false); updateSummary(); });
-    els.telefone.addEventListener('input', function(){ var pos=this.selectionStart; var oldLen=this.value.length; this.value=formatPhone(this.value); var diff=this.value.length-oldLen; try{this.setSelectionRange(pos+diff,pos+diff);}catch(e){} validateStep1(false); updateSummary(); });
-    els.telefone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){e.preventDefault();if(!validateStep1(true)){if(!validateFullName(els.cliente.value))els.cliente.focus();else els.telefone.focus();return;}goStep(2);} });
-    els.itemModal.addEventListener('click', e => { if(e.target===els.itemModal)closeItemModal(); });
-    els.cameraModal.addEventListener('click', e => { if(e.target===els.cameraModal)closeCameraModal(); });
-    window.addEventListener('message', function(ev){ if(!ev.data)return; if(ev.data.type==='flash-clear'){ els.cliente.value=''; if(els.apelido)els.apelido.value=''; els.telefone.value=''; state.items=[]; state.valueMode=null; els.valorTexto.value=''; setFieldError(els.cliente,els.clienteErro,false); setFieldError(els.telefone,els.telefoneErro,false); renderItems(); updateSummary(); goStep(1); showToast('\u21BA Formulário limpo'); } if(ev.data.type==='stop-camera'){ closeCameraModal(); } });
-    var _nomePickFirst=true, _obsPickFirst=true;
-    function _onNomeFieldClick(){ if(_nomePickFirst){_nomePickFirst=false;openNomePick();} }
-    function _onObsFieldClick(){ if(_obsPickFirst){_obsPickFirst=false;openObsPick();} }
-    var NOME_SUGESTOES=%%NOME_SUGESTOES%%;
-    function openNomePick(){ document.activeElement?.blur(); document.activeElement?.blur(); var g=document.getElementById('nomePickGrid'); g.innerHTML=NOME_SUGESTOES.map(function(n){ return '<button type=\'button\' onclick=\'selectNome(this.dataset.v)\' data-v=\''+n+'\' style=\'padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:#0f172a;cursor:pointer;text-align:center;\'>'+n+'</button>'; }).join(''); document.getElementById('nomePickModal').style.display='flex'; }
-    function closeNomePick(){ document.getElementById('nomePickModal').style.display='none'; }
-    function selectNome(n){ document.getElementById('modalNome').value=n; closeNomePick(); }
-    var OBS_SERVICOS=%%OBS_SERVICOS%%;
-    var OBS_MATERIAIS=%%OBS_MATERIAIS%%;
-    function _renderObsChips(items,cId,type){ var svcs=state.modalSelectedServices||[]; var c=document.getElementById(cId); c.innerHTML=items.map(function(s){ var sel=svcs.indexOf(s)>=0; var bg=sel?(type==='srv'?'#7c3aed':'#059669'):'#f1f5f9'; var col=sel?'#fff':(type==='srv'?'#7c3aed':'#059669'); var bdr=sel?'transparent':(type==='srv'?'#ddd6fe':'#d1fae5'); return '<button type=\'button\' onclick=\'toggleService(this.dataset.v)\' data-v=\''+s+'\' style=\'padding:7px 12px;border-radius:20px;border:1.5px solid '+bdr+';background:'+bg+';font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:'+col+';cursor:pointer;\'>'+s+'</button>'; }).join(''); }
-    function openObsPick(){ document.activeElement?.blur(); document.activeElement?.blur(); _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); document.getElementById('obsPickModal').style.display='flex'; }
-    function closeObsPick(){ document.getElementById('obsPickModal').style.display='none'; }
-    function toggleService(s){ var svcs=state.modalSelectedServices||[]; var i=svcs.indexOf(s); if(i>=0) svcs.splice(i,1); else svcs.push(s); state.modalSelectedServices=svcs; _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); }
-    function confirmObsPick(){ var allKnown=OBS_SERVICOS.concat(OBS_MATERIAIS); var current=els.modalObs.value; var customParts=current.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&allKnown.indexOf(s)<0;}); var selected=state.modalSelectedServices||[]; els.modalObs.value=customParts.concat(selected).join(', '); closeObsPick(); }
-    renderSteps(); renderItems(); updateSummary(); setupSwipe(); hideSplash();
-  
-
-
 // FUNÇÕES UTILITÁRIAS
 let _tt;
 function _ico(n){return '<svg class="ico" aria-hidden="true"><use href="#ico-'+n+'"/></svg>';}
-function toast(msg, ms=2600){ const el=document.getElementById('toast');if(!el)return; el.innerHTML=msg; el.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), ms); }
+function toast(msg){ const el=document.getElementById('toast');if(!el)return; el.innerHTML=msg; el.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), 2600); }
 function f1(n){ return(Math.round((n||0)*10)/10).toFixed(1); }
 function ptFloat(v){if(typeof v==='number')return v||0;let s=String(v).trim();if(s.includes('.')&&s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(',')&&!s.includes('.'))s=s.replace(',','.');return parseFloat(s)||0;}
 function getRoomMeds(r){ let m2=0,ml=0; (r.items||[]).forEach(it=>{const a=ptFloat(it.alt),c=ptFloat(it.comp); if(a&&c)m2+=a*c; else if(a||c)ml+=(a||c);}); return{m2,ml}; }
@@ -272,12 +37,12 @@ const S = {
 // Limpeza automática se a configuração antiga ainda tiver a imagem da splash salva globalmente
 if (S.config.logo === 'https://lh3.googleusercontent.com/d/1mwtQDispSbBU3HBvLa0T46vOoHAmWNNN') {
   S.config.logo = '';
-  _saveConfig();
+  _Vault.save('pp-config', JSON.stringify(S.config));
 }
 
 if (S.config && S.config.msg && !S.config.msg.includes('{total}')) {
   S.config.msg += '\\n\\n*Valor Total: {total}*';
-  _saveConfig();
+  _Vault.save('pp-config', JSON.stringify(S.config));
 }
 if (S.config.acessibilidade) document.body.classList.add('acessivel');
 
@@ -289,45 +54,22 @@ S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.tri
 function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function _safeUrl(u) { try { const p = new URL(u); return (p.protocol==='https:'||p.protocol==='http:') ? u : ''; } catch(e) { return ''; } }
 
-async function _saveOrcs() {
+function _saveOrcs() {
   const json = JSON.stringify(S.orcs);
   try {
     _Vault.save('pp-orcs', json);
-    if (typeof dbSaveOrcs !== 'undefined') await dbSaveOrcs();
+    // Also save to Dexie (IndexedDB) for reliable storage
+    if (typeof dbSaveOrcs === 'function') {
+      dbSaveOrcs();
+    }
   } catch(e) {
-    console.error('_saveOrcs erro:', e);
+    console.error('_saveOrcs: localStorage cheio', e);
+    // Fallback 1: sessionStorage como cópia de emergência
     try { sessionStorage.setItem('pp-orcs-emergency', json); } catch(_) {}
-    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive.');
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive urgentemente.');
   }
+  // Espelho no sessionStorage para recovery em caso de crash
   try { sessionStorage.setItem('pp-orcs-mirror', json); } catch(_) {}
-}
-
-async function _saveClientes() {
-  try {
-    _saveClientes();
-    if (typeof dbSaveClientes !== 'undefined') await dbSaveClientes();
-  } catch(e) { console.error('_saveClientes erro:', e); }
-}
-
-async function _saveFornecedores() {
-  try {
-    _saveFornecedores();
-    if (typeof dbSaveFornecedores !== 'undefined') await dbSaveFornecedores();
-  } catch(e) { console.error('_saveFornecedores erro:', e); }
-}
-
-async function _saveEventos() {
-  try {
-    _saveEventos();
-    if (typeof dbSaveEventos !== 'undefined') await dbSaveEventos();
-  } catch(e) { console.error('_saveEventos erro:', e); }
-}
-
-async function _saveConfig() {
-  try {
-    _saveConfig();
-    if (typeof dbSaveConfig !== 'undefined') await dbSaveConfig();
-  } catch(e) { console.error('_saveConfig erro:', e); }
 }
 
 // ENGENHARIA: GOOGLE MAPS PLACES AUTOCOMPLETE
@@ -469,7 +211,8 @@ function checkAlarms() {
     }
   });
   if(modified) {
-    _saveEventos();
+    _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+    if (typeof dbSaveEventos === 'function') dbSaveEventos();
     if(document.getElementById('pg-agenda').classList.contains('active')) renderAgenda();
   }
 }
@@ -560,7 +303,7 @@ function _autoSaveRascunho() {
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Rascunho salvo — altere o status para gerar PDF');
 }
 let _navCallback = null;
-function openDraftConfirmModal(cb) { document.activeElement?.blur(); document.activeElement?.blur(); _navCallback = cb; document.getElementById('draft-confirm-modal').style.display = 'flex'; }
+function openDraftConfirmModal(cb) { _navCallback = cb; document.getElementById('draft-confirm-modal').style.display = 'flex'; }
 function closeDraftConfirmModal() { _navCallback = null; document.getElementById('draft-confirm-modal').style.display = 'none'; }
 function saveAsDraftAndExit() {
   const orc = collectOrc();
@@ -893,7 +636,7 @@ function renderItemModal() {
   document.getElementById('item-modal-body').scrollTop = 0; setTimeout(() => { const inp = document.getElementById('item-modal-body').querySelector('.item-title-inp'); if(inp) inp.focus(); }, 50);
 }
 
-function openServicesModal() { document.activeElement?.blur(); document.activeElement?.blur();
+function openServicesModal() {
   if (!S.tempItem) return;
   document.getElementById('services-modal').style.display = 'flex';
   _renderItemObsChips();
@@ -995,7 +738,8 @@ function extractClient(orc) {
   const idx = S.clientes.findIndex(c => c.tel.replace(/\D/g,'') === tStr);
   if(idx >= 0) { S.clientes[idx].nome = orc.nome; S.clientes[idx].apelido = orc.apelido||''; S.clientes[idx].email = orc.email; S.clientes[idx].end = orc.end; S.clientes[idx].cpf = orc.cpf; S.clientes[idx].tsEdit = Date.now(); if(orc.apelido) S.clientes[idx].notas = '[ref: '+orc.apelido+']'; }
   else { S.clientes.push({nome: orc.nome, apelido: orc.apelido||'', tel: orc.tel, email: orc.email, end: orc.end, cpf: orc.cpf, tsEdit: Date.now(), notas: orc.apelido ? '[ref: '+orc.apelido+']' : ''}); }
-  _saveClientes();
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  if (typeof dbSaveClientes === 'function') dbSaveClientes();
 }
 
 function saveOrc(silent = false){
@@ -1070,14 +814,15 @@ async function pickPhoneContactToSave() {
           end: c.address?.[0]?.formatted || ''
         });
       });
-      _saveClientes();
+      _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+      if (typeof dbSaveClientes === 'function') dbSaveClientes();
       renderClientes();
       toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ${contacts.length} contatos importados!`);
     }
   } catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Falha na importação.'); }
 }
 
-function openClientPicker() { document.activeElement?.blur(); document.activeElement?.blur(); document.getElementById('client-picker-list').innerHTML = S.clientes.map((c,i) => `<div style="padding:16px; border-bottom:1px solid var(--bdr); cursor:pointer;" onclick="selectClientPicker(${i})"><div style="font-weight:700; font-size:15px; color:var(--ink);">${_esc(c.nome)}</div><div style="font-size:13px; color:var(--ink3);">${_esc(c.tel || '')}</div></div>`).join('') || '<div style="padding:16px; font-size:13px; color:var(--ink3);">Nenhum contato salvo.</div>'; document.getElementById('modal-client-picker').style.display='flex'; }
+function openClientPicker() { document.getElementById('client-picker-list').innerHTML = S.clientes.map((c,i) => `<div style="padding:16px; border-bottom:1px solid var(--bdr); cursor:pointer;" onclick="selectClientPicker(${i})"><div style="font-weight:700; font-size:15px; color:var(--ink);">${c.nome}</div><div style="font-size:13px; color:var(--ink3);">${c.tel || ''}</div></div>`).join('') || '<div style="padding:16px; font-size:13px; color:var(--ink3);">Nenhum contato salvo.</div>'; document.getElementById('modal-client-picker').style.display='flex'; }
 function selectClientPicker(i) { const c = S.clientes[i]; document.getElementById('cli-nome').value = c.nome || ''; document.getElementById('cli-tel').value = c.tel || ''; document.getElementById('cli-email').value = c.email || ''; document.getElementById('cli-cpf').value = c.cpf || ''; document.getElementById('cli-logradouro').value = c.end || ''; document.getElementById('modal-client-picker').style.display='none'; toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato selecionado!'); }
 
 function _cliMatch(c, q) {
@@ -1096,13 +841,13 @@ function renderClientes() {
   if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum contato encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
   wrap.innerHTML = filtered.map(({c, i}) => `
     <div class="hoc" style="margin-bottom:12px;">
-      <div class="hon">${_esc(c.nome)}</div>
-      <div class="hos" style="margin-bottom:8px;">${_esc(c.tel || 'Sem telefone')}</div>
-      ${c.email ? `<div class="hos" style="margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-mail"/></svg> ${_esc(c.email)}</div>` : ''}
-      ${c.end ? `<div class="hos" style="margin-bottom:12px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${_esc(c.end)}</div>` : ''}
+      <div class="hon">${c.nome}</div>
+      <div class="hos" style="margin-bottom:8px;">${c.tel || 'Sem telefone'}</div>
+      ${c.email ? `<div class="hos" style="margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-mail"/></svg> ${c.email}</div>` : ''}
+      ${c.end ? `<div class="hos" style="margin-bottom:12px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${c.end}</div>` : ''}
 
       <div style="display:flex; gap:8px; margin-top:14px;">
-        ${c.tel ? `<a href="tel:${_esc(c.tel).replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
+        ${c.tel ? `<a href="tel:${c.tel.replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
         <button onclick="editClient(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
         <button onclick="askDelete('Deseja excluir este contato?', () => deleteClient(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
       </div>
@@ -1114,7 +859,7 @@ function renderClientes() {
 
 function deleteClient(i) {
   S.clientes.splice(i, 1);
-  _saveClientes();
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Contato removido!');
 }
@@ -1151,7 +896,8 @@ function saveEditClient() {
   if(i === -1) S.clientes.push(data);
   else S.clientes[i] = data;
   
-  _saveClientes();
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  if (typeof dbSaveClientes === 'function') dbSaveClientes();
   document.getElementById('modal-edit-client').style.display = 'none';
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato salvo!');
@@ -1176,12 +922,12 @@ function renderFornecedores() {
   if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum fornecedor encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
   wrap.innerHTML = filtered.map(({f, i}) => `
     <div class="hoc" style="margin-bottom:12px; border-left:4px solid var(--am);">
-      <div class="hon">${_esc(f.nome)}</div>
-      <div class="hos" style="margin-bottom:4px;">${_esc(f.tel || 'Sem telefone')}</div>
-      ${f.cat ? `<div class="hbadge hby" style="margin-bottom:12px;">${_esc(f.cat)}</div>` : ''}
+      <div class="hon">${f.nome}</div>
+      <div class="hos" style="margin-bottom:4px;">${f.tel || 'Sem telefone'}</div>
+      ${f.cat ? `<div class="hbadge hby" style="margin-bottom:12px;">${f.cat}</div>` : ''}
 
       <div style="display:flex; gap:8px; margin-top:14px;">
-        ${f.tel ? `<a href="tel:${_esc(f.tel).replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
+        ${f.tel ? `<a href="tel:${f.tel.replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
         <button onclick="editFornecedor(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bg2);color:var(--ink2);border:1px solid var(--bdr);font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
         <button onclick="askDelete('Deseja excluir este fornecedor?', () => deleteFornecedor(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
       </div>
@@ -1191,7 +937,7 @@ function renderFornecedores() {
   `).join('');
 }
 
-function openEditFornecedor(i) { document.activeElement?.blur(); document.activeElement?.blur();
+function openEditFornecedor(i) {
   document.getElementById('edit-forn-idx').value = i;
   if(i === -1) {
     document.getElementById('edit-forn-title').innerText = 'Novo Fornecedor';
@@ -1221,7 +967,7 @@ function saveEditFornecedor() {
   if(i === -1) S.fornecedores.push(data);
   else S.fornecedores[i] = data;
   
-  _saveFornecedores();
+  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
   document.getElementById('modal-edit-fornecedor').style.display = 'none';
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Fornecedor salvo!');
@@ -1229,7 +975,7 @@ function saveEditFornecedor() {
 
 function deleteFornecedor(i) {
   S.fornecedores.splice(i, 1);
-  _saveFornecedores();
+  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Fornecedor removido!');
 }
@@ -1259,9 +1005,18 @@ async function _doQuoteForn(orcIdx) {
   const o = S.orcs[orcIdx]; if (!o) return;
   const tel = f.tel.replace(/\D/g,'');
   // Tenta enviar PDF com fotos via native share
-  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
   try {
-    const { blob, fileName } = await _generatePDFBlob(o, true);
+    let blob, fileName;
+    if (typeof generatePdfMakeBlob === 'function' && window.pdfMake) {
+      const result = await generatePdfMakeBlob(o, true);
+      blob = result.blob;
+      fileName = result.fileName;
+    } else {
+      const result = await _generatePDFBlob(o, true);
+      blob = result.html ? new Blob([result.html], { type: 'text/html' }) : result.blob;
+      fileName = result.fileName;
+    }
     const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
     const msgBase = `Olá, ${_esc(f.nome)}! Segue o orçamento de referência para cotação de materiais:\n\n${buildWAMsg(o)}\n\nPor favor, me envie o valor dos materiais necessários. Obrigado!`;
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
@@ -1383,7 +1138,7 @@ function editOrcByObjId(id) {
   if (i >= 0) editOrc(i);
 }
 
-function openEventModal() { document.activeElement?.blur(); document.activeElement?.blur(); document.getElementById('ev-titulo').value = ''; document.getElementById('ev-data').value = calSelDate; document.getElementById('ev-hora').value = ''; document.getElementById('modal-evento').style.display='flex'; }
+function openEventModal() { document.getElementById('ev-titulo').value = ''; document.getElementById('ev-data').value = calSelDate; document.getElementById('ev-hora').value = ''; document.getElementById('modal-evento').style.display='flex'; }
 async function salvarEvento() {
   const tit = document.getElementById('ev-titulo').value; const dat = document.getElementById('ev-data').value; const hora = document.getElementById('ev-hora').value;
   const avisoVal = document.getElementById('ev-antes-val').value; const avisoUnid = document.getElementById('ev-antes-unid').value;
@@ -1394,7 +1149,8 @@ async function salvarEvento() {
   const newEv = {tit, dat, hora, avisoVal, avisoUnid, repete, alarmado:false, id:Date.now(), tsEdit: Date.now()};
   S.eventos.push(newEv);
   S.eventos.sort((a,b)=>new Date(a.dat+'T'+a.hora) - new Date(b.dat+'T'+b.hora));
-  _saveEventos();
+  _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+  if (typeof dbSaveEventos === 'function') dbSaveEventos();
   document.getElementById('modal-evento').style.display='none';
   calSelDate = dat; [calYear, calMonth] = dat.split('-').map(Number); calMonth--;
   renderAgenda();
@@ -1491,58 +1247,83 @@ function buildPDFShareMsg(orc) {
 }
 
 // ── Geração de PDF real em segundo plano (html2pdf.js) ─────────────────────
-async function _generatePDFBlob(orc, withPhotos) {
-  const orcId = String(orc.id || Date.now()).slice(-6);
-  const nomeCli = (orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_');
-  const fileName = `OC_${nomeCli}_${orcId}.pdf`;
+// Delay function to ensure proper rendering before PDF generation
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
-  const fullHtml = genPDFHtml(orc, withPhotos);
+function _generatePDFBlob(orc, withPhotos) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      // Try to use pdfmake if available
+      if (typeof generatePdfMakeBlob === 'function' && window.pdfMake) {
+        const result = await generatePdfMakeBlob(orc, withPhotos);
+        resolve(result);
+        return;
+      }
+      
+      // Fallback to HTML print approach
+      const fullHtml = genPDFHtml(orc, withPhotos);
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(fullHtml);
+      printWindow.document.close();
 
-  // Extrai CSS e corpo do documento gerado
-  const styleMatch = fullHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-  const cssText = styleMatch ? styleMatch[1] : '';
-  const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-  let bodyContent = bodyMatch ? bodyMatch[1] : fullHtml;
+      printWindow.onload = function() {
+        setTimeout(() => {
+          printWindow.close();
+          resolve({
+            html: fullHtml,
+            fileName: `OC_${(orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_')}_${String(orc.id || Date.now()).slice(-6)}.pdf`
+          });
+        }, 1000);
+      };
 
-  // Remove script, botão de impressão e SVG com <use> (sprite do app não existe aqui)
-  bodyContent = bodyContent
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<button class="print-btn"[\s\S]*?<\/button>/g, '')
-    .replace(/<svg[^>]*>\s*<use[^>]*href="#[^"]*"[^>]*\/?>\s*<\/svg>/gi, '');
-
-  // Renderiza via elemento DOM real — mais confiável que from('string') no mobile
-  const wrapper = document.createElement('div');
-  // Melhora a estabilidade do wrapper oculto
-  wrapper.style.cssText = 'position:absolute;top:0;left:0;width:794px;background:#fff;z-index:-1;opacity:0.01;visibility:visible;pointer-events:none;';
-  const styleEl = document.createElement('style');
-  styleEl.textContent = cssText;
-  wrapper.appendChild(styleEl);
-  wrapper.insertAdjacentHTML('beforeend', bodyContent);
-  document.body.appendChild(wrapper);
-
-  // Aguarda imagens e fontes carregarem para evitar PDF em branco
-  const images = wrapper.querySelectorAll('img');
-  const imgPromises = Array.from(images).map(img => {
-    if (img.complete) return Promise.resolve();
-    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+      printWindow.onerror = function(error) {
+        console.error('Erro ao abrir a janela de impressão:', error);
+        reject(error);
+      };
+    } catch (error) {
+      console.error('Erro na geração do PDF:', error);
+      reject(error);
+    }
   });
-  if (document.fonts) imgPromises.push(document.fonts.ready);
-  await Promise.all(imgPromises);
+}
 
-  // Delay adicional para garantir renderização completa (especialmente em mobile)
-  wrapper.offsetHeight; await new Promise(r => setTimeout(r, 1500));
-
+// Função para abrir a janela de impressão com botão de compartilhar
+function openPrintWindow(orc, withPhotos) {
   try {
-    const blob = await html2pdf().set({
-      margin: [10, 10, 10, 10],
-      filename: fileName,
-      image: { type: 'jpeg', quality: 0.92 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    }).from(wrapper).outputPdf('blob');
-    return { blob, fileName };
-  } finally {
-    document.body.removeChild(wrapper);
+    const fullHtml = genPDFHtml(orc, withPhotos);
+
+    // Modifica o HTML para remover o script de impressão automático e adicionar botão de compartilhar
+    let modifiedHtml = fullHtml
+      .replace(/<script>window\.onload[^<]*<\/script>/, '') // Remove o script de impressão automática
+      .replace(/<button class="print-btn"[^>]*>.*?<\/button>/, '') // Remove botão de impressão antigo
+      .replace('</body>', `
+        <div style="position: fixed; top: 20px; right: 20px; z-index: 10000;">
+          <button onclick="sharePDF()" style="background: #7C3AED; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 5px;">
+            📤 Compartilhar
+          </button>
+          <button onclick="window.print()" style="background: #334155; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 5px;">
+            🖨️ Imprimir
+          </button>
+          <button onclick="window.close()" style="background: #64748b; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; margin: 5px;">
+            ✕ Fechar
+          </button>
+        </div>
+        <script>
+          function sharePDF() {
+            alert('Para compartilhar, clique em "Imprimir" e escolha "Salvar como PDF"');
+          }
+        </script>
+      </body>`);
+
+    // Abre a nova janela
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(modifiedHtml);
+    printWindow.document.close();
+  } catch (error) {
+    console.error('Erro ao abrir a janela de impressão:', error);
+    toast('Erro ao gerar documento: ' + error.message);
   }
 }
 
@@ -1555,25 +1336,33 @@ function _downloadBlob(blob, fileName) {
 
 async function shareOrc() {
   const orc = collectOrc();
-  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Abrindo documento…');
   try {
-    const { blob, fileName } = await _generatePDFBlob(orc, false);
-    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
-    // Tenta share nativo com arquivo
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-      await navigator.share({ title: `Orçamento — ${orc.nome||''}`, files: [pdfFile] });
-      return true;
-    }
-    // Share nativo não suporta arquivo — mostra opções
-    window._shareBlob = blob; window._shareFileName = fileName; window._shareOrc = orc;
-    document.getElementById('share-opts-modal').style.display = 'flex';
+    // Abre a janela de impressão com botões de compartilhar e imprimir
+    openPrintWindow(orc, false);
+    toast('Documento aberto. Use "Compartilhar" ou "Imprimir" conforme necessário.');
     return true;
   } catch(e) {
     if (e?.name === 'AbortError') return false;
-    // Mesmo sem PDF mostra opções de texto
-    window._shareBlob = null; window._shareFileName = null; window._shareOrc = collectOrc();
-    document.getElementById('share-opts-modal').style.display = 'flex';
-    return false;
+    // Se falhar, volta para a abordagem original
+    try {
+      const { blob, fileName } = await _generatePDFBlob(orc, false);
+      const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+      // Tenta share nativo com arquivo
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        await navigator.share({ title: `Orçamento — ${orc.nome||''}`, files: [pdfFile] });
+        return true;
+      }
+      // Share nativo não suporta arquivo — mostra opções
+      window._shareBlob = blob; window._shareFileName = fileName; window._shareOrc = orc;
+      document.getElementById('share-opts-modal').style.display = 'flex';
+      return true;
+    } catch(e2) {
+      // Mesmo sem PDF mostra opções de texto
+      window._shareBlob = null; window._shareFileName = null; window._shareOrc = collectOrc();
+      document.getElementById('share-opts-modal').style.display = 'flex';
+      return false;
+    }
   }
 }
 async function _shareDoNative() {
@@ -1604,8 +1393,16 @@ function sendWA(){ const orc=collectOrc(); const msg=buildWAMsg(orc); const tel=
 // MOTOR DE IMPRESSÃO NATIVA / PDF
 async function generateAndProcessPDF(withPhotos) {
   try {
-    toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...');
     const orc = collectOrc();
+    
+    // Try to use pdfmake directly for better mobile support
+    if (typeof sharePdfMake === 'function' && window.pdfMake) {
+      await sharePdfMake(orc, withPhotos);
+      homeTab('orcamentos');
+      return;
+    }
+    
     const { blob, fileName } = await _generatePDFBlob(orc, withPhotos);
     const file = new File([blob], fileName, { type: 'application/pdf' });
     
@@ -1928,7 +1725,7 @@ function renderLogoPreview() {
   }
 }
 
-function openConfig() { document.activeElement?.blur(); document.activeElement?.blur(); canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
+function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
 function saveConfig() {
   S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false, flashNomes: (document.getElementById('cfg-flash-nomes')||{}).value||defCfg.flashNomes, flashServicos: (document.getElementById('cfg-flash-servicos')||{}).value||defCfg.flashServicos, flashMateriais: (document.getElementById('cfg-flash-materiais')||{}).value||defCfg.flashMateriais };
   document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
@@ -1936,7 +1733,8 @@ function saveConfig() {
   if(!S.DEFAULT_SERVICES.length) S.DEFAULT_SERVICES = defCfg.servicos.split(',').map(s=>s.trim()); 
   S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); 
   try {
-    _saveConfig();
+    _Vault.save('pp-config', JSON.stringify(S.config));
+    if (typeof dbSaveConfig === 'function') dbSaveConfig();
     _cfgDirty = false;
     toast('<svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações salvas!');
     populateStatusSelect(); loadGoogleMaps(); homeTab('home');
@@ -1950,9 +1748,9 @@ function saveConfig() {
 let backupTimerHandle; let pendingBackupData = null;
 function exportBackup() { const data = { versao: 1, dataGeracao: new Date().toISOString(), config: S.config, orcs: S.orcs, clientes: S.clientes, fornecedores: S.fornecedores, eventos: S.eventos }; const json = JSON.stringify(data); const blob = new Blob([json], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `PintorPlus_Backup_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`; a.click(); URL.revokeObjectURL(url); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Exportado!'); }
 function handleBackupFile(input) { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { try { const data = JSON.parse(e.target.result); if(!data.orcs || !data.config) throw new Error("Formato inválido"); pendingBackupData = data; openBackupModal(); } catch(err) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro no backup'); } }; reader.readAsText(file); input.value = ''; }
-function openBackupModal() { document.activeElement?.blur(); document.activeElement?.blur(); document.getElementById('backup-confirm-modal').style.display = 'flex'; const btn = document.getElementById('btn-force-replace'); btn.classList.add('btn-disabled'); let secs = 3; btn.textContent = `Substituir Tudo (${secs}s)`; clearInterval(backupTimerHandle); backupTimerHandle = setInterval(() => { secs--; if(secs <= 0) { clearInterval(backupTimerHandle); btn.classList.remove('btn-disabled'); btn.textContent = 'Substituir Tudo'; } else { btn.textContent = `Substituir Tudo (${secs}s)`; } }, 1000); }
+function openBackupModal() { document.getElementById('backup-confirm-modal').style.display = 'flex'; const btn = document.getElementById('btn-force-replace'); btn.classList.add('btn-disabled'); let secs = 3; btn.textContent = `Substituir Tudo (${secs}s)`; clearInterval(backupTimerHandle); backupTimerHandle = setInterval(() => { secs--; if(secs <= 0) { clearInterval(backupTimerHandle); btn.classList.remove('btn-disabled'); btn.textContent = 'Substituir Tudo'; } else { btn.textContent = `Substituir Tudo (${secs}s)`; } }, 1000); }
 function closeBackupModal(proceed) { clearInterval(backupTimerHandle); document.getElementById('backup-confirm-modal').style.display = 'none'; if(!proceed) pendingBackupData = null; }
-function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; _saveConfig(); _saveOrcs(); _saveClientes(); _saveFornecedores(); _saveEventos(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
+function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; _Vault.save('pp-config', JSON.stringify(S.config)); _saveOrcs(); _Vault.save('pp-clientes', JSON.stringify(S.clientes)); _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); _Vault.save('pp-eventos', JSON.stringify(S.eventos)); if (typeof dbImportBackup === 'function') dbImportBackup(pendingBackupData, 'replace'); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
 function homeTab(tab){
   // Se estiver em config com alterações não salvas, pede confirmação antes de sair
   if (tab !== 'config' && typeof _cfgDirty !== 'undefined' && _cfgDirty && document.getElementById('pg-config')?.classList.contains('active')) {
@@ -2024,8 +1822,8 @@ function renderHomeMini() {
   renderLogoPreview(); // Sincroniza todos os logos simultaneamente
   
   const wrap=document.getElementById('home-orcs-mini');if(!wrap)return;
-  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registrado ainda.</div>'; return; }
-  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(o.nome||'(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
+  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
+  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
 }
 
 // --- MÓDULO: EVENTOS DA SEMANA NA HOME ---
@@ -2051,10 +1849,10 @@ function renderHomeEvents() {
         
         if(item.type === 'ev') {
           const e = item.data;
-          html += `<div class="hoc" style="border-left: 3px solid var(--bl); margin-bottom:8px; padding:12px;"><div class="hot" style="margin-bottom:0;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> ${_esc(e.tit)}</div><div class="hos" style="font-size:11px;">${dataFormatada} - ${_esc(e.hora||'O dia todo')}</div></div></div></div>`;
+          html += `<div class="hoc" style="border-left: 3px solid var(--bl); margin-bottom:8px; padding:12px;"><div class="hot" style="margin-bottom:0;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> ${e.tit}</div><div class="hos" style="font-size:11px;">${dataFormatada} - ${e.hora||'O dia todo'}</div></div></div></div>`;
         } else {
           const o = item.data;
-          html += `<div class="hoc" style="border-left: 3px solid var(--gn); margin-bottom:8px; padding:12px; cursor:pointer;" onclick="editOrcByObjId('${o.id}')"><div class="hot" style="margin-bottom:0; width:100%;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-hard-hat"/></svg> Obra: ${_esc(o.nome)}</div><div class="hos" style="font-size:11px;">Início a ${dataFormatada}</div></div><span class="hbadge ${getStatusBadgeClass(o.status)}" style="margin-left:auto;">${o.status||'Pendente'}</span></div></div>`;
+          html += `<div class="hoc" style="border-left: 3px solid var(--gn); margin-bottom:8px; padding:12px; cursor:pointer;" onclick="editOrcByObjId('${o.id}')"><div class="hot" style="margin-bottom:0; width:100%;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-hard-hat"/></svg> Obra: ${o.nome}</div><div class="hos" style="font-size:11px;">Início a ${dataFormatada}</div></div><span class="hbadge ${getStatusBadgeClass(o.status)}" style="margin-left:auto;">${o.status||'Pendente'}</span></div></div>`;
         }
       });
     }
@@ -2106,7 +1904,7 @@ async function renderHomeNews() {
         <div style="font-size:24px; margin-right:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-newspaper"/></svg></div>
         <div style="flex:1;">
           <div class="news-title">Revista Pintura em Movimento</div>
-          <div class="news-date">Não foi possível carregar as notícias. Clique aqui para acessar.</div>
+          <div class="news-date">Não foi possível carregar as notícias. Prima aqui para aceder.</div>
         </div>
       </div>`;
   }
@@ -2129,7 +1927,7 @@ function renderOrcamentosList() {
     const isRascunho=(o.status||'')==='Rascunho';
     const badgeHtml=isRascunho?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
     const orcShortId=String(o.id||'').slice(-6);
-    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(o.nome||'(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${_esc(o.end||'—')} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
+    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${o.end||'—'} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
   }).join('');
 }
 
@@ -2265,6 +2063,23 @@ function gerarReciboPDF() {
   };
 
   fecharModalRecibo();
+
+  // Try to use pdfmake for better PDF generation
+  if (typeof generateAndDownloadReceipt === 'function' && window.pdfMake) {
+    generateAndDownloadReceipt(data)
+      .then(() => toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Recibo gerado!'))
+      .catch(err => {
+        console.error('Erro ao gerar recibo com pdfmake:', err);
+        // Fallback to HTML
+        const html = gerarReciboHTML(data);
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url  = URL.createObjectURL(blob);
+        const w    = window.open(url, '_blank');
+        if (!w) toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Pop-up bloqueado.');
+        else setTimeout(() => URL.revokeObjectURL(url), 30000);
+      });
+    return;
+  }
 
   const html = gerarReciboHTML(data);
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
@@ -2450,7 +2265,7 @@ function viewOrc(i) {
   const tot = calcOrcTotal(o);
   const fmtVal = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
   const fmtDate = ts => { if (!ts) return '—'; const d = new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
-  const row = (label, val) => val ? `<div style="display:flex;gap:8px;margin-bottom:6px;font-size:13px;"><span style="color:var(--ink3);min-width:110px;flex-shrink:0;">${label}</span><span style="font-weight:600;color:var(--ink);word-break:break-word;">${_esc(val)}</span></div>` : '';
+  const row = (label, val) => val ? `<div style="display:flex;gap:8px;margin-bottom:6px;font-size:13px;"><span style="color:var(--ink3);min-width:110px;flex-shrink:0;">${label}</span><span style="font-weight:600;color:var(--ink);word-break:break-word;">${val}</span></div>` : '';
   const sec = (title, content) => `<div style="margin-bottom:16px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px;">${title}</div>${content}</div>`;
 
   let roomsHtml = '';
@@ -2460,18 +2275,18 @@ function viewOrc(i) {
       const a = ptFloat(it.alt), c = ptFloat(it.comp);
       const m2 = a && c ? (a * c).toFixed(2) + ' m²' : (a || c) ? (a || c).toFixed(2) + ' ml' : '';
       const price = it.price ? (it.perMeter ? `R$ ${it.price}/m` : `R$ ${it.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}`) : '';
-      return `<div style="font-size:12px;padding:5px 8px;background:var(--bg2);border-radius:7px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;"><span style="color:var(--ink2);">${_esc(it.name || it.serv || '—')}${m2 ? ' · ' + m2 : ''}</span><span style="color:var(--bl);font-weight:700;flex-shrink:0;">${price}</span></div>`;
+      return `<div style="font-size:12px;padding:5px 8px;background:var(--bg2);border-radius:7px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;"><span style="color:var(--ink2);">${it.name || it.serv || '—'}${m2 ? ' · ' + m2 : ''}</span><span style="color:var(--bl);font-weight:700;flex-shrink:0;">${price}</span></div>`;
     }).join('');
     const rPrice = r.preco ? (r.precoPerM2 ? `R$ ${r.preco}/m² · ${meds.m2.toFixed(2)}m² = ${fmtVal(r.preco * meds.m2)}` : fmtVal(r.preco)) : '';
-    roomsHtml += `<div style="margin-bottom:12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;"><div style="padding:8px 12px;background:var(--bg-card);font-size:13px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;"><span>${_esc(r.name || 'Ambiente ' + (ri+1))}</span>${rPrice ? `<span style="color:var(--bl);">${rPrice}</span>` : ''}</div>${itemsHtml ? `<div style="padding:8px;">${itemsHtml}</div>` : ''}</div>`;
+    roomsHtml += `<div style="margin-bottom:12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;"><div style="padding:8px 12px;background:var(--bg-card);font-size:13px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;"><span>${r.name || 'Ambiente ' + (ri+1)}</span>${rPrice ? `<span style="color:var(--bl);">${rPrice}</span>` : ''}</div>${itemsHtml ? `<div style="padding:8px;">${itemsHtml}</div>` : ''}</div>`;
   });
 
   const addr = [o.logradouro, o.numero, o.comp, o.bairro, o.cidade].filter(Boolean).join(', ');
   const body = document.getElementById('view-orc-body');
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:12px;">
-      <div style="flex:1;"><div style="font-size:16px;font-weight:800;color:var(--ink);">${_esc(o.nome || '(sem nome)')}</div><div style="font-size:12px;color:var(--ink3);margin-top:2px;">${fmtDate(o.tsEdit || o.ts)}</div></div>
-      <span class="hbadge ${getStatusBadgeClass(o.status)}" style="font-size:11px;">${_esc(o.status || 'Pendente')}</span>
+      <div style="flex:1;"><div style="font-size:16px;font-weight:800;color:var(--ink);">${o.nome || '(sem nome)'}</div><div style="font-size:12px;color:var(--ink3);margin-top:2px;">${fmtDate(o.tsEdit || o.ts)}</div></div>
+      <span class="hbadge ${getStatusBadgeClass(o.status)}" style="font-size:11px;">${o.status || 'Pendente'}</span>
     </div>
     <div style="background:var(--bg-card);border-radius:12px;padding:14px;margin-bottom:16px;">
       <div style="font-size:22px;font-weight:800;color:var(--bl);text-align:center;">R$ ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
@@ -2622,15 +2437,16 @@ function showFaq() { document.getElementById('info-modal-title').textContent = '
       pg.style.display = 'flex';
     }
     if (!iframe) return;
-    const _rawSrc = iframe.getAttribute('data-srcdoc') || '';
+    const _rawSrc = window.PP_FLASH_SRCDOC_TEMPLATE || '';
+    if (!_rawSrc) {
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Flash indisponível no momento.');
+      return;
+    }
     const _nomes = (S.config.flashNomes || defCfg.flashNomes).split(',').map(s=>s.trim()).filter(Boolean);
     const _servs = (S.config.flashServicos || defCfg.flashServicos).split(',').map(s=>s.trim()).filter(Boolean);
     const _mats = (S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean);
-    const _flashSrc = _rawSrc
-      .replace('%%NOME_SUGESTOES%%', JSON.stringify(_nomes))
-      .replace('%%OBS_SERVICOS%%', JSON.stringify(_servs))
-      .replace('%%OBS_MATERIAIS%%', JSON.stringify(_mats));
     const ppTheme = sessionStorage.getItem('pp-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const _flashSrc = _rawSrc.replace('__PP_FLASH_DATA__', JSON.stringify({ nomes: _nomes, servicos: _servs, materiais: _mats, theme: ppTheme }));
     function _onFlashLoad() {
       if (!iframe.srcdoc) return;
       iframe.removeEventListener('load', _onFlashLoad);
@@ -2745,8 +2561,8 @@ const GDrive = {
 
   // ── ESTADO ────────────────────────────────────────────────
   tokenClient: null,
-  _gapiReady: false,
-  _gisReady: false,
+  _gapiReady: true,
+  _gisReady: true,
   fileId: null,
   syncTimer: null,
   isSyncing: false,
@@ -2755,7 +2571,7 @@ const GDrive = {
   accessToken: null,
   guestMode: false,
   _sessionLoaded: false,
-  _restoringSession: false, // bloqueia redirecionamento enquanto GIS ainda inicializa
+  _restoringSession: false,
   _tokenRefreshTimer: null,
   _userInitiatedAuth: false,
 
@@ -2763,29 +2579,83 @@ const GDrive = {
   init() {
     this._initConnectivity();
     this._hookLocalStorage();
+    this._loadLocalSession();
+    const savedToken = localStorage.getItem('pp-gdrive-at');
+    if (savedToken) {
+      this.accessToken = savedToken;
+    }
+    if (!this.guestMode && !this._sessionLoaded) {
+      this._showLoginBtn();
+    } else if (this.accessToken && this._sessionLoaded) {
+      this._setStatus('sync', 'Reconectando ao Drive...');
+      this._findFile().catch(() => {});
+    }
     this.periodicCheck();
-    window.addEventListener("focus", () => { if (this.accessToken && !this.isSyncing) this._findFile(); });
-    console.log('[GDrive] Inicializado em modo integrado ao Firebase Auth');
+    window.addEventListener('focus', () => {
+      if (this.accessToken && !this.isSyncing) this._findFile();
+    });
   },
 
-  // ── SESSÃO E AUTH (Firebase gerenciado) ───────────────────
-  _loadLocalSession() { },
+  // ── SESSÃO LOCAL ──────────────────────────────────────────
+  _loadLocalSession() {
+    try {
+      const raw = localStorage.getItem('pp-session');
+      if (!raw) {
+        if (localStorage.getItem('pp-guest-mode') === '1') {
+          this.guestMode = true;
+          _showGuestBanner();
+          showPage('pg-home');
+          renderHomeMini();
+          renderHomeEvents();
+          renderHomeNews();
+        }
+        return;
+      }
+      const session = JSON.parse(raw);
+      if (!session || !session.email) return;
+      this.user = session;
+      this._sessionLoaded = true;
+      this.guestMode = false;
+      this._showLoggedIn();
+      if (_hasAcceptedTerms(session.email)) {
+        showPage('pg-home');
+        renderHomeMini();
+        renderHomeEvents();
+        renderHomeNews();
+      } else {
+        showTermsModal();
+      }
+    } catch (e) {
+      console.warn('[GDrive] Falha ao restaurar sessão local', e);
+    }
+  },
+
   _initGapi() { this._gapiReady = true; },
   _initGis() { this._gisReady = true; },
-  _tryStart() { },
-  _onToken() { },
+  _tryStart() {},
+  _onToken() {},
 
+  // ── LOGIN / LOGOUT ────────────────────────────────────────
   signIn() {
+    if (typeof PP_Auth === 'undefined') {
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Aguarde o carregamento...');
+      return;
+    }
     PP_Auth.signIn();
   },
 
-  signOut() {
+  signOut(options = {}) {
+    const { skipFirebase = false, silent = false } = options;
+    if (!skipFirebase && typeof PP_Auth !== 'undefined') {
+      PP_Auth.signOut().catch(e => console.warn('[PP-AUTH] Erro ao encerrar sessão Firebase', e));
+    }
     clearTimeout(this._tokenRefreshTimer);
     this.accessToken = null;
     this.user = null;
     this.fileId = null;
     this.guestMode = false;
     this._restoringSession = false;
+    this.pendingSync = false;
     localStorage.removeItem('pp-gdrive-email');
     localStorage.removeItem('pp-gdrive-lastSync');
     localStorage.removeItem('pp-session');
@@ -2794,12 +2664,12 @@ const GDrive = {
     this._sessionLoaded = false;
     _hideGuestBanner();
     this._showLoggedOut();
-    this._showLoginBtn();
-    toast('Desconectado');
+    if (!silent) this._showLoginBtn();
+    if (!silent) toast('Desconectado');
   },
 
-  // ── INFO DO USUÁRIO ───────────────────────────────────────
   async _fetchUserInfo() {
+    if (!this.accessToken) return null;
     try {
       const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: 'Bearer ' + this.accessToken }
@@ -2807,33 +2677,28 @@ const GDrive = {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const data = await r.json();
       this.user = { name: data.name, email: data.email, picture: data.picture };
-      localStorage.setItem('pp-gdrive-email', data.email);
-      localStorage.setItem('pp-session', JSON.stringify({ name: data.name, email: data.email, picture: data.picture }));
-      // Limpa modo convidado ao fazer login real com Google
-      if (this.guestMode) {
-        this.guestMode = false;
-        localStorage.removeItem('pp-guest-mode');
-        _hideGuestBanner();
-      }
+      localStorage.setItem('pp-gdrive-email', data.email || '');
+      localStorage.setItem('pp-session', JSON.stringify(this.user));
       this._sessionLoaded = true;
       this._showLoggedIn();
-      if (_hasAcceptedTerms(data.email)) {
-        showPage('pg-home');
-        renderHomeMini();
-        renderHomeEvents();
-        renderHomeNews();
-        this._findFile().then(() => {
-          if (this.pendingSync) this.scheduleSync();
-        });
-      } else {
-        showTermsModal();
-      }
-    } catch(e) {
+      return data;
+    } catch (e) {
       console.error('GDrive: userinfo falhou', e);
-      this.accessToken = null;
-      this._showLoginBtn();
-      toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao autenticar. Tente novamente.');
+      return null;
     }
+  },
+
+  _authViaRedirect() {
+    this.reconnectDrive();
+  },
+
+  reconnectDrive() {
+    if (!this._sessionLoaded || typeof PP_Auth === 'undefined') {
+      this._showLoginBtn();
+      return;
+    }
+    this.pendingSync = true;
+    PP_Auth.signIn({ forcePrompt: true });
   },
 
   // ── OPERAÇÕES NO DRIVE (fetch direto — sem dependency do gapi discovery doc) ──
@@ -2898,10 +2763,10 @@ const GDrive = {
         S.eventos = data.eventos || [];
         if (data.config) S.config = Object.assign({}, S.config, data.config);
         _saveOrcs();
-        _saveClientes();
-        _saveFornecedores();
-        _saveEventos();
-        _saveConfig();
+        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+        _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+        _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+        _Vault.save('pp-config', JSON.stringify(S.config));
         toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados do Drive carregados!');
       } else {
         // Dispositivo já usado antes — mescla, mantendo versão mais recente de cada item
@@ -2925,7 +2790,7 @@ const GDrive = {
             if ((imp.tsEdit || 0) > (localCl[idx].tsEdit || 0)) { localCl[idx] = imp; changed = true; }
           } else { localCl.push(imp); changed = true; }
         });
-        if (changed) { S.clientes = localCl; _saveClientes(); }
+        if (changed) { S.clientes = localCl; _Vault.save('pp-clientes', JSON.stringify(S.clientes)); }
 
         // Fornecedores: mescla usando tsEdit e nome
         const localForn = S.fornecedores || [];
@@ -2935,7 +2800,7 @@ const GDrive = {
             if ((imp.tsEdit || 0) > (localForn[idx].tsEdit || 0)) { localForn[idx] = imp; changed = true; }
           } else { localForn.push(imp); changed = true; }
         });
-        if (changed) { S.fornecedores = localForn; _saveFornecedores(); }
+        if (changed) { S.fornecedores = localForn; _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); }
 
         // Eventos: mescla usando tsEdit e id
         const localEvts = S.eventos || [];
@@ -2945,7 +2810,7 @@ const GDrive = {
             if ((imp.tsEdit || 0) > (localEvts[idx].tsEdit || 0)) { localEvts[idx] = imp; changed = true; }
           } else { localEvts.push(imp); changed = true; }
         });
-        if (changed) { S.eventos = localEvts; _saveEventos(); }
+        if (changed) { S.eventos = localEvts; _Vault.save('pp-eventos', JSON.stringify(S.eventos)); }
         if (changed) toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados sincronizados do Drive');
       }
 
@@ -3282,15 +3147,7 @@ const GDrive = {
   },
 
   // Redirect OAuth (implicit flow) — nunca bloqueado pelo navegador
-  // Protegido contra loops: flag pp-auth-redirect-done é limpa em init()
   _authViaRedirect() {
-    // Dupla-verificação: se flag já estava set, limpa e aborta para evitar loop
-    if (sessionStorage.getItem("pp-auth-redirect-done")) {
-      sessionStorage.removeItem("pp-auth-redirect-done");
-      this._setStatus("err", "Loop de autenticação evitado");
-      return;
-    }
-    sessionStorage.setItem("pp-auth-redirect-done", "1");
     const savedEmail = localStorage.getItem('pp-gdrive-email');
     // redirect_uri deve apontar para app.html (onde o token é lido no hash da URL)
     const redirectUri = window.location.origin + '/app.html';
@@ -3501,18 +3358,13 @@ const _Vault = {
 // Inicializa quando DOM pronto — Dexie DB primeiro, depois Vault e GDrive
 async function _startApp() {
   try {
-    // 1. Initialize Vault first (needed for decryption during migration)
     await _Vault.init();
-
-    // 2. Initialize Dexie.js database and migrate data if needed
-    if (typeof PP_DB !== 'undefined') {
+    if (typeof PP_DB !== 'undefined' && typeof dbInit === 'function') {
       await dbInit();
     }
-
-    // 3. Initialize Google Drive
     GDrive.init();
   } catch (e) {
-    console.error("[PP] Erro crítica na inicialização:", e);
+    console.error('[PP] Erro crítica na inicialização:', e);
   }
 }
 if (document.readyState === 'loading') {
@@ -3770,7 +3622,7 @@ const GContacts = {
         } else { skipped++; }
       }
       if (added) {
-        _saveClientes();
+        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
         renderClientes();
       }
       toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ' + added + ' importado(s)' + (skipped ? ', ' + skipped + ' já existia(m)' : ''));
@@ -3966,7 +3818,7 @@ function _canPDF(o) {
 async function genPDFFromIdx(i) {
   const o = S.orcs[i];
   if (!o) return;
-  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
   try {
     const { blob, fileName } = await _generatePDFBlob(o, false);
     const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
@@ -4025,7 +3877,7 @@ async function _doSendWA() {
   }
   const prev = o.fmt; o.fmt = _sendFmt;
   const withPhotos = document.getElementById('send-with-photos')?.checked || false;
-  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
   try {
     const { blob, fileName } = await _generatePDFBlob(o, withPhotos);
     const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
@@ -4079,7 +3931,7 @@ async function _doSendPDF() {
 
   const withPhotos = document.getElementById('send-with-photos')?.checked || false;
   const prev = o.fmt; o.fmt = _sendFmt;
-  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF...', 5000);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
   try {
     const { blob, fileName } = await _generatePDFBlob(o, withPhotos);
     const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
@@ -4176,7 +4028,7 @@ function _gerarLogSuporte() {
   return lines.join('\n');
 }
 
-function abrirModalSuporte() { document.activeElement?.blur(); document.activeElement?.blur();
+function abrirModalSuporte() {
   _supportImages = [];
   const preview = document.getElementById('sp-img-preview');
   if (preview) preview.innerHTML = '';
@@ -4418,5 +4270,3 @@ const _modalObserver = new MutationObserver((mutations) => {
 document.querySelectorAll('.glass-overlay').forEach((el) => {
   _modalObserver.observe(el, { attributes: true });
 });
-
-
