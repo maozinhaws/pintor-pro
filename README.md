@@ -10,8 +10,8 @@ PWA profissional para pintores: gerencie orçamentos, clientes, fornecedores e a
 |--------|-----------|
 | Frontend | HTML5, CSS3, Vanilla JS |
 | PWA | Service Worker, Web App Manifest |
-| Storage | LocalStorage (dados), Google Drive (backup) |
-| Auth | Google Identity Services (GSI) |
+| Storage | IndexedDB/Dexie + LocalStorage (dados), Google Drive (backup) |
+| Auth | Firebase Auth (Google) |
 | Integração | Google Drive, Google Calendar, Google Contacts |
 | Criptografia | Web Crypto API — AES-GCM (dados sensíveis) |
 | Deploy | Vercel |
@@ -23,6 +23,10 @@ PWA profissional para pintores: gerencie orçamentos, clientes, fornecedores e a
 ```
 /
 ├── app.html                  ← Aplicação principal (SPA)
+├── app_main.js               ← Runtime principal do app
+├── firebase_auth.js          ← Bootstrap Firebase Auth + Firestore
+├── flash_template.js         ← Template srcdoc do App Flash
+├── flash_app.js              ← Runtime isolado do App Flash
 ├── index.html                ← Landing page
 ├── sw.js                     ← Service Worker
 ├── site.webmanifest          ← Manifesto PWA principal (usado por app.html)
