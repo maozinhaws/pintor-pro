@@ -123,7 +123,7 @@ const GDrive = {
               resolve(null);
             }
           } else {
-            this _sessionLoaded = false;
+            this._sessionLoaded = false;
             this._restoringSession = false;
             this._showLoginBtn(); // Show login button
             resolve(null);
