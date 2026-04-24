@@ -42,9 +42,14 @@ class PintorPlusApp {
 
   loadEventListeners() {
     // App initialization listeners
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.initializeUI();
+      });
+    } else {
+      // DOM already ready when app instance bootstraps.
       this.initializeUI();
-    });
+    }
 
     // Resize listener for responsive adjustments
     window.addEventListener('resize', () => {
