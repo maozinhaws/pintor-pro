@@ -64,7 +64,8 @@ const GDrive = {
             token: this._token,
             expires: Date.now() + (this._token.expires_in * 1000)
           };
-          localStorage.setItem('pp_session', JSON.stringify(sessionData));
+          localStorage.setItem('pp-session', JSON.stringify(sessionData));
+          localStorage.removeItem('pp_session');
 
           console.log('[PP-AUTH] SignIn successful');
           this._showLoginBtn(); // Hide login button
@@ -85,6 +86,7 @@ const GDrive = {
     this._restoringSession = false;
 
     // Clear session from localStorage
+    localStorage.removeItem('pp-session');
     localStorage.removeItem('pp_session');
 
     // Show login button again
@@ -102,7 +104,7 @@ const GDrive = {
       // Simulate async process
       setTimeout(() => {
         try {
-          const sessionData = localStorage.getItem('pp_session');
+          const sessionData = localStorage.getItem('pp-session') || localStorage.getItem('pp_session');
           if (sessionData) {
             const parsed = JSON.parse(sessionData);
 
@@ -123,7 +125,7 @@ const GDrive = {
               resolve(null);
             }
           } else {
-            this _sessionLoaded = false;
+            this._sessionLoaded = false;
             this._restoringSession = false;
             this._showLoginBtn(); // Show login button
             resolve(null);

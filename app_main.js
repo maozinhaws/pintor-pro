@@ -58,8 +58,10 @@ class PintorPlusApp {
 
   checkSession() {
     console.log('[PP-APP] Checking session status');
-    // Check for existing session in localStorage
-    const sessionData = localStorage.getItem('pp_session');
+    // Check for existing session in localStorage.
+    // Primary key: pp-session (canonical).
+    // Legacy fallback: pp_session (backward compatibility).
+    const sessionData = localStorage.getItem('pp-session') || localStorage.getItem('pp_session');
     if (sessionData) {
       try {
         const parsed = JSON.parse(sessionData);
@@ -88,6 +90,7 @@ class PintorPlusApp {
 
   clearSession() {
     console.log('[PP-APP] Clearing session');
+    localStorage.removeItem('pp-session');
     localStorage.removeItem('pp_session');
     this._sessionLoaded = false;
   }
