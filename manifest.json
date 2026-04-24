@@ -1,104 +1,53 @@
 {
-  "name": "Pintor Plus - Orçamentos Inteligentes",
-  "short_name": "Pintor+",
-  "description": "Gerencie orçamentos, clientes e agenda. O app profissional para pintores — funciona offline e sincroniza com Google Drive.",
-  "lang": "pt-BR",
-  "dir": "ltr",
-  "start_url": "/app.html?source=pwa",
+  "name": "Pintor Plus",
+  "short_name": "PintorPlus",
+  "description": "Aplicativo para gestão de orçamentos, clientes e serviços para profissionais de pintura",
+  "start_url": "/",
   "scope": "/",
-  "id": "/app.html",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#7C3AED",
-  "background_color": "#F8FAFC",
-  "categories": ["business", "productivity", "utilities"],
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
   "icons": [
     {
-      "src": "/favicon-16x16.png",
-      "type": "image/png",
-      "sizes": "16x16",
-      "purpose": "any"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     },
     {
-      "src": "/favicon-32x32.png",
-      "type": "image/png",
-      "sizes": "32x32",
-      "purpose": "any"
-    },
-    {
-      "src": "/favicon-96x96.png",
-      "type": "image/png",
-      "sizes": "96x96",
-      "purpose": "any"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "type": "image/png",
-      "sizes": "180x180",
-      "purpose": "any"
-    },
-    {
-      "src": "/android-chrome-192x192.png",
-      "type": "image/png",
+      "src": "/icon-192.png",
       "sizes": "192x192",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "/android-chrome-512x512.png",
-      "type": "image/png",
+      "src": "/icon-512.png",
       "sizes": "512x512",
-      "purpose": "any"
-    },
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "screenshots": [
     {
-      "src": "/web-app-manifest-192x192.png",
+      "src": "/screenshot1.png",
+      "sizes": "400x800",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
+      "label": "Tela de login"
     },
     {
-      "src": "/web-app-manifest-512x512.png",
+      "src": "/screenshot2.png",
+      "sizes": "400x800",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "maskable"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Novo Orçamento",
-      "short_name": "Orçamento",
-      "description": "Criar um novo orçamento detalhado",
-      "url": "/app.html?action=new-orc&source=shortcut",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "label": "Dashboard principal"
     },
     {
-      "name": "Orçamento Flash",
-      "short_name": "Flash",
-      "description": "Orçamento rápido para visitas técnicas",
-      "url": "/app.html?action=flash&source=shortcut",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "Agenda",
-      "short_name": "Agenda",
-      "description": "Ver e gerenciar compromissos",
-      "url": "/app.html?action=agenda&source=shortcut",
-      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "src": "/screenshot3.png",
+      "sizes": "400x800",
+      "type": "image/png",
+      "label": "Tela de orçamento"
     }
-  ],
-  "share_target": {
-    "action": "/app.html",
-    "method": "GET",
-    "params": {
-      "title": "share_title",
-      "text": "share_text",
-      "url": "share_url"
-    }
-  },
-  "protocol_handlers": [
-    {
-      "protocol": "web+pintorplus",
-      "url": "/app.html?proto=%s"
-    }
-  ],
-  "prefer_related_applications": false
+  ]
 }
