@@ -44,11 +44,7 @@
     }
   ],
   "env": {
-    "GOOGLE_CLIENT_ID": {
-      "description": "Google OAuth Client ID for Google Drive integration"
-    },
-    "GOOGLE_API_KEY": {
-      "description": "Google API Key for Google Drive integration"
-    }
+    "GOOGLE_CLIENT_ID": "@google_client_id",
+    "GOOGLE_API_KEY": "@google_api_key"
   }
 }
