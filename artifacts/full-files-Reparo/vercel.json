@@ -29,11 +29,10 @@
       ]
     }
   ],
-  "redirects": [
+  "routes": [
     {
-      "source": "/app",
-      "destination": "/app.html",
-      "permanent": false
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
