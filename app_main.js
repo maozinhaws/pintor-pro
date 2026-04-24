@@ -19,11 +19,37 @@ class PintorPlusApp {
     this.applyTheme();
   }
 
+  applyTheme() {
+    try {
+      const savedTheme = sessionStorage.getItem('pp-theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+
+      if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', (event) => {
+          // Keep user preference if explicitly set.
+          if (!sessionStorage.getItem('pp-theme')) {
+            document.documentElement.classList.toggle('dark', event.matches);
+          }
+        });
+      }
+    } catch (error) {
+      console.warn('[PP-APP] Failed to apply theme, continuing with default:', error);
+    }
+  }
+
   loadEventListeners() {
     // App initialization listeners
-    document.addEventListener('DOMContentLoaded', () => {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        this.initializeUI();
+      });
+    } else {
+      // DOM already ready when app instance bootstraps.
       this.initializeUI();
-    });
+    }
 
     // Resize listener for responsive adjustments
     window.addEventListener('resize', () => {
