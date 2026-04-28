@@ -1,0 +1,326 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Orçamento Rápido Pocket</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#f7f8fc; --bg-soft:#eef2f7; --card:#ffffff; --card-2:#fff7ed;
+      --text:#0f172a; --text-2:#334155; --muted:#64748b;
+      --border:#d9e0ea; --border-2:#c4ccd8;
+      --primary-a:#7c3aed; --primary-b:#dc2626;
+      --accent-a:#f97316; --accent-b:#fb923c;
+      --danger:#dc2626; --danger-soft:rgba(220,38,38,.10);
+      --success:#10b981; --success-soft:#ecfdf5;
+      --shadow:0 10px 28px rgba(15,23,42,.10);
+      --glow-a:#7c3aed; --glow-b:#ef4444; --glow-c:#f59e0b;
+    }
+    body.dark{
+      --bg:#020617; --bg-soft:#111827; --card:#0f172a; --card-2:#3a1d10;
+      --text:#f8fafc; --text-2:#dbe4ef; --muted:#94a3b8;
+      --border:#334155; --border-2:#475569;
+      --primary-a:#5b21b6; --primary-b:#991b1b;
+      --accent-a:#fb923c; --accent-b:#f97316;
+      --danger:#f87171; --danger-soft:rgba(248,113,113,.12);
+      --success:#34d399; --success-soft:#052e2b;
+      --shadow:0 14px 28px rgba(0,0,0,.34);
+      --glow-a:#a78bfa; --glow-b:#f87171; --glow-c:#fbbf24;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow:hidden}
+    body{font-family:"Sora",sans-serif;background:radial-gradient(circle at top, rgba(249,115,22,.10), transparent 34%), var(--bg);color:var(--text);transition:background-color .25s ease,color .25s ease}
+    .app-shell{width:100%;max-width:450px;height:100dvh;margin:0 auto;padding:8px;position:relative}
+    .neon-frame{position:absolute;inset:4px;border-radius:28px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 0 18px rgba(124,58,237,.20))}
+    .neon-frame::before{content:"";position:absolute;inset:-35%;background:conic-gradient(from 0deg, transparent 0deg, var(--glow-a) 70deg, transparent 110deg, transparent 180deg, var(--glow-b) 240deg, transparent 285deg, var(--glow-c) 330deg, transparent 360deg);animation:spinGlow 6s linear infinite;opacity:.95}
+    .neon-frame::after{content:"";position:absolute;inset:4px;border-radius:24px;background:var(--bg)}
+    @keyframes spinGlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    .app{position:relative;z-index:1;width:100%;height:100%;border-radius:24px;overflow:hidden;background:var(--bg);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column}
+    .theme-toggle{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:12;width:132px;height:56px;border:none;border-radius:999px;background:#F7F9FC;box-shadow:inset 0 0 0 1px rgba(203,213,225,.75),0 8px 22px rgba(15,23,42,.10);display:flex;align-items:center;justify-content:space-between;padding:0 16px;cursor:pointer}.theme-toggle .theme-icon{font-size:24px;line-height:1;position:relative;z-index:2}.theme-toggle .theme-track{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:38px;border-radius:999px;background:#D9E2EC;transition:background-color .25s ease}.theme-toggle .theme-knob{position:absolute;left:31px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:#fff;box-shadow:0 3px 10px rgba(15,23,42,.12);transition:left .25s ease, background-color .25s ease}.theme-toggle.is-dark{background:#EEF2F7;box-shadow:inset 0 0 0 1px rgba(71,85,105,.32),0 8px 22px rgba(0,0,0,.18)}.theme-toggle.is-dark .theme-track{background:#CBD5E1}.theme-toggle.is-dark .theme-knob{left:57px;background:#fff}
+    .hero{flex-shrink:0;background:linear-gradient(135deg,var(--primary-a),var(--primary-b));color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px;border-radius:0 0 22px 22px;box-shadow:0 10px 24px rgba(124,58,237,.22);transition:opacity .25s ease, transform .25s ease}
+    .hero.dimmed{opacity:.78;transform:translateY(-2px)}
+    .hero h1{font-size:15px;line-height:1.18;letter-spacing:-.2px;font-weight:400;text-align:center;padding-left:58px;padding-right:14px;}
+    .steps{display:flex;gap:6px;margin-top:8px}.step-pill{flex:1;height:5px;border-radius:999px;background:rgba(255,255,255,.24);overflow:hidden}.step-pill>span{display:block;width:0;height:100%;background:#fff;border-radius:999px;transition:width .25s ease}
+    .screen{flex:1;min-height:0;position:relative;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));overflow:hidden;touch-action:pan-y}
+    .transition-overlay{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;overflow:hidden;background:linear-gradient(90deg, rgba(2,6,23,.16) 0%, rgba(2,6,23,.38) 18%, rgba(124,58,237,.28) 36%, rgba(249,115,22,.34) 52%, rgba(2,6,23,.30) 72%, rgba(2,6,23,.10) 100%)}
+    .transition-overlay.run{opacity:1;animation:flashSweep .72s ease forwards}
+    .bolt-line{position:absolute;top:-10%;bottom:-10%;right:-38%;width:66%;background:linear-gradient(270deg, rgba(251,146,60,0) 0%, rgba(251,146,60,.44) 18%, rgba(255,255,255,.96) 40%, rgba(255,255,255,1) 50%, rgba(249,115,22,.62) 66%, rgba(139,92,246,.52) 84%, rgba(139,92,246,0) 100%);filter:blur(.3px);box-shadow:0 0 36px rgba(255,255,255,.72),0 0 60px rgba(249,115,22,.56),0 0 82px rgba(139,92,246,.48);transform:skewX(-20deg);animation:sweepRightLeft .72s cubic-bezier(.16,.86,.2,1) forwards}
+    .bolt-icon{position:absolute;font-size:30px;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.98),0 0 30px rgba(251,146,60,.98),0 0 44px rgba(139,92,246,.86);opacity:0;animation:boltFloat .72s ease forwards}
+    @keyframes sweepRightLeft{from{transform:translateX(0) skewX(-20deg)}to{transform:translateX(-345%) skewX(-20deg)}}
+    @keyframes flashSweep{0%{opacity:0}8%{opacity:1}70%{opacity:1}100%{opacity:0}}
+    @keyframes boltFloat{0%{opacity:0;transform:translateX(44px) scale(.72) rotate(12deg)}20%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateX(-176px) scale(1.38) rotate(-14deg)}}
+    .page{display:none;flex-direction:column;gap:8px;height:100%;min-height:0;position:relative}.page.active{display:flex}
+    .page-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}.page-scroll::-webkit-scrollbar,.modal-sheet::-webkit-scrollbar,.camera-thumbs::-webkit-scrollbar{display:none}
+    .card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:12px;box-shadow:var(--shadow)}
+    .step1-shell{display:flex;flex-direction:column;gap:12px;min-height:100%}
+    .step1-form-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
+    .sec-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px;letter-spacing:-.2px}.step1-form-card .sec-title{font-size:18px;margin-bottom:8px;letter-spacing:-.35px}
+    .mini-head{font-size:11px;color:var(--muted);line-height:1.35;margin-bottom:8px}.step1-form-card .mini-head{font-size:13px;line-height:1.45;margin-bottom:14px}
+    .fld{margin-bottom:8px}.step1-form-card .fld{margin-bottom:14px}.fld:last-child{margin-bottom:0}
+    .flbl{display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.45px;margin-bottom:5px}.step1-form-card .flbl{font-size:11px;margin-bottom:7px}
+    .field-error{display:none;margin-top:6px;font-size:12px;font-weight:700;color:var(--danger);line-height:1.35}.field-error.show{display:block}
+    .finput,.fta{width:100%;border:2px solid var(--border-2);background:var(--bg-input, var(--card));color:var(--text);border-radius:16px;outline:none;font-family:"Sora",sans-serif;font-size:15px;transition:.18s border-color,.18s box-shadow,.25s background-color,.25s color}
+    .finput{height:50px;padding:0 14px}.step1-form-card .finput{height:64px;font-size:17px;border-radius:18px;padding:0 16px}.fta{min-height:74px;padding:10px 14px;resize:none}
+    .finput:focus,.fta:focus{border-color:var(--accent-b);box-shadow:0 0 0 4px rgba(249,115,22,.14)}.finput.invalid{border-color:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.measure-note{margin-top:-2px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.35}
+    .nav-row,.step1-actions{display:grid;grid-template-columns:1fr;gap:8px}
+    .step1-actions{position:absolute;left:0;right:0;bottom:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%)}
+    body.dark .step1-actions{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
+    .act-danger{border:none;background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 10px 20px rgba(220,38,38,.22)}
+    .act-cancel{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}
+    .footer-nav{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%)}
+    body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
+    .footer-nav .act-btn{min-width:0}
+    .footer-nav .act-btn{height:54px}
+    .act-btn,.add-item-btn{width:100%;height:48px;border-radius:16px;font-family:"Sora",sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;transition:transform .12s ease, box-shadow .18s ease, background .25s ease, border-color .25s ease, color .25s ease}.step1-actions .act-btn{height:48px;font-size:14px;border-radius:14px}
+    #btnLimparCliente{padding:0;font-size:18px;width:52px;flex-shrink:0}.act-btn:active,.add-item-btn:active,.camera-btn:active,.theme-toggle:active,.camera-topbtn:active,.capture-main:active,.send-main:active{transform:scale(.985)}
+    .act-save{border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));color:#fff;box-shadow:0 10px 20px rgba(249,115,22,.24)}.act-soft{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}.add-item-btn{border:2px dashed var(--accent-b);background:var(--card-2);color:var(--accent-a);height:50px;flex-shrink:0}
+    .list-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:10px 12px;margin-bottom:8px;box-shadow:var(--shadow)}.list-head{display:flex;align-items:center;gap:8px}.list-title{font-size:13px;font-weight:800;color:var(--text);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.list-measure{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}.list-del{width:34px;height:34px;border-radius:10px;background:rgba(239,68,68,.12);border:none;color:var(--danger);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .summary-box{background:linear-gradient(180deg,var(--card) 0%, rgba(255,247,237,.85) 100%);border:1.5px solid rgba(249,115,22,.22);border-radius:16px;padding:12px}.summary-title{font-size:11px;font-weight:800;color:var(--accent-a);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}.summary-text{font-size:12px;color:var(--text-2);line-height:1.55;white-space:pre-wrap;word-break:break-word}
+    .value-box{background:var(--success-soft);border:2px dashed rgba(16,185,129,.45);border-radius:16px;padding:12px}.value-label{font-size:11px;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}.value-result{font-family:"DM Mono",monospace;font-size:20px;font-weight:700;color:var(--success)}
+    .check-row{display:flex;align-items:flex-start;gap:8px;background:var(--bg-soft);border-radius:14px;padding:10px;margin-top:8px;cursor:pointer;border:2px solid transparent;transition:.18s border-color,.18s background-color}.check-row.active{border-color:var(--accent-b);background:var(--card-2)}.check-dot{width:20px;height:20px;border-radius:999px;border:2px solid var(--border-2);background:#fff;margin-top:1px;flex-shrink:0;position:relative}.check-row.active .check-dot{border-color:var(--accent-b)}.check-row.active .check-dot::after{content:"";position:absolute;inset:4px;border-radius:999px;background:var(--accent-a)}.check-main{font-size:13px;font-weight:800;color:var(--text)}.check-sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.52);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center;z-index:50;padding:10px}.modal-overlay.open{display:flex}
+    .modal-sheet{width:100%;max-width:430px;background:var(--card);border-radius:22px 22px 16px 16px;padding:14px;max-height:86dvh;overflow:auto;box-shadow:0 18px 50px rgba(15,23,42,.25);border:1px solid var(--border)}.modal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.modal-title{font-size:16px;font-weight:800;color:var(--text)}.modal-close{width:38px;height:38px;border:none;border-radius:12px;background:var(--bg-soft);font-size:18px;color:var(--text-2);cursor:pointer}
+    .camera-wrap{display:flex;justify-content:center;gap:12px;margin:4px 0 8px}.camera-btn{width:78px;height:78px;border-radius:999px;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));border:2px solid rgba(255,255,255,.32);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 12px 24px rgba(245,158,11,.34)}.camera-ic{width:56px;height:56px;border-radius:999px;background:transparent;border:none;display:flex;align-items:center;justify-content:center}.camera-ic svg{width:32px;height:32px;display:block}.camera-ic svg path,.camera-ic svg circle{stroke:#fff !important;fill:none !important}
+    .camera-error{display:none;margin-top:8px;text-align:center;font-size:12px;font-weight:700;color:var(--danger);line-height:1.35}.camera-error.show{display:block}
+    .photo-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.photo-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:6px;position:relative}.photo-card img{width:100%;height:62px;object-fit:cover;border-radius:8px;display:block;background:var(--bg-soft)}.photo-remove{position:absolute;top:8px;right:8px;width:24px;height:24px;border:none;border-radius:8px;background:rgba(239,68,68,.92);color:#fff;font-size:12px;cursor:pointer}
+    .camera-fullscreen{position:fixed;inset:0;z-index:70;background:#000;display:none;flex-direction:column}.camera-fullscreen.open{display:flex}
+    .camera-topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 10px;position:relative;z-index:2}.camera-topbtn{width:42px;height:42px;border:none;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);cursor:pointer}
+    .camera-stage{position:relative;flex:1;min-height:0;background:#000;overflow:hidden}.camera-stage video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+    .camera-thumbs{position:absolute;left:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;z-index:2;max-height:70%;overflow:auto;padding-right:2px}.camera-thumb{width:62px;height:62px;border-radius:14px;border:2px solid rgba(255,255,255,.72);overflow:hidden;background:rgba(255,255,255,.08);box-shadow:0 8px 18px rgba(0,0,0,.28)}.camera-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .camera-hint{position:absolute;right:14px;top:calc(16px + env(safe-area-inset-top,0px) + 52px);z-index:2;background:rgba(0,0,0,.28);backdrop-filter:blur(8px);color:#fff;font-size:12px;font-weight:700;border-radius:999px;padding:8px 12px}
+    .camera-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.62) 35%,rgba(0,0,0,.88) 100%);margin-top:-120px;position:relative;z-index:2}.camera-bottom-spacer{width:70px;flex-shrink:0}
+    .capture-main{width:84px;height:84px;border-radius:999px;border:none;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));display:flex;align-items:center;justify-content:center;box-shadow:0 14px 30px rgba(249,115,22,.28);cursor:pointer;flex-shrink:0}.capture-main-inner{width:60px;height:60px;border-radius:999px;background:#fff;border:2px solid rgba(255,255,255,.75)}
+    .send-main{width:70px;height:70px;border:none;border-radius:999px;background:linear-gradient(135deg,var(--accent-a),var(--accent-b));display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 14px 30px rgba(249,115,22,.28);cursor:pointer;flex-shrink:0}.send-main svg{width:30px;height:30px;display:block}
+    .empty-box{background:var(--card);border:2px dashed var(--border-2);border-radius:16px;padding:14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.45}
+    .toast{position:fixed;bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 10px));left:50%;transform:translateX(-50%) translateY(10px);background:#111827;color:#fff;border-radius:999px;padding:10px 16px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.22s ease;box-shadow:0 14px 30px rgba(0,0,0,.24);z-index:99}.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+    .hidden-file{display:none}
+    .splash-screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at center, #fed7aa 0%, #fb923c 18%, #f97316 52%, #c2410c 100%);color:#fff;overflow:hidden;opacity:1;visibility:visible;pointer-events:auto;transition:opacity .5s ease, visibility .5s ease}.splash-screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+    .splash-burst{position:absolute;inset:-20%;background:radial-gradient(circle, rgba(255,255,255,.18) 0%, rgba(255,255,255,.06) 24%, rgba(255,255,255,0) 56%);animation:burstPulse 1.2s ease-out forwards}.splash-track{position:relative;width:100%;display:flex;align-items:center;justify-content:center;gap:12px;transform-style:preserve-3d;animation:splashExit .65s ease-in forwards;animation-delay:2.05s;padding:0 18px}.splash-word{font-size:30px;line-height:1;letter-spacing:-1px;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.3),0 0 34px rgba(255,255,255,.2);white-space:nowrap;opacity:0}.splash-word.pp{font-style:italic;font-weight:700;animation:ppFlyIn 1s cubic-bezier(.18,.85,.22,1) forwards}.splash-word.flash{font-style:italic;font-weight:800;text-transform:uppercase;animation:flashFlyIn 1s cubic-bezier(.18,.85,.22,1) forwards}.splash-bolt-wrap{width:92px;height:92px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);box-shadow:0 0 0 8px rgba(255,255,255,.08),0 0 34px rgba(255,255,255,.24),0 0 80px rgba(255,255,255,.18);backdrop-filter:blur(6px);transform:translateZ(-260px) scale(.25);opacity:0;animation:boltPop 1s cubic-bezier(.12,.88,.18,1) forwards}.splash-bolt{font-size:48px;line-height:1;text-shadow:0 0 18px rgba(255,255,255,.6),0 0 30px rgba(255,255,255,.28);transform:translateY(-2px)}.splash-streak{position:absolute;height:3px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.95), rgba(255,255,255,0));opacity:0;filter:blur(.4px);animation:streakMove 1s ease-out forwards}.splash-streak.s1{top:28%;left:8%;width:90px;animation-delay:.08s}.splash-streak.s2{top:40%;right:10%;width:120px;animation-delay:.18s}.splash-streak.s3{bottom:34%;left:12%;width:110px;animation-delay:.14s}.splash-streak.s4{bottom:24%;right:14%;width:84px;animation-delay:.24s}
+    @keyframes burstPulse{0%{transform:scale(.8);opacity:0}30%{opacity:1}100%{transform:scale(1.15);opacity:1}}
+    @keyframes ppFlyIn{0%{opacity:0;transform:translate3d(-180px,0,-320px) scale(.58)}55%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+    @keyframes flashFlyIn{0%{opacity:0;transform:translate3d(180px,0,-320px) scale(.58)}55%{opacity:1}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+    @keyframes boltPop{0%{opacity:0;transform:translateZ(-280px) scale(.22) rotate(-18deg)}55%{opacity:1}100%{opacity:1;transform:translateZ(0) scale(1) rotate(0deg)}}
+    @keyframes splashExit{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-16px) scale(1.08)}}
+    @keyframes streakMove{0%{opacity:0;transform:translateX(-30px) scaleX(.5)}35%{opacity:1}100%{opacity:0;transform:translateX(90px) scaleX(1.25)}}
+    @media (max-width:640px){.grid-2{grid-template-columns:1fr 1fr}.photo-cards{grid-template-columns:repeat(4,1fr)}.splash-word{font-size:24px}.splash-bolt-wrap{width:78px;height:78px}.camera-thumb{width:54px;height:54px}.camera-hint{font-size:11px;padding:7px 10px}}
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="neon-frame"></div>
+    <div class="app">
+      <div class="splash-screen" id="splashScreen">
+        <div class="splash-burst"></div>
+        <div class="splash-streak s1"></div>
+        <div class="splash-streak s2"></div>
+        <div class="splash-streak s3"></div>
+        <div class="splash-streak s4"></div>
+        <div class="splash-track">
+          <div class="splash-word pp">PintorPlus</div>
+          <div class="splash-bolt-wrap"><div class="splash-bolt">⚡</div></div>
+          <div class="splash-word flash">FLASH</div>
+        </div>
+      </div>
+      <section class="hero" id="hero">
+        <h1 style="font-size:1.1em;line-height:1.3;"><strong>Comece agora. Termine depois.</strong><br><span style="font-weight:400;font-size:.9em;opacity:.85;">Versão rápida para visita técnica</span></h1>
+        <div class="steps">
+          <div class="step-pill"><span id="pill1"></span></div>
+          <div class="step-pill"><span id="pill2"></span></div>
+          <div class="step-pill"><span id="pill3"></span></div>
+        </div>
+      </section>
+      <div class="screen" id="screen">
+        <div class="transition-overlay" id="transitionOverlay"></div>
+        <section class="page active" id="step1">
+          <div class="page-scroll">
+            <div class="step1-shell">
+              <div class="step1-form-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                  <button onclick="notifyParentExit()" aria-label="Página inicial" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--muted);display:flex;align-items:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+                  <button onclick="openExitModal()" aria-label="Fechar" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--muted);font-size:22px;line-height:1;display:flex;align-items:center;">✕</button>
+                </div>
+                <div class="sec-title">1. Cliente</div>
+                <div class="mini-head">Preencha o essencial para não perder a visita.</div>
+                <div class="fld">
+                  <label class="flbl">Nome do cliente</label>
+                  <input class="finput" id="cliente" name="cliente_nome_app" type="text" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Ex.: João da Silva" />
+                  <div class="field-error" id="clienteErro">Nome e sobrenome são obrigatórios!</div>
+                </div>
+                <div class="fld">
+                  <label class="flbl">Telefone (WhatsApp)</label>
+                  <input class="finput" id="telefone" name="cliente_telefone_app" type="tel" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" inputmode="tel" placeholder="(11) 99999-9999" />
+                  <div class="field-error" id="telefoneErro">Número de telefone inválido!</div>
+                </div>
+                <div class="fld" style="margin-top:4px;">
+                  <label class="flbl" style="font-size:10px;opacity:.7;">APELIDO / REFERÊNCIA <span style="font-weight:400;font-style:italic;">(não aparece no orçamento)</span></label>
+                  <input class="finput" id="apelido" name="cliente_apelido_app" type="text" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Ex.: indica Maria vizinha" />
+                </div>
+              </div>
+              <div class="step1-actions">
+                <button class="act-btn act-danger" id="btnLimparCliente" aria-label="Limpar dados">↻</button>
+                <button class="act-btn act-save" id="btnIrItens">Avançar →</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="step2">
+          <div class="page-scroll">
+            <div class="card">
+              <div class="sec-title">2. Itens</div>
+              <div class="mini-head">Toque em adicionar item. O preenchimento abre em um modal. Depois de salvar, o item entra na lista.</div>
+              <div id="itemsWrap"></div>
+            </div>
+            <button class="add-item-btn" id="btnAddItem" style="margin-top:8px;">＋ Adicionar Novo Item</button>
+            <div class="footer-nav" style="margin-top:8px;">
+              <button class="act-btn act-soft" id="btnVoltarCliente">← Voltar para Cliente</button>
+              <button class="act-btn act-save" id="btnIrResumo">Ir para Resumo →</button>
+            </div>
+          </div>
+        </section>
+        <section class="page" id="step3">
+          <div class="page-scroll">
+            <div class="card">
+              <div class="sec-title">3. Resumo e Rascunho</div>
+              <div class="mini-head">Revise rapidamente o que foi capturado. Os valores abaixo são opcionais.</div>
+              <div class="summary-box">
+                <div class="summary-title">Resumo do rascunho</div>
+                <div class="summary-text" id="summaryText">Nenhum dado preenchido ainda.</div>
+              </div>
+              <div class="value-box" style="margin-top:8px;">
+                <div class="value-label">Área calculada</div>
+                <div class="value-result" id="areaTotal">0,00 m²</div>
+              </div>
+              <div class="fld" style="margin-top:8px;">
+                <label class="flbl">Valor</label>
+                <input class="finput" id="valorTexto" name="valor_base_app" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex.: 2500 ou 35" />
+                <div id="flashTotalCalc" style="display:none;margin-top:6px;font-size:12px;font-weight:700;color:#059669;padding:5px 10px;background:#d1fae5;border-radius:8px;"></div>
+              </div>
+              <div class="check-row" id="optionValorM2" role="button" tabindex="0" aria-pressed="false">
+                <div class="check-dot" aria-hidden="true"></div>
+                <div><div class="check-main">Valor por m²</div><div class="check-sub">Marque para calcular pela área total.</div></div>
+              </div>
+              <div class="check-row" id="optionValorTotal" role="button" tabindex="0" aria-pressed="false">
+                <div class="check-dot" aria-hidden="true"></div>
+                <div><div class="check-main">Valor total</div><div class="check-sub">Marque para usar o valor fechado.</div></div>
+              </div>
+            </div>
+            <div class="footer-nav" style="margin-top:8px;">
+              <button class="act-btn act-soft" id="btnVoltarItens">← Voltar para Itens</button>
+              <button class="act-btn act-save" id="btnSalvarRascunho"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Rascunho</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="itemModal">
+    <div class="modal-sheet">
+      <div class="modal-top">
+        <div class="modal-title">Novo item</div>
+        <button class="modal-close" id="btnFecharModal" aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="fld">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label class="flbl" style="margin-bottom:0;">Nome do item</label>
+          <button type="button" onclick="openNomePick()" style="background:#ede9fe;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#7c3aed;cursor:pointer;">☰ Sugestões</button>
+        </div>
+        <input class="finput" id="modalNome" name="item_nome_app" type="text" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" placeholder="Ex.: Janela da sala" onclick="_onNomeFieldClick()" />
+      </div>
+      <div class="grid-2">
+        <div class="fld"><label class="flbl">Largura (m)</label><input class="finput" id="modalLargura" name="item_largura_app" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex.: 2,00" /></div>
+        <div class="fld"><label class="flbl">Altura (m)</label><input class="finput" id="modalAltura" name="item_altura_app" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex.: 1,20" /></div>
+      </div>
+      <div class="measure-note" id="modalArea">Linear: 0,00 m</div>
+      <div class="fld">
+        <label class="flbl">Fotos do item</label>
+        <div class="camera-wrap">
+          <button class="camera-btn" id="btnAbrirCamera" type="button" title="Tirar foto">
+            <span class="camera-ic" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </span>
+          </button>
+          <label id="labelGaleriaModal" style="width:62px;height:62px;border-radius:50%;background:var(--card);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;align-self:center;color:var(--text2);" title="Usar galeria">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="26" height="26"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><rect x="6" y="2" width="16" height="16" rx="2"/><circle cx="11" cy="7" r="1.5"/><path d="m6 13 4-4 3 3 2-2 5 5"/></svg>
+            <input id="modalFotosGaleriaBtn" class="hidden-file" type="file" accept="image/*" multiple />
+          </label>
+        </div>
+        <div class="camera-error" id="cameraErro">Não foi possível abrir a câmera neste ambiente. Abra a página em uma aba normal do Chrome e permita o acesso à câmera.</div>
+        <div class="photo-cards" id="modalPhotoCards"></div>
+      </div>
+      <div class="fld">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+          <label class="flbl" style="margin-bottom:0;">Observação</label>
+          <button type="button" onclick="openObsPick()" style="background:#d1fae5;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#059669;cursor:pointer;">☰ Serviços</button>
+        </div>
+        <textarea class="fta" id="modalObs" name="item_observacao_app" autocomplete="off" data-form-type="other" autocorrect="off" spellcheck="false" placeholder="Ex.: precisa lixar, remover ferragem, corrigir trinca..." onclick="_onObsFieldClick()"></textarea>
+      </div>
+      <div class="nav-row">
+        <button class="act-btn act-save" id="btnSalvarItem">Salvar Item</button>
+        <button class="act-btn act-soft" id="btnCancelarItem">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  <div id="nomePickModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:flex-end;justify-content:center;">
+    <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:75vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <span style="font-size:15px;font-weight:800;color:#0f172a;">Selecione o item</span>
+        <button onclick="closeNomePick()" aria-label="Fechar" style="background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div id="nomePickGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+  </div>
+  <div id="obsPickModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:flex-end;justify-content:center;">
+    <div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <span style="font-size:15px;font-weight:800;color:#0f172a;">Serviços e Materiais</span>
+        <button onclick="closeObsPick()" aria-label="Fechar" style="background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Serviços</div>
+      <div id="obsServGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;"></div>
+      <div style="font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Materiais</div>
+      <div id="obsMatGrid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;"></div>
+      <button onclick="confirmObsPick()" style="width:100%;height:46px;border-radius:12px;border:none;background:#7c3aed;font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;">✓ Confirmar</button>
+    </div>
+  </div>
+  <div class="camera-fullscreen" id="cameraModal">
+    <div class="camera-topbar">
+      <button class="camera-topbtn" id="btnFecharCamera" type="button">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="camera-topbtn" id="btnTorch" type="button" title="Flash" style="display:none;font-size:16px;">⚡</button>
+        <div style="color:#fff;font-size:14px;font-weight:800;letter-spacing:-.2px;">Captura rápida</div>
+      </div>
+      <label class="camera-topbtn" title="Usar galeria" style="cursor:pointer;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><rect x="6" y="2" width="16" height="16" rx="2"/><circle cx="11" cy="7" r="1.5"/><path d="m6 13 4-4 3 3 2-2 5 5"/></svg>
+        <input class="hidden-file" id="modalFotosGaleria" type="file" accept="image/*" multiple />
+      </label>
+    </div>
+    <div class="camera-stage">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <div id="zoomControl" style="display:none;position:absolute;bottom:90px;left:50%;transform:translateX(-50%);width:60%;background:rgba(0,0,0,0.5);border-radius:20px;padding:8px 16px;z-index:10;"><input type="range" id="zoomSlider" style="width:100%;accent-color:#7c3aed;" /></div>
+      <div class="camera-thumbs" id="cameraThumbs"></div>
+      <div class="camera-hint">Fotos do item</div>
+    </div>
+    <canvas id="cameraCanvas" style="display:none;"></canvas>
+    <div class="camera-bottom">
+      <div class="camera-bottom-spacer"></div>
+      <button class="capture-main" id="btnCapturarFoto" type="button" aria-label="Capturar foto"><span class="capture-main-inner"></span></button>
+      <button class="send-main" id="btnEnviarFotos" type="button" aria-label="Usar fotos capturadas">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m11 5 7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Modal Sair -->
+  <div id="exitModal" onclick="if(event.target===this)closeExitModal(false)" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#fff;padding:24px;border-radius:20px;width:100%;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);position:relative;">
+      <button onclick="closeExitModal(false)" style="position:absolute;top:10px;right:10px;background:#fee2e2;border:none;width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:800;color:#dc2626;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+      <div style="font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px;">O que deseja fazer?</div>
+      <div style="font-size:13px;line-height:1.5;color:#64748b;margin-bottom:20px;">Você pode salvar um rascunho para continuar depois ou sair sem salvar.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="saveDraftAndExit()" style="width:100%;height:48px;border-radius:12px;border:none;background:#7c3aed;font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;">💾 Salvar Rascunho</button>
+        <button onclick="closeExitModal(true)" style="width:100%;height:44px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#dc2626;cursor:pointer;">Sair sem salvar</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>

@@ -1,0 +1,4126 @@
+
+// FUNÇÕES UTILITÁRIAS
+function _esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+window.escapeHtml = _esc;
+let _tt;
+function _ico(n){return '<svg class="ico" aria-hidden="true"><use href="#ico-'+n+'"/></svg>';}
+function toast(msg){ const el=document.getElementById('toast');if(!el)return; el.innerHTML=msg; el.classList.add('on'); clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('on'), 2600); }
+function f1(n){ return(Math.round((n||0)*10)/10).toFixed(1); }
+function ptFloat(v){if(typeof v==='number')return v||0;let s=String(v).trim();if(s.includes('.')&&s.includes(','))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(',')&&!s.includes('.'))s=s.replace(',','.');return parseFloat(s)||0;}
+function getRoomMeds(r){ let m2=0,ml=0; (r.items||[]).forEach(it=>{const a=ptFloat(it.alt),c=ptFloat(it.comp); if(a&&c)m2+=a*c; else if(a||c)ml+=(a||c);}); return{m2,ml}; }
+function getStatusBadgeClass(st) {
+  const s = (st || '').toLowerCase();
+  if (s.includes('aprov') || s.includes('concl')) return 'hbg';
+  if (s.includes('envia')) return 'hbb';
+  if (s.includes('recus') || s.includes('cancel')) return 'hbr';
+  return 'hby';
+}
+
+// ── CHAVE GOOGLE MAPS (responsabilidade do app, não do usuário) ────────────
+// Restringir no Google Cloud Console: apenas pintorplus.com.br
+const GMAPS_KEY = '';
+
+// DADOS GLOBAIS
+const defCfg = { empresa:'', tel:'', doc:'', emailEmpresa:'', endEmpresa:'', msg:'Olá {cliente}!\nSegue o resumo do seu orçamento:\n\n{detalhes}\n*Valor Total: {total}*\n\nQualquer dúvida estou à disposição.', servicos:'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz', pgto:'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado', statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado', logo:'', acessibilidade:false, flashNomes:'Quarto, Sala, Cozinha, Banheiro, Varanda, Fachada, Muro, Teto, Porta, Janela, Corredor, Escada, Garagem, Área de Serviço, Escritório, Quintal', flashServicos:'Lixar, Massa corrida, Selador/Primer, 2 demãos, 3 demãos, Textura, Grafiato, Corrigir trinca, Remover ferragem, Pintura externa, Pintura interna, Fundo preparador, Rejunte', flashMateriais:'Tinta látex, Tinta acrílica, Tinta esmalte, Lixa, Massa corrida, Primer/Selador, Fita crepe, Rolo de lã, Rolo textura, Pincel, Espátula, Solvente' };
+// _pp: lê localStorage com tolerância a dados criptografados pelo _Vault
+// (dados criptografados não são JSON válido — _Vault.init() decriptará e populará S depois)
+function _ppRead(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch(e) { return fallback; }
+}
+const S = {
+  orcs: _ppRead('pp-orcs', []),
+  clientes: _ppRead('pp-clientes', []),
+  fornecedores: _ppRead('pp-fornecedores', []),
+  eventos: _ppRead('pp-eventos', []),
+  rooms: [], pgto: new Set(), fmt: 'completo', pagador: false, editId: null, curStep: 1,
+  config: _ppRead('pp-config', null) || defCfg, DEFAULT_SERVICES: [], statusArr: [], isDirty: false
+};
+
+// Limpeza automática se a configuração antiga ainda tiver a imagem da splash salva globalmente
+if (S.config.logo === 'https://lh3.googleusercontent.com/d/1mwtQDispSbBU3HBvLa0T46vOoHAmWNNN') {
+  S.config.logo = '';
+  _Vault.save('pp-config', JSON.stringify(S.config));
+}
+
+if (S.config && S.config.msg && !S.config.msg.includes('{total}')) {
+  S.config.msg += '\\n\\n*Valor Total: {total}*';
+  _Vault.save('pp-config', JSON.stringify(S.config));
+}
+if (S.config.acessibilidade) document.body.classList.add('acessivel');
+
+S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean);
+S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean);
+
+// ── PERSISTÊNCIA BLINDADA ──────────────────────────────────────
+// Centraliza o salvamento de orçamentos com fallback para não perder dados
+function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function _safeUrl(u) { try { const p = new URL(u); return (p.protocol==='https:'||p.protocol==='http:') ? u : ''; } catch(e) { return ''; } }
+
+function _saveOrcs() {
+  const json = JSON.stringify(S.orcs);
+  try {
+    _Vault.save('pp-orcs', json);
+  } catch(e) {
+    console.error('_saveOrcs: localStorage cheio', e);
+    // Fallback 1: sessionStorage como cópia de emergência
+    try { sessionStorage.setItem('pp-orcs-emergency', json); } catch(_) {}
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive urgentemente.');
+  }
+  // Espelho no sessionStorage para recovery em caso de crash
+  try { sessionStorage.setItem('pp-orcs-mirror', json); } catch(_) {}
+}
+
+// ENGENHARIA: GOOGLE MAPS PLACES AUTOCOMPLETE
+function loadGoogleMaps() {
+  if (!GMAPS_KEY) return;
+  if (window.google && window.google.maps) return initAutocomplete();
+  if(document.getElementById('gmaps-script')) return;
+
+  const script = document.createElement('script');
+  script.id = 'gmaps-script';
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${GMAPS_KEY}&libraries=places&callback=initAutocomplete`;
+  script.async = true;
+  script.defer = true;
+  window.initAutocomplete = initAutocomplete;
+  document.head.appendChild(script);
+}
+
+function initAutocomplete() {
+  const input = document.getElementById('cli-logradouro');
+  if (!input || !window.google) return;
+  if (window.autocompleteObj) return; 
+
+  window.autocompleteObj = new google.maps.places.Autocomplete(input, {
+    componentRestrictions: { country: 'br' },
+    fields: ['address_components', 'geometry', 'name'],
+  });
+  
+  window.autocompleteObj.addListener('place_changed', fillInAddress);
+  input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); } });
+}
+
+function fillInAddress() {
+  const place = window.autocompleteObj.getPlace();
+  if (!place.address_components) return;
+  
+  let street = '', number = '', neighborhood = '', city = '', state = '', cep = '';
+  
+  for (const component of place.address_components) {
+    const type = component.types[0];
+    if (type === 'route') street = component.long_name;
+    if (type === 'street_number') number = component.long_name;
+    if (type === 'sublocality_level_1' || type === 'sublocality') neighborhood = component.long_name;
+    if (type === 'administrative_area_level_2') city = component.long_name;
+    if (type === 'administrative_area_level_1') state = component.short_name;
+    if (type === 'postal_code') cep = component.long_name;
+  }
+  
+  document.getElementById('cli-logradouro').value = street || place.name;
+  if(number) document.getElementById('cli-numero').value = number;
+  if(neighborhood) document.getElementById('cli-bairro').value = neighborhood;
+  if(city && state) document.getElementById('cli-cidade').value = `${city} - ${state}`;
+  if(cep) {
+    document.getElementById('cli-cep').value = cep;
+    maskCep(document.getElementById('cli-cep'));
+  }
+  
+  document.getElementById('end-fields').style.display = 'block';
+  document.getElementById('end-manual-toggle').style.display = 'none';
+  S.isDirty = true;
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Endereço preenchido!');
+  setTimeout(()=> { document.getElementById('cli-numero').focus(); }, 100);
+}
+
+// MOTOR DE ÁUDIO DO ALARME
+function playAlarmSynth(typeCode) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if (typeCode === '1') {
+      osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+      osc.start(); osc.stop(ctx.currentTime + 1.5);
+    } else if (typeCode === '2') {
+      osc.type = 'square'; osc.frequency.setValueAtTime(600, ctx.currentTime);
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
+      for(let i=0; i<4; i++) { gain.gain.setValueAtTime(0, ctx.currentTime + i*0.2 + 0.1); gain.gain.setValueAtTime(0.5, ctx.currentTime + i*0.2 + 0.2); }
+      osc.start(); osc.stop(ctx.currentTime + 1.0);
+    } else {
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, ctx.currentTime); osc.frequency.setValueAtTime(1600, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.8, ctx.currentTime); osc.start(); osc.stop(ctx.currentTime + 0.5);
+    }
+  } catch(e) { console.warn('Audio synth error', e); }
+}
+
+// ── Notificações do Sistema ────────────────────────────────────────────
+async function _requestNotifPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+}
+
+function _fireNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  // Usa SW para notificação (funciona quando app está em background no celular)
+  if (navigator.serviceWorker?.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'show-notification', title, body });
+  } else {
+    try { new Notification(title, { body, icon: '/android-chrome-192x192.png', badge: '/favicon-96x96.png', tag: 'pp-alarm', renotify: true }); } catch(e) {}
+  }
+}
+
+// Sincroniza alarms pendentes com o SW para notificações em background
+function _syncAlarmsToSW() {
+  if (!navigator.serviceWorker?.controller) return;
+  const pending = (S.eventos || []).filter(e => !e.alarmado && e.dat && e.hora).map(e => ({
+    id: e.id, tit: e.tit, dat: e.dat, hora: e.hora,
+    avisoVal: e.avisoVal, avisoUnid: e.avisoUnid
+  }));
+  navigator.serviceWorker.controller.postMessage({ type: 'sync-alarms', alarms: pending });
+}
+
+setInterval(checkAlarms, 30000);
+function checkAlarms() {
+  if(!S.eventos.length) return;
+  const now = new Date(); let modified = false;
+  S.eventos.forEach(ev => {
+    if(ev.alarmado || !ev.dat || !ev.hora) return;
+    const evDate = new Date(`${ev.dat}T${ev.hora}`);
+    let alertTime = new Date(evDate.getTime());
+    const val = parseInt(ev.avisoVal) || 0;
+    if (val > 0) {
+      if(ev.avisoUnid === 'm') alertTime.setMinutes(alertTime.getMinutes() - val);
+      else if(ev.avisoUnid === 'h') alertTime.setHours(alertTime.getHours() - val);
+      else if(ev.avisoUnid === 'd') alertTime.setDate(alertTime.getDate() - val);
+    }
+    if (now >= alertTime) {
+      toast(`<svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> LEMBRETE: ${ev.tit}`);
+      _fireNotification('🔔 Pintor Plus — Lembrete', ev.tit);
+      ev.alarmado = true; modified = true;
+      const rep = parseInt(ev.repete) || 0;
+      if (rep > 0) {
+        let nData = new Date(evDate.getTime()); nData.setDate(nData.getDate() + rep);
+        const y = nData.getFullYear(); const m = String(nData.getMonth()+1).padStart(2,'0'); const d = String(nData.getDate()).padStart(2,'0');
+        S.eventos.push({ ...ev, dat: `${y}-${m}-${d}`, alarmado: false, id: Date.now() });
+      }
+    }
+  });
+  if(modified) {
+    _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+    if(document.getElementById('pg-agenda').classList.contains('active')) renderAgenda();
+  }
+}
+
+// ── MODO TESTE (CONVIDADO) ────────────────────────────────────
+function enterGuestMode() {
+  localStorage.setItem('pp-guest-mode', '1');
+  GDrive.guestMode = true;
+  // Aceita termos automaticamente para modo convidado
+  if (!_hasAcceptedTerms('guest')) {
+    localStorage.setItem(TERMS_KEY, JSON.stringify({ version: TERMS_VERSION, accepted: true, ts: Date.now(), email: 'guest', ua: navigator.userAgent }));
+  }
+  _showGuestBanner();
+  showPage('pg-home');
+  renderHomeMini(); renderHomeEvents(); renderHomeNews();
+}
+function exitGuestMode() {
+  localStorage.removeItem('pp-guest-mode');
+  GDrive.guestMode = false;
+  _hideGuestBanner();
+  GDrive._showLoginBtn();
+}
+function _showGuestBanner() {
+  const el = document.getElementById('guest-banner');
+  if (el) el.style.display = 'block';
+}
+function _hideGuestBanner() {
+  const el = document.getElementById('guest-banner');
+  if (el) el.style.display = 'none';
+}
+// ─────────────────────────────────────────────────────────────
+
+// NAVEGAÇÃO & UI (HISTORY API PWA)
+function showPage(id, skipHistory = false) { 
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); 
+  const el = document.getElementById(id); 
+  if(el) { 
+    el.classList.add('active'); 
+    if(!skipHistory) try { history.pushState({ page: id }, '', '#' + id); } catch(e) {}
+    setTimeout(() => { const scr = el.querySelector('.scr'); if(scr) scr.scrollTop = 0; }, 10); 
+  } 
+}
+window.addEventListener('popstate', (e) => {
+  const page = (e.state && e.state.page) ? e.state.page : 'pg-home';
+  console.log('[PP-AUTH] popstate | page=', page, '| accessToken=', !!GDrive.accessToken, '| sessionLoaded=', GDrive._sessionLoaded, '| restoringSession=', GDrive._restoringSession);
+  // Guarda: config com alterações não salvas
+  if (typeof _cfgDirty !== 'undefined' && _cfgDirty && document.getElementById('pg-config')?.classList.contains('active')) {
+    _cfgExitCallback = () => showPage(page, true);
+    document.getElementById('cfg-save-modal').style.display = 'flex';
+    return;
+  }
+  if (!GDrive.accessToken && !GDrive._sessionLoaded && !GDrive._restoringSession && !GDrive.guestMode && page !== 'pg-login') {
+    showPage('pg-login', true);
+    return;
+  }
+  showPage(page, true);
+});
+
+function toggleThemeAnim() { setTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'); }
+function setTheme(theme) {
+  document.documentElement.classList.toggle('dark', theme==='dark');
+  sessionStorage.setItem('pp-theme', theme);
+}
+(function(){
+  const saved = sessionStorage.getItem('pp-theme');
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(saved ? saved === 'dark' : prefersDark) document.documentElement.classList.add('dark');
+  // Segue mudança do sistema apenas se usuário não escolheu manualmente nesta sessão
+  if(!saved && window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if(!sessionStorage.getItem('pp-theme')) document.documentElement.classList.toggle('dark', e.matches);
+    });
+  }
+})();
+
+function _autoSaveRascunho() {
+  const orc = collectOrc();
+  const temConteudo = orc.nome.trim() || (orc.rooms||[]).some(r => (r.items||[]).length > 0);
+  if (!temConteudo) { S.isDirty = false; return; }
+  orc.status = 'Rascunho';
+  if (S.editId) { const i = S.orcs.findIndex(o => o.id === S.editId); if (i >= 0) S.orcs[i] = orc; else S.orcs.unshift(orc); } else { S.orcs.unshift(orc); S.editId = orc.id; }
+  S.isDirty = false; _saveOrcs(); GDrive.scheduleSync();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Rascunho salvo — altere o status para gerar PDF');
+}
+let _navCallback = null;
+function openDraftConfirmModal(cb) { _navCallback = cb; document.getElementById('draft-confirm-modal').style.display = 'flex'; }
+function closeDraftConfirmModal() { _navCallback = null; document.getElementById('draft-confirm-modal').style.display = 'none'; }
+function saveAsDraftAndExit() {
+  const orc = collectOrc();
+  orc.status = 'Rascunho';
+  if (S.editId) { const i = S.orcs.findIndex(o => o.id === S.editId); if (i >= 0) S.orcs[i] = orc; else S.orcs.unshift(orc); } else { S.orcs.unshift(orc); S.editId = orc.id; }
+  S.isDirty = false; _saveOrcs(); GDrive.scheduleSync();
+  const cb = _navCallback;
+  closeDraftConfirmModal();
+  if (cb) cb();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Rascunho salvo');
+}
+function discardAndExit() {
+  S.isDirty = false; S.editId = null;
+  const cb = _navCallback;
+  closeDraftConfirmModal();
+  if (cb) cb();
+}
+function canNavigateAsync(callback) {
+  if (S.isDirty) {
+    try {
+      const orc = collectOrc();
+      if (orc.nome.trim() || (orc.rooms||[]).some(r => (r.items||[]).length > 0)) {
+        openDraftConfirmModal(callback); return;
+      }
+    } catch(e) {}
+  }
+  S.isDirty = false; callback();
+}
+function closeConfirm(proceed) { if (proceed) canNavigateAsync(() => {}); }
+
+let pendingDelAction = null;
+function askDelete(msg, action) { document.getElementById('del-confirm-msg').textContent = msg; document.getElementById('del-confirm-modal').style.display = 'flex'; pendingDelAction = action; }
+function closeDelConfirm(proceed) { document.getElementById('del-confirm-modal').style.display = 'none'; if (proceed && pendingDelAction) pendingDelAction(); pendingDelAction = null; }
+window.addEventListener('beforeunload', () => {
+  if (S.isDirty) _autoSaveRascunho();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    if (S.isDirty) _autoSaveRascunho();
+    GDrive.scheduleSync?.();
+  } else if (document.visibilityState === 'visible') {
+    // App voltou do background — se sessão existe mas token foi perdido, tenta reconectar silenciosamente
+    if (GDrive._sessionLoaded && !GDrive.accessToken && GDrive._gisReady) {
+      const savedEmail = localStorage.getItem('pp-gdrive-email');
+      if (savedEmail) GDrive.tokenClient.requestAccessToken({ prompt: '', login_hint: savedEmail });
+    }
+    GDrive.scheduleSync?.();
+  }
+});
+window.addEventListener('pagehide', () => {
+  if (S.isDirty) _autoSaveRascunho();
+  GDrive.scheduleSync?.();
+});
+setInterval(() => { GDrive.scheduleSync?.(); }, 3 * 60 * 1000);
+
+// ── CONFIGURAÇÕES: cards colapsáveis + confirmação de saída ────
+let _cfgDirty = false;
+let _cfgExitCallback = null;
+
+function toggleCfgCard(id) {
+  const body = document.getElementById(id);
+  const hdr = body.previousElementSibling;
+  const isOpen = body.classList.contains('open');
+  document.querySelectorAll('.cfg-card-body').forEach(b => b.classList.remove('open'));
+  document.querySelectorAll('.cfg-card-hdr').forEach(h => h.classList.remove('open'));
+  if (!isOpen) { body.classList.add('open'); hdr.classList.add('open'); }
+}
+
+function _cfgGuardedExit(callback) {
+  if (_cfgDirty) {
+    _cfgExitCallback = callback;
+    document.getElementById('cfg-save-modal').style.display = 'flex';
+  } else {
+    callback();
+  }
+}
+
+function closeCfgSaveModal(save) {
+  document.getElementById('cfg-save-modal').style.display = 'none';
+  if (save) saveConfig();
+  _cfgDirty = false;
+  if (_cfgExitCallback) { _cfgExitCallback(); _cfgExitCallback = null; }
+}
+
+function buildSteps(n){ const TOTAL=4; for(let s=1;s<=TOTAL;s++){ const el=document.getElementById('steps-s'+s); if(!el)continue; el.innerHTML=''; for(let i=1;i<=TOTAL;i++){ const pill=document.createElement('div'); pill.className='step-pill'+(i<n?' done':i===n?' active':''); el.appendChild(pill); } } }
+function go(n){
+  S.curStep=n; buildSteps(n); showPage('pg-s'+n); 
+  if(n===4){ refreshWAPreview(); document.getElementById('orc-total-display').innerText = calcTotal().toLocaleString('pt-BR',{style:'currency', currency:'BRL'}); populateStatusSelect(); }
+}
+function goHome(){ canNavigateAsync(() => { S.isDirty=false; homeTab('home'); }); }
+
+function populateStatusSelect() {
+  const sel = document.getElementById('orc-status');
+  if(!sel) return;
+  sel.innerHTML = S.statusArr.map(s => `<option value="${_esc(s)}">${_esc(s)}</option>`).join('');
+}
+
+// NOVO ORÇAMENTO
+function newOrc(){
+  canNavigateAsync(() => {
+    S.isDirty = true; S.rooms=[{id:Date.now().toString(), name:'Geral', alt:'', comp:'', items:[], services:S.DEFAULT_SERVICES.slice(), collapsed:false}];
+    S.pgto=new Set();S.fmt='completo';S.pagador=false;S.editId=null;
+    ['cli-nome','cli-apelido','cli-tel','cli-email','cli-cpf','cli-cep','cli-logradouro','cli-bairro','cli-cidade','cli-numero','cli-comp'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('end-fields').style.display='none'; document.getElementById('end-manual-toggle').style.display='block'; document.getElementById('cep-msg').style.display='none';
+    renderPgtoList(); document.querySelectorAll('.chk-item').forEach(el=>el.classList.remove('on'));
+    ['orc-obs','orc-inicio'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('orc-tipo-serv').selectedIndex = 2; // Default "Somente M.O"
+    document.querySelectorAll('.fmt-card').forEach((c,i)=>c.classList.toggle('on',i===0));
+    document.getElementById('pag-sw')?.classList.remove('on'); document.getElementById('pag-fields')?.classList.remove('show');
+    renderRooms(); go(1);
+    setTimeout(() => { document.getElementById('orc-status').value = S.statusArr[0] || 'Pendente'; }, 50);
+  });
+}
+
+// ARRAYS GLOBAIS DE CACHE PARA CHECKBOX
+window._pgtoList = [];
+window._srvList = [];
+
+function renderPgtoList() {
+  window._pgtoList = (S.config.pgto || defCfg.pgto).split(',').map(s=>s.trim()).filter(Boolean);
+  const wrap = document.getElementById('pgto-list');
+  if(!wrap) return;
+  wrap.innerHTML = window._pgtoList.map((p, i) => {
+    const isOn = S.pgto.has(p);
+    return `<div class="chk-item ${isOn?'on':''}" onclick="tChk(event, ${i}, this)"><div class="chk-box"></div><div class="chk-lbl">${_esc(p)}</div></div>`;
+  }).join('');
+}
+
+function tChk(e, idx, el) {
+  if(e) e.stopPropagation();
+  const val = window._pgtoList[idx];
+  if(!val) return;
+  el.classList.toggle('on');
+  if(el.classList.contains('on')) S.pgto.add(val); else S.pgto.delete(val);
+  S.isDirty=true;
+  refreshWAPreview();
+}
+
+function togglePagador(){ S.pagador=!S.pagador; document.getElementById('pag-sw')?.classList.toggle('on',S.pagador); document.getElementById('pag-fields')?.classList.toggle('show',S.pagador); S.isDirty=true; }
+function setFmt(fmt,el){ S.fmt=fmt; document.querySelectorAll('.fmt-card').forEach(c=>c.classList.remove('on')); el.classList.add('on'); refreshWAPreview(); S.isDirty=true; }
+
+function calcOrcTotal(orc) {
+  let tot = 0; let totalM2 = 0;
+  (orc.rooms||[]).forEach(r => {
+    const meds = getRoomMeds(r); totalM2 += meds.m2;
+    if(r.preco) tot += r.precoPerM2 ? (r.preco*meds.m2) : r.preco;
+    (r.items||[]).forEach(it => {
+      if(it.price) tot += it.perMeter ? (it.price * ((ptFloat(it.alt)*ptFloat(it.comp)) || ptFloat(it.alt)||ptFloat(it.comp))) : it.price;
+    });
+  });
+  if(orc.preco && totalM2) tot += orc.preco * totalM2;
+  return tot;
+}
+
+function calcTotal(){ return calcOrcTotal({ rooms: S.rooms, preco: parseFloat(document.getElementById('preco-m2')?.value)||0 }); }
+function _updateItemPrecoDisplay() {
+  const el = document.getElementById('item-preco-total-display');
+  if (!el) return;
+  if (!S.tempItem.perMeter || !S.tempItem.price) { el.style.display = 'none'; return; }
+  const alt = ptFloat(S.tempItem.alt);
+  const comp = ptFloat(S.tempItem.comp);
+  const m2 = (alt && comp) ? alt * comp : (alt || comp);
+  const total = S.tempItem.price * m2;
+  el.style.display = 'block';
+  el.textContent = m2 > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (' + m2.toFixed(2).replace('.',',') + ' m²)'
+    : 'Preencha as medidas do item para calcular o total';
+}
+function _updatePrecoBaseDisplay(ri) {
+  const el = document.getElementById('preco-base-total-' + ri);
+  if (!el) return;
+  const r = S.rooms[ri];
+  if (!r || !r.precoPerM2) { el.style.display = 'none'; return; }
+  const m2 = getRoomMeds(r).m2;
+  const total = (r.preco || 0) * m2;
+  el.style.display = 'block';
+  el.textContent = m2 > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (' + m2.toFixed(2).replace('.',',') + ' m²)'
+    : 'Adicione itens com medidas para calcular o total';
+}
+
+function renderRooms(){
+  const wrap=document.getElementById('rooms-wrap');
+  if(!S.rooms.length) S.rooms=[{id:Date.now().toString(), name:'Geral', items:[], services:S.DEFAULT_SERVICES.slice(), collapsed:false}];
+  wrap.innerHTML='';
+  
+  S.rooms.forEach((r,ri)=>{
+    if(r.collapsed === undefined) r.collapsed = false; if(!r.items) r.items=[]; if(!r.services) r.services=S.DEFAULT_SERVICES.slice();
+    const meds = getRoomMeds(r); const medTxt = [];
+    if(meds.m2>0) medTxt.push(`${f1(meds.m2)} m²`); if(meds.ml>0) medTxt.push(`${f1(meds.ml)} ml`);
+    const medLabel = medTxt.length ? medTxt.join(' + ') : '—';
+
+    const itemsHtml=r.items.map((it,ii)=>{
+      const a=ptFloat(it.alt), c=ptFloat(it.comp); let badge = (a&&c) ? f1(a*c)+' m²' : (a||c) ? f1(a||c)+' ml' : 'Sem medidas';
+      return `<div class="item-summary" onclick="editItem(${ri}, ${ii})"><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${_esc(it.name || 'Item '+(ii+1))}</div><div style="font-size:12px; color:var(--ink3); margin-top:3px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${badge} • ${(it.services||[]).length} serv.</div></div><button class="item-del" onclick="event.stopPropagation();removeItem(${ri},${ii})"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>`;
+    }).join('');
+
+    const card=document.createElement('div'); card.className='rcard' + (r.collapsed ? ' collapsed' : ''); card.id='rcard'+ri;
+    const hasMult = S.rooms.length > 1;
+    const headerHtml = hasMult ? `
+      <div class="rcard-head" onclick="tCard(${ri})" style="gap:10px;"><span class="rcard-em" style="font-size:26px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg></span><div style="flex:1;min-width:0;"><input class="rcard-name" style="border:none;outline:none;background:transparent;font-family:'Sora',sans-serif;font-weight:700;font-size:17px;color:var(--ink);width:100%;" value="${_esc(r.name)}" onclick="event.stopPropagation()" onchange="S.rooms[${ri}].name=this.value;renderRooms();">${medLabel !== '—' ? `<div style="font-size:13px;color:var(--ink3);margin-top:2px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${medLabel} (Soma)</div>` : `<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:#FEF3C7;border:1.5px solid #F59E0B;border-radius:10px;padding:5px 12px;font-size:13px;font-weight:700;color:#92400E;">+ Adicionar itens</div>`}</div><button class="rcard-del" onclick="event.stopPropagation();delRoom(${ri},event)"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>
+    ` : '';
+
+    card.innerHTML=`${headerHtml}
+      <div class="rcard-body">
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;"><svg class="ico" aria-hidden="true"><use href="#ico-banknote"/></svg> ${hasMult?'Preço base do local':'Preço Total Base'}</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="text" inputmode="decimal" placeholder="0,00" value="${r.preco?String(r.preco).replace('.',','):''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'Calibri',sans-serif;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="if(this.value){const v=ptFloat(this.value);this.value=v?v.toFixed(2).replace('.',','):'';S.rooms[${ri}].preco=v;}; this.style.borderColor='var(--bdr-input)';" oninput="this.value=this.value.replace('.',',');S.rooms[${ri}].preco=ptFloat(this.value);calcTotal();_updatePrecoBaseDisplay(${ri});"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2?'block':'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="fixo" ${!r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=false;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Fixo</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="m2" ${r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=true;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Por m²</label>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1.5px solid var(--bdr);padding-top:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px;">Itens</div>
+          <div id="items-wrap-${ri}">${itemsHtml}</div>
+          <button onclick="addItem(${ri})" class="add-room-btn">＋ Adicionar Novo Item</button>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+let curRi = null, curIi = null, isNewItem = false;
+let _detailNomeFirst = false, _detailObsFirst = false;
+
+function tCard(id){ document.getElementById(id)?.classList.toggle('collapsed'); }
+function delRoom(ri,e){ if(e)e.stopPropagation(); askDelete('Deseja excluir este local e suas medidas?', () => { S.rooms.splice(ri,1); renderRooms(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Local Removido'); S.isDirty=true; }); }
+function addItem(ri){ curRi = ri; S.tempItem = {name:'',alt:'',comp:'',services:[],price:0,perMeter:false,obs:'',photos:[]}; isNewItem = true; _detailNomeFirst = true; _detailObsFirst = true; S.rooms[ri].collapsed = false; document.getElementById('item-modal-form').style.display = 'flex'; renderItemModal(); }
+function editItem(ri, ii){ curRi = ri; curIi = ii; S.tempItem = JSON.parse(JSON.stringify(S.rooms[ri].items[ii])); isNewItem = false; _detailNomeFirst = false; _detailObsFirst = false; document.getElementById('item-modal-form').style.display = 'flex'; renderItemModal(); }
+function removeItem(ri,ii){ askDelete('Excluir este item permanentemente?', () => { S.rooms[ri].items.splice(ii,1); renderRooms(); S.isDirty=true; }); }
+
+function openPhotoChoice() { document.getElementById('photo-choice-modal').style.display = 'flex'; }
+function triggerPhoto(source) { 
+  document.getElementById('photo-choice-modal').style.display = 'none'; 
+  const id = `file-${source}`; 
+  const el = document.getElementById(id); 
+  if (el) el.click(); 
+}
+
+function handlePhotoFile(input, isCamera) {
+  const file = input.files[0]; if(!file) return;
+  compressImage(file, dataUrl => {
+    if(!S.tempItem.photos) S.tempItem.photos=[];
+    const fName = file.name || `Foto_${Date.now()}.jpg`;
+    S.tempItem.photos.push({url: dataUrl, filename: fName});
+    renderItemModal(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
+    if(isCamera) {
+      const a = document.createElement('a'); a.href = dataUrl; a.download = fName; a.click();
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Salvando na Galeria...');
+    }
+  });
+  input.value = '';
+}
+
+function compressImage(file, callback) {
+  const reader = new FileReader(); reader.readAsDataURL(file);
+  reader.onload = event => {
+    const img = new Image(); img.src = event.target.result;
+    img.onload = () => {
+      const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 1024;
+      if (w > h && w > MAX) { h *= MAX / w; w = MAX; } else if (h > MAX) { w *= MAX / h; h = MAX; }
+      canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.6));
+    };
+  };
+}
+
+function delItemPhotoModalIdx(idx) { 
+  askDelete('Remover esta foto?', () => { 
+    S.tempItem.photos.splice(idx, 1); 
+    renderItemModal(); 
+  }); 
+}
+
+function renderItemModal() {
+  const it = S.tempItem;
+
+  const _areaLbl = _detailGetAreaLabel(it.comp, it.alt);
+  document.getElementById('item-modal-body').innerHTML = `
+    <div class="fld">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <label class="flbl" style="margin-bottom:0;">NOME DO ITEM</label>
+        <button type="button" onclick="openDetailNamePick()" style="background:#ede9fe;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#7c3aed;cursor:pointer;">☰ Sugestões</button>
+      </div>
+      <input class="finput item-title-inp" value="${_esc(it.name)}" placeholder="Ex: Parede Norte" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" oninput="S.tempItem.name=this.value" onclick="_detailNomeClick()" onfocus="this.select()">
+    </div>
+    <div class="dim2-grid">
+      <div class="mbox"><div class="mlbl">Largura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="0,00" value="${it.comp?String(it.comp).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.comp=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.comp=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
+      <div class="mbox"><div class="mlbl">Altura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0,00" value="${it.alt?String(it.alt).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.alt=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.alt=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
+    </div>
+    <div id="item-area-display" style="display:${_areaLbl?'block':'none'};margin-bottom:14px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;">${_areaLbl||''}</div>
+
+    <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">Fotos do Item</div>
+    <div style="display:flex;justify-content:center;gap:16px;margin:4px 0 12px;">
+      <button type="button" onclick="openDetailedCamera()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f97316,#fb923c);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 20px rgba(249,115,22,0.3);"><svg class="ico" aria-hidden="true" style="color:#fff;width:28px;height:28px;"><use href="#ico-camera"/></svg></button>
+      <label style="width:60px;height:60px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--bdr-input);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:6px;" title="Galeria"><svg class="ico" aria-hidden="true" style="width:24px;height:24px;color:var(--ink3);"><use href="#ico-image"/></svg><input type="file" accept="image/*" style="display:none;" onchange="handlePhotoFile(this,false)"></label>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      ${(it.photos||[]).map((p, idx) => `
+        <div style="background:var(--bg2);border:1.5px solid var(--bdr);border-radius:12px;padding:4px;position:relative;">
+          <button onclick="delItemPhotoModalIdx(${idx})" type="button" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:6px;background:rgba(239,68,68,0.9);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">✕</button>
+          <img src="${p.url}" onclick="openImg('${p.url}')" style="width:100%;height:58px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" alt="Foto ${idx+1}">
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
+    <div class="price-check-row" style="margin-bottom:8px;">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price?String(it.price).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
+      <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter?'checked':''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
+    </div>
+    <div id="item-preco-total-display" style="display:${it.perMeter&&it.price?'block':'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;">Observações</span>
+      <button type="button" onclick="openServicesModal()" style="background:#d1fae5;border:none;border-radius:8px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#059669;cursor:pointer;">☰ Serviços</button>
+    </div>
+    <textarea class="item-obs-inp" autocomplete="off" data-form-type="other" autocorrect="off" spellcheck="false" placeholder="Detalhes, estado da parede, cor, serviços..." oninput="S.tempItem.obs=this.value" onclick="_detailObsClick()">${_esc(it.obs)}</textarea>
+  `;
+  document.getElementById('item-modal-body').scrollTop = 0; setTimeout(() => { const inp = document.getElementById('item-modal-body').querySelector('.item-title-inp'); if(inp) inp.focus(); }, 50);
+}
+
+function openServicesModal() {
+  if (!S.tempItem) return;
+  document.getElementById('services-modal').style.display = 'flex';
+  _renderItemObsChips();
+}
+function closeServicesModal() { document.getElementById('services-modal').style.display = 'none'; }
+
+function _renderItemObsChips() {
+  const sel = S.tempItem.services || [];
+  const srvList = S.DEFAULT_SERVICES;
+  const matList = (S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean);
+  const chip = (s, type) => {
+    const on = sel.includes(s);
+    const bg = on ? (type==='srv' ? '#7c3aed' : '#059669') : '#f1f5f9';
+    const col = on ? '#fff' : (type==='srv' ? '#7c3aed' : '#059669');
+    const bdr = on ? 'transparent' : (type==='srv' ? '#ddd6fe' : '#d1fae5');
+    return `<button type="button" data-srv="${_esc(s)}" onclick="toggleItemObsSvc(this.dataset.srv)" style="padding:7px 12px;border-radius:20px;border:1.5px solid ${bdr};background:${bg};font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:${col};cursor:pointer;">${_esc(s)}</button>`;
+  };
+  document.getElementById('services-modal-body').innerHTML = srvList.map(s=>chip(s,'srv')).join('');
+  document.getElementById('services-modal-mat-body').innerHTML = matList.map(s=>chip(s,'mat')).join('');
+}
+
+function toggleItemObsSvc(s) {
+  if (!S.tempItem.services) S.tempItem.services = [];
+  const i = S.tempItem.services.indexOf(s);
+  if (i >= 0) S.tempItem.services.splice(i, 1);
+  else S.tempItem.services.push(s);
+  S.isDirty = true;
+  _renderItemObsChips();
+}
+
+function confirmItemObsPick() {
+  const ta = document.querySelector('#item-modal-body .item-obs-inp');
+  const currentText = (ta ? ta.value : '') || (S.tempItem.obs || '');
+  const allKnown = [...(S.DEFAULT_SERVICES||[]), ...(S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean)];
+  const customParts = currentText.split(',').map(s=>s.trim()).filter(s => s && !allKnown.includes(s));
+  const selected = S.tempItem.services || [];
+  const merged = [...customParts, ...selected];
+  S.tempItem.obs = merged.join(', ');
+  if (ta) ta.value = S.tempItem.obs;
+  closeServicesModal();
+}
+
+// ── Nome pick (modo detalhado) ─────────────────────────────────
+function _detailNomeClick() { if (_detailNomeFirst) { _detailNomeFirst = false; openDetailNamePick(); } }
+function _detailObsClick() { if (_detailObsFirst) { _detailObsFirst = false; openServicesModal(); } }
+
+function _detailGetAreaLabel(comp, alt) {
+  const c = ptFloat(comp), a = ptFloat(alt);
+  if (c > 0 && a > 0) return 'Área: ' + (c * a).toFixed(2).replace('.', ',') + ' m²';
+  if (c > 0 || a > 0) return 'Linear: ' + (c || a).toFixed(2).replace('.', ',') + ' m';
+  return null;
+}
+function _detailUpdateArea() {
+  const el = document.getElementById('item-area-display');
+  if (el) {
+    const lbl = _detailGetAreaLabel(S.tempItem.comp, S.tempItem.alt);
+    el.style.display = lbl ? 'block' : 'none';
+    if (lbl) el.textContent = lbl;
+  }
+  _updateItemPrecoDisplay();
+}
+
+function openDetailNamePick() {
+  if (!S.tempItem) return;
+  const nomes = (S.config.flashNomes || defCfg.flashNomes).split(',').map(s => s.trim()).filter(Boolean);
+  document.getElementById('detail-nome-pick-grid').innerHTML = nomes.map(n =>
+    `<button type="button" data-nm="${_esc(n)}" onclick="selectDetailNome(this.dataset.nm)" style="padding:10px 4px;border-radius:10px;border:1.5px solid var(--bdr-input);background:var(--bg2);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;text-align:center;">${_esc(n)}</button>`
+  ).join('');
+  document.getElementById('detail-nome-pick-modal').style.display = 'flex';
+}
+function closeDetailNamePick() { document.getElementById('detail-nome-pick-modal').style.display = 'none'; }
+function selectDetailNome(n) {
+  S.tempItem.name = n;
+  const inp = document.querySelector('#item-modal-body .item-title-inp');
+  if (inp) inp.value = n;
+  closeDetailNamePick();
+}
+
+function saveItemModal(){ if(!S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome'; if(isNewItem){ if(!S.rooms[curRi].items) S.rooms[curRi].items=[]; S.rooms[curRi].items.push(S.tempItem); } else { S.rooms[curRi].items[curIi] = S.tempItem; } S.isDirty = true; document.getElementById('item-modal-form').style.display = 'none'; renderRooms(); }
+function cancelItemModal(){ document.getElementById('item-modal-form').style.display = 'none'; curRi = null; curIi = null; S.tempItem = null; }
+
+function openImg(url) { document.getElementById('img-modal-el').src = url; document.getElementById('img-modal-dl').href = url; document.getElementById('img-modal-dl').download = `foto_${Date.now()}.jpg`; document.getElementById('img-modal').style.display = 'flex'; }
+
+function collectOrc(){
+  const v=id=>document.getElementById(id)?.value||'';
+  const end=[v('cli-logradouro'),v('cli-numero'),v('cli-comp'),v('cli-bairro'),v('cli-cidade')].filter(Boolean).join(', ');
+  return{
+    id:S.editId||Date.now().toString(),nome:v('cli-nome'),apelido:v('cli-apelido'),tel:v('cli-tel'),email:v('cli-email'),cpf:v('cli-cpf'),cep:v('cli-cep'),
+    logradouro:v('cli-logradouro'),numero:v('cli-numero'),comp:v('cli-comp'),bairro:v('cli-bairro'),cidade:v('cli-cidade'),end,
+    pagNome:v('pag-nome'),pagTel:v('pag-tel'),pagEnd:v('pag-end'),pagador:S.pagador,rooms:S.rooms.map(r=>({...r})),
+    pgto:Array.from(S.pgto),fmt:S.fmt,preco:parseFloat(v('preco-m2'))||0,status:v('orc-status')||S.statusArr[0],valid:v('orc-valid')||'15',
+    tipoServico:v('orc-tipo-serv'),
+    inicio:v('orc-inicio'),obs:v('orc-obs'),date:new Date().toLocaleDateString('pt-BR'),ts:S.editId?S.orcs.find(o=>o.id===S.editId)?.ts:Date.now(),tsEdit:Date.now()
+  };
+}
+
+function extractClient(orc) {
+  const tStr = (orc.tel||'').replace(/\D/g,''); if(!orc.nome || !tStr) return;
+  const idx = S.clientes.findIndex(c => c.tel.replace(/\D/g,'') === tStr);
+  if(idx >= 0) { S.clientes[idx].nome = orc.nome; S.clientes[idx].apelido = orc.apelido||''; S.clientes[idx].email = orc.email; S.clientes[idx].end = orc.end; S.clientes[idx].cpf = orc.cpf; if(orc.apelido) S.clientes[idx].notas = '[ref: '+orc.apelido+']'; }
+  else { S.clientes.push({nome: orc.nome, apelido: orc.apelido||'', tel: orc.tel, email: orc.email, end: orc.end, cpf: orc.cpf, notas: orc.apelido ? '[ref: '+orc.apelido+']' : ''}); }
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+}
+
+function saveOrc(silent = false){
+  const orc=collectOrc(); const telClean = (orc.tel||'').replace(/\D/g, '');
+  if (telClean && telClean.length < 10) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Telefone inválido. Informe o DDD.'); return false; }
+  if(!orc.nome.trim()){toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Informe o nome do cliente');return false;}
+
+  if(S.editId){const i=S.orcs.findIndex(o=>o.id===S.editId);if(i>=0)S.orcs[i]=orc;else S.orcs.unshift(orc);} else{S.orcs.unshift(orc); S.editId = orc.id;}
+  S.isDirty = false; _saveOrcs(); extractClient(orc);
+  // Sincronização automática imediata ao salvar
+  GDrive.scheduleSync();
+  if(!silent) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Orçamento salvo!'); homeTab('orcamentos'); }
+  return true;
+}
+
+// ENGENHARIA: BYPASS DE MODAL COM AUTOSAVE INTEGRADO
+function triggerAction(action) {
+  const nome = document.getElementById('cli-nome').value.trim();
+  const telStr = document.getElementById('cli-tel').value.replace(/\D/g, '');
+  
+  if(!nome) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Insira o nome do cliente na aba Dados do Cliente!');
+  if(telStr && telStr.length < 10) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Telefone inválido. Inclua o DDD.');
+
+  const saved = saveOrc(true); 
+  if (!saved) return;
+
+  if (action === 'save') { 
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Salvo com sucesso!'); 
+    homeTab('orcamentos'); 
+  } else if (action === 'wa') { 
+    sendWA(); 
+    setTimeout(() => homeTab('orcamentos'), 500); 
+  } else if (action === 'pdf') { 
+    askPdfPhotos(); 
+  } else if (action === 'share') {
+    shareOrc().then(ok => { if (ok) homeTab('orcamentos'); });
+  }
+}
+
+// CONTATOS (CLIENTES)
+async function pickPhoneContactToFill() {
+  if (!('contacts' in navigator && 'ContactsManager' in window)) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Acesso à agenda não suportado no navegador atual.');
+  try { 
+    const props = ['name', 'tel', 'email', 'address']; 
+    const contacts = await navigator.contacts.select(props, {multiple: false}); 
+    if(contacts && contacts.length) { 
+      const c = contacts[0];
+      document.getElementById('cli-nome').value = c.name?.[0] || ''; 
+      document.getElementById('cli-tel').value = (c.tel?.[0] || '').replace(/\D/g,''); 
+      if(c.email && c.email.length) document.getElementById('cli-email').value = c.email[0];
+      if(c.address && c.address.length) {
+        const addr = c.address[0];
+        const fullAddr = addr.formatted || [addr.street, addr.city, addr.region, addr.postalCode].filter(Boolean).join(', ');
+        document.getElementById('cli-logradouro').value = fullAddr;
+      }
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato preenchido!'); 
+    } 
+  } catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro ao acessar agenda do celular.'); }
+}
+
+async function pickPhoneContactToSave() {
+  if (!('contacts' in navigator && 'ContactsManager' in window)) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Função não suportada neste aparelho.');
+  try {
+    const props = ['name', 'tel', 'email', 'address'];
+    const contacts = await navigator.contacts.select(props, {multiple: true});
+    if(contacts && contacts.length) {
+      contacts.forEach(c => {
+        S.clientes.push({
+          nome: c.name?.[0] || 'Sem Nome',
+          tel: (c.tel?.[0] || '').replace(/\D/g,''),
+          email: c.email?.[0] || '',
+          end: c.address?.[0]?.formatted || ''
+        });
+      });
+      _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+      renderClientes();
+      toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ${contacts.length} contatos importados!`);
+    }
+  } catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Falha na importação.'); }
+}
+
+function openClientPicker() { document.getElementById('client-picker-list').innerHTML = S.clientes.map((c,i) => `<div style="padding:16px; border-bottom:1px solid var(--bdr); cursor:pointer;" onclick="selectClientPicker(${i})"><div style="font-weight:700; font-size:15px; color:var(--ink);">${_esc(c.nome)}</div><div style="font-size:13px; color:var(--ink3);">${_esc(c.tel || '')}</div></div>`).join('') || '<div style="padding:16px; font-size:13px; color:var(--ink3);">Nenhum contato salvo.</div>'; document.getElementById('modal-client-picker').style.display='flex'; }
+function selectClientPicker(i) { const c = S.clientes[i]; document.getElementById('cli-nome').value = c.nome || ''; document.getElementById('cli-tel').value = c.tel || ''; document.getElementById('cli-email').value = c.email || ''; document.getElementById('cli-cpf').value = c.cpf || ''; document.getElementById('cli-logradouro').value = c.end || ''; document.getElementById('modal-client-picker').style.display='none'; toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato selecionado!'); }
+
+function _cliMatch(c, q) {
+  return [c.nome, c.tel, c.email, c.cpf, c.end].some(p => p && String(p).toLowerCase().includes(q));
+}
+function renderClientes() {
+  const wrap = document.getElementById('clientes-list-full');
+  if(!wrap) return;
+  if(!S.clientes || !S.clientes.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum contato salvo ainda.</div></div>';
+    return;
+  }
+  const q = (document.getElementById('cli-search')?.value || '').toLowerCase().trim();
+  const indexed = S.clientes.map((c,i) => ({c,i}));
+  const filtered = q ? indexed.filter(({c}) => _cliMatch(c, q)) : indexed;
+  if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum contato encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
+  wrap.innerHTML = filtered.map(({c, i}) => `
+    <div class="hoc" style="margin-bottom:12px;">
+      <div class="hon">${_esc(c.nome)}</div>
+      <div class="hos" style="margin-bottom:8px;">${_esc(c.tel || 'Sem telefone')}</div>
+      ${c.email ? `<div class="hos" style="margin-bottom:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-mail"/></svg> ${_esc(c.email)}</div>` : ''}
+      ${c.end ? `<div class="hos" style="margin-bottom:12px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg> ${_esc(c.end)}</div>` : ''}
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        ${c.tel ? `<a href="tel:${c.tel.replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
+        <button onclick="editClient(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
+        <button onclick="askDelete('Deseja excluir este contato?', () => deleteClient(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
+      </div>
+
+      <button onclick="exportVCF(${i})" style="width:100%;height:38px;border-radius:10px;background:transparent;color:var(--ink2);border:1px solid var(--bdr);font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Salvar na Agenda do Celular</button>
+    </div>
+  `).join('');
+}
+
+function deleteClient(i) {
+  S.clientes.splice(i, 1);
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  renderClientes();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Contato removido!');
+}
+
+function editClient(i) {
+  document.getElementById('edit-cli-idx').value = i;
+  if(i === -1) {
+    document.getElementById('edit-cli-title').innerText = 'Novo Contato';
+    ['edit-cli-nome','edit-cli-tel','edit-cli-email','edit-cli-end','edit-cli-cpf'].forEach(id => document.getElementById(id).value = '');
+  } else {
+    document.getElementById('edit-cli-title').innerText = 'Editar Contato';
+    const c = S.clientes[i];
+    document.getElementById('edit-cli-nome').value = c.nome || '';
+    document.getElementById('edit-cli-tel').value = c.tel || '';
+    document.getElementById('edit-cli-email').value = c.email || '';
+    document.getElementById('edit-cli-end').value = c.end || '';
+    document.getElementById('edit-cli-cpf').value = c.cpf || '';
+  }
+  document.getElementById('modal-edit-client').style.display = 'flex';
+}
+
+function saveEditClient() {
+  const i = parseInt(document.getElementById('edit-cli-idx').value);
+  const data = {
+    nome: document.getElementById('edit-cli-nome').value,
+    tel: document.getElementById('edit-cli-tel').value,
+    email: document.getElementById('edit-cli-email').value,
+    end: document.getElementById('edit-cli-end').value,
+    cpf: document.getElementById('edit-cli-cpf').value
+  };
+  
+  if(!data.nome) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> O nome é obrigatório');
+  
+  if(i === -1) S.clientes.push(data);
+  else S.clientes[i] = data;
+  
+  _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+  document.getElementById('modal-edit-client').style.display = 'none';
+  renderClientes();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato salvo!');
+}
+
+function exportVCF(i) { const c = S.clientes[i]; const vcf = `BEGIN:VCARD\nVERSION:3.0\nFN:${c.nome}\nTEL;TYPE=CELL:${c.tel||''}\nEND:VCARD`; const blob = new Blob([vcf], {type: 'text/vcard'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${c.nome.replace(/\s+/g,'_')}.vcf`; a.click(); URL.revokeObjectURL(url); toast('Baixando arquivo de contato...'); }
+
+// FORNECEDORES
+function _fornMatch(f, q) {
+  return [f.nome, f.tel, f.cat].some(p => p && String(p).toLowerCase().includes(q));
+}
+function renderFornecedores() {
+  const wrap = document.getElementById('fornecedores-list-full');
+  if(!wrap) return;
+  if(!S.fornecedores || !S.fornecedores.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum fornecedor cadastrado.</div></div>';
+    return;
+  }
+  const q = (document.getElementById('forn-search')?.value || '').toLowerCase().trim();
+  const indexed = S.fornecedores.map((f,i) => ({f,i}));
+  const filtered = q ? indexed.filter(({f}) => _fornMatch(f, q)) : indexed;
+  if(!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum fornecedor encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
+  wrap.innerHTML = filtered.map(({f, i}) => `
+    <div class="hoc" style="margin-bottom:12px; border-left:4px solid var(--am);">
+      <div class="hon">${_esc(f.nome)}</div>
+      <div class="hos" style="margin-bottom:4px;">${_esc(f.tel || 'Sem telefone')}</div>
+      ${f.cat ? `<div class="hbadge hby" style="margin-bottom:12px;">${_esc(f.cat)}</div>` : ''}
+
+      <div style="display:flex; gap:8px; margin-top:14px;">
+        ${f.tel ? `<a href="tel:${f.tel.replace(/\D/g,'')}" style="width:44px;height:38px;border-radius:10px;background:var(--gnl);color:var(--gn);border:1.5px solid var(--gn);display:flex;align-items:center;justify-content:center;text-decoration:none;flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-phone"/></svg></a>` : ''}
+        <button onclick="editFornecedor(${i})" style="flex:1;height:38px;border-radius:10px;background:var(--bg2);color:var(--ink2);border:1px solid var(--bdr);font-weight:700;font-size:12px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
+        <button onclick="askDelete('Deseja excluir este fornecedor?', () => deleteFornecedor(${i}))" style="width:44px;height:38px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg></button>
+      </div>
+
+      <button onclick="askQuoteFornecedor(${i})" style="width:100%;height:38px;border-radius:10px;background:#25D366;color:#fff;border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:12px;cursor:pointer;margin-top:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Pedir Cotação de Materiais</button>
+    </div>
+  `).join('');
+}
+
+function openEditFornecedor(i) {
+  document.getElementById('edit-forn-idx').value = i;
+  if(i === -1) {
+    document.getElementById('edit-forn-title').innerText = 'Novo Fornecedor';
+    ['edit-forn-nome','edit-forn-tel','edit-forn-cat'].forEach(id => document.getElementById(id).value = '');
+  } else {
+    document.getElementById('edit-forn-title').innerText = 'Editar Fornecedor';
+    const f = S.fornecedores[i];
+    document.getElementById('edit-forn-nome').value = f.nome || '';
+    document.getElementById('edit-forn-tel').value = f.tel || '';
+    document.getElementById('edit-forn-cat').value = f.cat || '';
+  }
+  document.getElementById('modal-edit-fornecedor').style.display = 'flex';
+}
+
+function editFornecedor(i) { openEditFornecedor(i); }
+
+function saveEditFornecedor() {
+  const i = parseInt(document.getElementById('edit-forn-idx').value);
+  const data = {
+    nome: document.getElementById('edit-forn-nome').value,
+    tel: document.getElementById('edit-forn-tel').value,
+    cat: document.getElementById('edit-forn-cat').value
+  };
+  
+  if(!data.nome) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> O nome é obrigatório');
+  
+  if(i === -1) S.fornecedores.push(data);
+  else S.fornecedores[i] = data;
+  
+  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+  document.getElementById('modal-edit-fornecedor').style.display = 'none';
+  renderFornecedores();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Fornecedor salvo!');
+}
+
+function deleteFornecedor(i) {
+  S.fornecedores.splice(i, 1);
+  _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+  renderFornecedores();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Fornecedor removido!');
+}
+
+var _quoteFornIdx = -1;
+function askQuoteFornecedor(i) {
+  const f = S.fornecedores[i];
+  if(!f || !f.tel) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Fornecedor sem telefone.');
+  _quoteFornIdx = i;
+  const list = document.getElementById('quote-forn-orc-list');
+  if (list) {
+    if (!S.orcs || !S.orcs.length) {
+      list.innerHTML = '<div style="font-size:13px;color:var(--ink3);text-align:center;padding:12px;">Nenhum orçamento cadastrado.</div>';
+    } else {
+      list.innerHTML = S.orcs.map((o, idx) => `
+        <div onclick="_doQuoteForn(${idx})" style="padding:12px;background:var(--bg-card);border:1.5px solid var(--bdr);border-radius:12px;cursor:pointer;transition:border-color .15s;" onmouseenter="this.style.borderColor='var(--bl)'" onmouseleave="this.style.borderColor='var(--bdr)'">
+          <div style="font-size:14px;font-weight:700;color:var(--ink);">${_esc(o.nome||'Sem nome')}</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px;">R$ ${calcOrcTotal(o).toLocaleString('pt-BR',{minimumFractionDigits:2})} · <span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span></div>
+        </div>`).join('');
+    }
+  }
+  document.getElementById('quote-forn-modal').style.display = 'flex';
+}
+async function _doQuoteForn(orcIdx) {
+  document.getElementById('quote-forn-modal').style.display = 'none';
+  const f = S.fornecedores[_quoteFornIdx]; if (!f) return;
+  const o = S.orcs[orcIdx]; if (!o) return;
+  const tel = f.tel.replace(/\D/g,'');
+  // Tenta enviar PDF com fotos via native share
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(o, true);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+    const msgBase = `Olá, ${_esc(f.nome)}! Segue o orçamento de referência para cotação de materiais:\n\n${buildWAMsg(o)}\n\nPor favor, me envie o valor dos materiais necessários. Obrigado!`;
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({ title: `Cotação — ${o.nome||''}`, text: msgBase, files: [pdfFile] });
+    } else {
+      window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msgBase)}`, '_blank');
+    }
+  } catch(e) {
+    if (e?.name !== 'AbortError') {
+      const msg = `Olá! Segue o orçamento de referência para cotação:\n\n${buildWAMsg(o)}`;
+      window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+  }
+}
+function _doQuoteFornNoOrc() {
+  document.getElementById('quote-forn-modal').style.display = 'none';
+  const f = S.fornecedores[_quoteFornIdx]; if (!f) return;
+  const tel = f.tel.replace(/\D/g,'');
+  const msg = `Olá, ${f.nome}! Gostaria de fazer uma cotação de materiais para pintura. Pode me enviar uma lista de preços?`;
+  window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// EVENTOS & AGENDA
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let calSelDate = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(new Date().getDate()).padStart(2,'0')}`;
+
+function calChangeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  else if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderAgenda();
+}
+
+function selectCalDate(dtStr) {
+  calSelDate = dtStr;
+  renderAgenda();
+}
+
+function getUnifiedEvents() {
+  const map = {};
+  S.eventos.forEach(e => {
+    if(!map[e.dat]) map[e.dat] = [];
+    map[e.dat].push({ type: 'ev', data: e });
+  });
+  S.orcs.forEach(o => {
+    if(o.inicio) {
+      if(!map[o.inicio]) map[o.inicio] = [];
+      map[o.inicio].push({ type: 'orc', data: o });
+    }
+  });
+  return map;
+}
+
+function transformToAlarm(nome, inicio) {
+  document.getElementById('ev-titulo').value = 'Início de Obra: ' + (nome || 'Cliente');
+  document.getElementById('ev-data').value = inicio;
+  document.getElementById('ev-hora').value = '08:00'; 
+  document.getElementById('modal-evento').style.display = 'flex';
+}
+
+function renderAgenda() {
+  const monthNames = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('cal-month-lbl').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const evMap = getUnifiedEvents();
+  const grid = document.getElementById('cal-grid-body');
+  let html = '';
+  const tDate = new Date();
+  const todayStr = `${tDate.getFullYear()}-${String(tDate.getMonth()+1).padStart(2,'0')}-${String(tDate.getDate()).padStart(2,'0')}`;
+
+  for(let i=0; i<firstDay; i++) html += `<div class="cal-cell mute"></div>`;
+
+  for(let d=1; d<=daysInMonth; d++) {
+    const dtStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = dtStr === todayStr ? 'today' : '';
+    const isSel = dtStr === calSelDate ? 'sel' : '';
+    let dotsHtml = '';
+    if(evMap[dtStr]) {
+        evMap[dtStr].forEach(item => {
+            dotsHtml += `<div class="cal-dot ${item.type}"></div>`;
+        });
+    }
+    html += `<div class="cal-cell ${isToday} ${isSel}" onclick="selectCalDate('${dtStr}')">${d}<div class="cal-dots">${dotsHtml}</div></div>`;
+  }
+  grid.innerHTML = html;
+
+  // Lista do dia selecionado
+  const listWrap = document.getElementById('agenda-eventos-list');
+  const dayData = evMap[calSelDate] || [];
+  const [y, m, d_str] = calSelDate.split('-');
+  document.getElementById('agenda-day-title').textContent = `Agendamentos para ${d_str}/${m}/${y}`;
+
+  if(dayData.length === 0) {
+      listWrap.innerHTML = '<div style="text-align:center;padding:16px;font-size:13px;color:var(--ink3);">Nenhum agendamento para este dia.</div>';
+  } else {
+      listWrap.innerHTML = dayData.map(item => {
+          if(item.type === 'ev') {
+              const e = item.data;
+              return `<div class="hoc" style="border-left: 4px solid var(--bl);"><div class="hon"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> ${e.tit}</div><div class="hos">${e.hora||'O dia todo'} ${e.alarmado ? '<span style="color:var(--rd)">(Tocou)</span>':''}</div><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;"><button onclick="exportICS(${e.id})" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> Add Lembrete OS</button><button onclick="GCalendar.exportEvent(${e.id})" style="flex:1;height:38px;border-radius:10px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Google Agenda</button><button onclick="S.eventos=S.eventos.filter(x=>x.id!=${e.id});_Vault.save('pp-eventos',JSON.stringify(S.eventos));renderAgenda();" style="width:40px;border-radius:10px;background:var(--rdl);color:var(--rd);border:none;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div></div>`;
+          } else {
+              const o = item.data;
+              return `<div class="hoc" style="border-left: 4px solid var(--gn); cursor:pointer;" onclick="editOrcByObjId('${o.id}')">
+                  <div class="hon"><svg class="ico" aria-hidden="true"><use href="#ico-hard-hat"/></svg> Início: ${o.nome}</div>
+                  <div class="hos">Status: <span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span> • Valor: R$ ${calcOrcTotal(o).toFixed(2)}</div>
+                  <div style="display:flex;gap:8px;margin-top:12px;">
+                      <button onclick="event.stopPropagation(); transformToAlarm('${o.nome}', '${o.inicio}')" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> Criar Alarme de Obra</button>
+                  </div>
+              </div>`;
+          }
+      }).join('');
+  }
+}
+
+function editOrcByObjId(id) {
+  const i = S.orcs.findIndex(x => x.id === id);
+  if (i >= 0) editOrc(i);
+}
+
+function openEventModal() { document.getElementById('ev-titulo').value = ''; document.getElementById('ev-data').value = calSelDate; document.getElementById('ev-hora').value = ''; document.getElementById('modal-evento').style.display='flex'; }
+async function salvarEvento() {
+  const tit = document.getElementById('ev-titulo').value; const dat = document.getElementById('ev-data').value; const hora = document.getElementById('ev-hora').value;
+  const avisoVal = document.getElementById('ev-antes-val').value; const avisoUnid = document.getElementById('ev-antes-unid').value;
+  const repete = document.getElementById('ev-repete').value;
+  if(!tit || !dat || !hora) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Preencha título, data e hora corretamente.');
+  // Pede permissão de notificação ao salvar primeiro lembrete
+  await _requestNotifPermission();
+  const newEv = {tit, dat, hora, avisoVal, avisoUnid, repete, alarmado:false, id:Date.now()};
+  S.eventos.push(newEv);
+  S.eventos.sort((a,b)=>new Date(a.dat+'T'+a.hora) - new Date(b.dat+'T'+b.hora));
+  _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+  document.getElementById('modal-evento').style.display='none';
+  calSelDate = dat; [calYear, calMonth] = dat.split('-').map(Number); calMonth--;
+  renderAgenda();
+  _syncAlarmsToSW();
+  // Também sincroniza via API se estiver logado
+  if (typeof GCalendar !== 'undefined' && GDrive?.accessToken) {
+    GCalendar.exportEvent(newEv.id).catch(()=>{});
+  }
+  // Abre Google Calendar com o evento pré-preenchido para garantir o lembrete
+  _openGCalendarUrl(newEv);
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Lembrete salvo! Abrindo Google Agenda…');
+}
+
+function _openGCalendarUrl(ev) {
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [year, month, day] = ev.dat.split('-');
+  const [h, m] = (ev.hora || '09:00').split(':').map(Number);
+  const endH = h + 1 > 23 ? 23 : h + 1;
+  const pad = n => String(n).padStart(2, '0');
+  const startStr = `${year}${month}${day}T${pad(h)}${pad(m)}00`;
+  const endStr   = `${year}${month}${day}T${pad(endH)}${pad(m)}00`;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: ev.tit,
+    dates: `${startStr}/${endStr}`,
+    details: 'Lembrete criado pelo Pintor Plus',
+    ctz: tz
+  });
+  window.open('https://calendar.google.com/calendar/render?' + params.toString(), '_blank');
+}
+function exportICS(id) { const e = S.eventos.find(x=>x.id==id); if(!e) return; const dt = e.dat.replace(/-/g,''); const hr = (e.hora||'09:00').replace(':','')+'00'; const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${e.tit}\nDTSTART:${dt}T${hr}\nDTEND:${dt}T${hr}\nEND:VEVENT\nEND:VCALENDAR`; const blob = new Blob([ics], {type: 'text/calendar'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `Lembrete_${e.tit.replace(/\s+/g,'_')}.ics`; a.click(); URL.revokeObjectURL(url); }
+
+// MENSAGEM & COMPARTILHAMENTO
+function buildWAMsg(orc){
+  let m2=0; (orc.rooms||[]).forEach(r=>{m2+=getRoomMeds(r).m2;}); 
+  const totalValue = calcOrcTotal(orc); 
+  let detalhes = '';
+  
+  if(orc.fmt === 'area') {
+    detalhes += `*Locais e Itens:*\n`;
+    (orc.rooms||[]).forEach(r => {
+      detalhes += `\n📍 *${r.name}*\n`;
+      (r.items||[]).forEach(it => {
+        detalhes += `  - ${it.name}${(it.services&&it.services.length)?` (${it.services.join(', ')})`:''}\n`;
+        if(it.obs) detalhes += `    _Obs: ${it.obs}_\n`;
+      });
+    });
+    if(m2 > 0) detalhes += `\n*Área total aprox:* ${f1(m2)} m²\n`;
+  } else if(orc.fmt === 'completo'){
+    detalhes += `*Detalhes:*\n`;
+    (orc.rooms||[]).forEach(r=>{
+       detalhes += `\n📍 *${r.name}*\n`;
+       (r.items||[]).forEach(it=>{
+         const a=parseFloat(it.alt)||0, c=parseFloat(it.comp)||0;
+         let med = (a&&c) ? f1(a*c)+' m²' : (a||c) ? f1(a||c)+' ml' : '';
+         detalhes += ` - ${it.name}`;
+         if(med) detalhes += ` (${med})`;
+         if(it.services&&it.services.length) detalhes += ` [${it.services.join(', ')}]`;
+         detalhes += `\n`;
+         if(it.obs) detalhes += `   *Obs:* ${it.obs}\n`;
+       });
+    });
+    if(m2>0) detalhes+=`\n*Área total aprox:* ${f1(m2)} m²\n`;
+  }
+  
+  if(orc.tipoServico) detalhes+=`\n*Escopo:* ${orc.tipoServico}\n`;
+  if(orc.pgto?.length) detalhes+=`*Pagamento:* ${orc.pgto.join(', ')}\n`;
+  if(orc.valid) detalhes+=`*Validade:* ${orc.valid} dias\n`;
+  if(orc.obs) detalhes+=`*Obs Gerais:* ${orc.obs}\n`;
+  
+  const tFmt = totalValue.toLocaleString('pt-BR',{style:'currency', currency:'BRL'});
+  let finalMsg = (S.config.msg || defCfg.msg).replace(/\\n/g, '\n').replace('{cliente}', orc.nome || 'Cliente').replace('{detalhes}', detalhes).replace('{total}', tFmt);
+  
+  if(!finalMsg.includes(tFmt)) finalMsg += `\n*Valor Total: ${tFmt}*`;
+  
+  return finalMsg;
+}
+
+function refreshWAPreview(){const orc=collectOrc();const el=document.getElementById('wa-preview-inline');if(el)el.textContent=buildWAMsg(orc);}
+
+// Mensagem de acompanhamento de PDF (sem {detalhes}, só cabeçalho/rodapé)
+function buildPDFShareMsg(orc) {
+  const totalValue = calcOrcTotal(orc);
+  const tFmt = totalValue.toLocaleString('pt-BR',{style:'currency', currency:'BRL'});
+  const msg = (S.config.msg || defCfg.msg)
+    .replace(/\\n/g, '\n')
+    .replace('{cliente}', orc.nome || 'Cliente')
+    .replace('{detalhes}', '')
+    .replace('{total}', tFmt)
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  return msg.includes(tFmt) ? msg : msg + '\n\n*Valor Total: ' + tFmt + '*';
+}
+
+// ── Geração de PDF real em segundo plano (html2pdf.js) ─────────────────────
+function _loadHtml2PDF() {
+  if (window.html2pdf) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function _generatePDFBlob(orc, withPhotos) {
+  await _loadHtml2PDF();
+  const orcId = String(orc.id || Date.now()).slice(-6);
+  const nomeCli = (orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_');
+  const fileName = `OC_${nomeCli}_${orcId}.pdf`;
+
+  const fullHtml = genPDFHtml(orc, withPhotos);
+
+  // Extrai CSS e corpo do documento gerado
+  const styleMatch = fullHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  const cssText = styleMatch ? styleMatch[1] : '';
+  const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  let bodyContent = bodyMatch ? bodyMatch[1] : fullHtml;
+
+  // Remove script, botão de impressão e SVG com <use> (sprite do app não existe aqui)
+  bodyContent = bodyContent
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<button class="print-btn"[\s\S]*?<\/button>/g, '')
+    .replace(/<svg[^>]*>\s*<use[^>]*href="#[^"]*"[^>]*\/?>\s*<\/svg>/gi, '');
+
+  // Renderiza via elemento DOM real — mais confiável que from('string') no mobile
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;background:#fff;z-index:-1;';
+  const styleEl = document.createElement('style');
+  styleEl.textContent = cssText;
+  wrapper.appendChild(styleEl);
+  wrapper.insertAdjacentHTML('beforeend', bodyContent);
+  document.body.appendChild(wrapper);
+
+  try {
+    const blob = await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(wrapper).outputPdf('blob');
+    return { blob, fileName };
+  } finally {
+    document.body.removeChild(wrapper);
+  }
+}
+
+function _downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 8000);
+}
+
+async function shareOrc() {
+  const orc = collectOrc();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(orc, false);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+    // Tenta share nativo com arquivo
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({ title: `Orçamento — ${orc.nome||''}`, files: [pdfFile] });
+      return true;
+    }
+    // Share nativo não suporta arquivo — mostra opções
+    window._shareBlob = blob; window._shareFileName = fileName; window._shareOrc = orc;
+    document.getElementById('share-opts-modal').style.display = 'flex';
+    return true;
+  } catch(e) {
+    if (e?.name === 'AbortError') return false;
+    // Mesmo sem PDF mostra opções de texto
+    window._shareBlob = null; window._shareFileName = null; window._shareOrc = collectOrc();
+    document.getElementById('share-opts-modal').style.display = 'flex';
+    return false;
+  }
+}
+async function _shareDoNative() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  try { await navigator.share({ title: `Orçamento — ${orc.nome||''}`, text: buildWAMsg(orc) }); }
+  catch(e) { if (e?.name !== 'AbortError') _shareDoWA(); }
+}
+function _shareDoWA() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  const msg = buildWAMsg(orc); const tel = (orc.tel||'').replace(/\D/g,'');
+  window.open(tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+async function _shareDoCopy() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  try { await navigator.clipboard.writeText(buildWAMsg(orc)); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mensagem copiada!'); }
+  catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Não foi possível copiar.'); }
+}
+function _shareDoSave() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  if (window._shareBlob) { _downloadBlob(window._shareBlob, window._shareFileName); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> PDF salvo!'); }
+  else { const orc = window._shareOrc; if (orc) { const html = genPDFHtml(orc, false); const w = window.open('','_blank'); if(w){w.document.write(html);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(e){}},400);} } }
+}
+function sendWA(){ const orc=collectOrc(); const msg=buildWAMsg(orc); const tel=(orc.tel||'').replace(/\D/g,''); const url = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`; window.open(url, '_blank'); toast('<svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Abrindo WhatsApp…'); }
+
+// MOTOR DE IMPRESSÃO NATIVA / PDF
+function askPdfPhotos() {
+  const orc = collectOrc();
+  let photoCount = 0;
+  (orc.rooms || []).forEach(r => (r.items || []).forEach(it => { photoCount += (it.photos || []).length; }));
+  if (photoCount === 0) {
+    genPDF(false);
+    setTimeout(() => homeTab('orcamentos'), 500);
+    return;
+  }
+  const countEl = document.getElementById('pdf-photos-count');
+  if (countEl) countEl.textContent = photoCount + ' foto' + (photoCount > 1 ? 's' : '') + ' encontrada' + (photoCount > 1 ? 's' : '') + ' neste orçamento.';
+  document.getElementById('pdf-photos-modal').style.display = 'flex';
+}
+function closePdfPhotosModal(withPhotos) {
+  document.getElementById('pdf-photos-modal').style.display = 'none';
+  genPDF(withPhotos);
+  setTimeout(() => homeTab('orcamentos'), 500);
+}
+
+function genPDFHtml(orc, withPhotos) {
+  const total = calcOrcTotal(orc);
+  let totalM2 = 0;
+  const watermarkHtml = S.config.logo ? `<div class="pdf-watermark" style="position:absolute;top:0;left:0;right:0;bottom:0;background-image:url('${S.config.logo}');background-repeat:repeat;background-size:150px;opacity:0.08;z-index:-1;"></div>` : '';
+  const logoHtml = S.config.logo ? `<img src="${S.config.logo}" style="max-width:140px; max-height:80px; object-fit:contain; border-radius:8px;">` : `<div style="width:80px;height:80px;background:#f1f5f9;border:1px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;font-weight:bold;border-radius:8px;">LOGOTIPO</div>`;
+  const roomsHtml = (orc.rooms||[]).map(r => {
+    const meds = getRoomMeds(r); totalM2 += meds.m2;
+    const items = (r.items||[]).map(it => {
+      const a = parseFloat(it.alt)||0; const c = parseFloat(it.comp)||0;
+      const measure = (a && c) ? (a*c).toFixed(2)+' m²' : (a || c ? (a||c)+' ml' : '');
+      let photosHtml = '';
+      if (withPhotos && it.photos && it.photos.length > 0) {
+        photosHtml = '<div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">' + it.photos.map(p => `<div style="text-align:center;"><img src="${p.url}" style="height:100px; width:auto; border-radius:6px; border:1px solid #cbd5e1; object-fit:cover;"></div>`).join('') + '</div>';
+      }
+      let obsHtml = it.obs ? `<div style="font-size:11px; color:#64748b; margin-top:4px; font-style:italic;">Obs: ${_esc(it.obs)}</div>` : '';
+      return `<div style="padding:10px 0; border-bottom:1px dashed #e2e8f0; page-break-inside: avoid;"><div style="display:flex; justify-content:space-between;"><span style="color:#0f172a;">- ${_esc(it.name)} <span style="font-size:11px; color:#64748b;">${(it.services||[]).length ? `(${it.services.map(_esc).join(', ')})` : ''}</span></span><span style="font-size:12px; color:#64748b; font-weight:bold;">${_esc(measure)}</span></div>${obsHtml}${photosHtml}</div>`;
+    }).join('');
+    return `<div class="avoid-break" style="page-break-inside: avoid; margin-bottom:16px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; display:block;"><div style="font-weight:bold; color:#0f172a; margin-bottom:8px; font-size:14px; border-bottom:2px solid #f1f5f9; padding-bottom:4px; text-transform:uppercase;">📍 Local: ${_esc(r.name)}</div>${items}</div>`;
+  }).join('');
+  const orcId = String(orc.id || Date.now()).slice(-6);
+  const nomeCli = (orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_');
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>OC_${nomeCli}_${orcId}</title>
+  <style>
+    body { margin: 0; padding: 0; background: #e2e8f0; font-family: Arial, Helvetica, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin: 20px auto; background: #7C3AED; color: #fff; border-radius: 50%; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(124,58,237,.4); font-size: 26px; }
+    .page { width: 100%; max-width: 794px; margin: 0 auto 40px; background: #ffffff; padding: 40px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 8px; }
+    @media print {
+      body { background: #ffffff; }
+      .print-btn { display: none !important; }
+      .page { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: 100%; }
+      @page { margin: 10mm; size: A4 portrait; }
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.print()" title="Imprimir ou Salvar PDF">🖨️</button>
+  <div class="page">
+    ${watermarkHtml}
+    <div class="avoid-break" style="display:flex; justify-content:space-between; border-bottom:2px solid #334155; padding-bottom:20px; margin-bottom:24px;">
+      <div style="display:flex; gap:20px;">
+        ${logoHtml}
+        <div>
+          <div style="font-size:24px; font-weight:900; color:#0f172a; margin-bottom:6px; letter-spacing:-0.5px;">${_esc(S.config.empresa || 'Empresa PintorPlus')}</div>
+          ${S.config.tel ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">Tel: <b>${_esc(S.config.tel)}</b></div>` : ''}
+          ${S.config.emailEmpresa ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">Email: ${_esc(S.config.emailEmpresa)}</div>` : ''}
+          ${S.config.endEmpresa ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">${_esc(S.config.endEmpresa)}</div>` : ''}
+          ${S.config.doc ? `<div style="font-size:14px; color:#334155;">CNPJ/CPF: ${_esc(S.config.doc)}</div>` : ''}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:26px; font-weight:900; color:#7c3aed; margin-bottom:8px; letter-spacing:-0.5px;">ORÇAMENTO</div>
+        <div style="font-size:15px; color:#64748b; font-weight:bold; margin-bottom:2px;">Nº #${orcId}</div>
+        <div style="font-size:14px; color:#64748b;">Data: ${orc.date}</div>
+      </div>
+    </div>
+    <div class="avoid-break" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; margin-bottom:24px; display:block;">
+      <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">Dados do Cliente</div>
+      <div style="display:flex; font-size:15px; flex-direction:column; gap:6px;">
+        <div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Nome:</div><div style="color:#0f172a;">${_esc(orc.nome||'—')}</div></div>
+        ${orc.tel ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Telefone:</div><div style="color:#0f172a;">${_esc(orc.tel)}</div></div>` : ''}
+        ${orc.email ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Email:</div><div style="color:#0f172a;">${_esc(orc.email)}</div></div>` : ''}
+        ${orc.end ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Endereço:</div><div style="color:#0f172a;">${_esc(orc.end)}</div></div>` : ''}
+        ${orc.cpf ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">CPF/CNPJ:</div><div style="color:#0f172a;">${_esc(orc.cpf)}</div></div>` : ''}
+      </div>
+    </div>
+    <div style="margin-bottom:24px; display:block;">
+      <div class="avoid-break" style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:12px; padding-bottom:6px; border-bottom:2px solid #e2e8f0; text-transform:uppercase;">Serviços a Realizar</div>
+      <div style="font-size:14px; line-height:1.6;">${roomsHtml}</div>
+    </div>
+    <div class="avoid-break" style="display:flex; justify-content:space-between; margin-top:30px; border-top:3px solid #e2e8f0; padding-top:20px;">
+      <div style="font-size:14px; color:#334155; width:60%; padding-right:20px;">
+        <div style="margin-bottom:6px;"><strong>ÁREA TOTAL APROX.:</strong> ${totalM2.toFixed(2)} m²</div>
+        ${orc.tipoServico ? `<div style="margin-bottom:6px;"><strong>ESCOPO:</strong> ${_esc(orc.tipoServico)}</div>` : ''}
+        <div style="margin-bottom:6px;"><strong>VALIDADE:</strong> ${_esc(String(orc.valid))} dias</div>
+        ${orc.pgto?.length ? `<div style="margin-bottom:6px;"><strong>PAGAMENTO:</strong> ${orc.pgto.map(_esc).join(', ')}</div>` : ''}
+        ${orc.obs ? `<div style="margin-top:16px; padding:12px; border:1px solid #fde68a; background:#fffbeb; border-radius:8px; color:#000;"><strong>Observações:</strong><br>${_esc(orc.obs)}</div>` : ''}
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px; font-weight:bold; color:#64748b; margin-bottom:6px; text-transform:uppercase;">Total do Orçamento</div>
+        <div style="font-size:32px; font-weight:900; color:#15803d; letter-spacing:-1px;">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      </div>
+    </div>
+  </div>
+  <script>window.onload = () => setTimeout(() => window.print(), 500);<\/script>
+</body>
+</html>`;
+}
+
+function genPDF(withPhotos){
+  try {
+    const orc = collectOrc();
+    const htmlString = genPDFHtml(orc, withPhotos);
+    const pWin = window.open('', '_blank');
+    if(!pWin) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Popup bloqueado. Permita a abertura de novas abas.'); return; }
+    pWin.document.open();
+    pWin.document.write(htmlString);
+    pWin.document.close();
+  } catch(err) {
+    console.error(err);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro inesperado ao processar impressão.');
+  }
+}
+
+// CEP
+function maskCep(input){ const digits=input.value.replace(/\D/g,'').slice(0,8); input.value=digits.length>5?digits.slice(0,5)+'-'+digits.slice(5):digits; const msg=document.getElementById('cep-msg'); if(msg)msg.style.display='none'; if(digits.length===8)fetchCep(digits); }
+async function fetchCep(cep){
+  const cleanCep = cep.replace(/\D/g,'');
+  const spin = document.getElementById('cep-spin'); const msg = document.getElementById('cep-msg');
+  if (spin) spin.style.opacity='1'; if (msg) msg.style.display='none';
+
+  function fillAddress(d) {
+    if (spin) spin.style.opacity='0';
+    document.getElementById('cli-logradouro').value = d.street || d.logradouro || '';
+    document.getElementById('cli-bairro').value = d.neighborhood || d.bairro || '';
+    document.getElementById('cli-cidade').value = (d.city || d.localidade || '') + ' - ' + (d.state || d.uf || '');
+    document.getElementById('cli-numero').value = '';
+    document.getElementById('end-fields').style.display = 'block';
+    document.getElementById('end-manual-toggle').style.display = 'none';
+    if (msg) { msg.style.display='block'; msg.style.color='var(--gn)'; msg.innerHTML='<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Endereço encontrado!'; }
+    setTimeout(()=>{const el=document.getElementById('cli-numero');if(el){el.focus();el.scrollIntoView({behavior:'smooth',block:'center'});}}, 100);
+  }
+
+  function showError() {
+    if (spin) spin.style.opacity='0';
+    if (msg) { msg.style.display='block'; msg.style.color='var(--rd)'; msg.innerHTML='<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> CEP não encontrado. Preencha manualmente.'; }
+  }
+
+  // Primary: BrasilAPI (melhor CORS e disponibilidade)
+  try {
+    const res0 = await fetch(`https://brasilapi.com.br/api/cep/v2/${cleanCep}`);
+    if (res0.ok) { const d = await res0.json(); if (d && d.cep) { fillAddress(d); return; } }
+  } catch(e) {}
+
+  // Fallback: viacep
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+    if (res.ok) { const d = await res.json(); if (!d.erro) { fillAddress(d); return; } }
+  } catch(e) {}
+
+  // Fallback: opencep.com
+  try {
+    const res2 = await fetch(`https://opencep.com/v1/${cleanCep}`);
+    if (res2.ok) { const d = await res2.json(); if (d && d.cep) { fillAddress(d); return; } }
+  } catch(e) {}
+
+  showError();
+}
+function toggleManualEnd(){document.getElementById('end-fields').style.display='block';document.getElementById('end-manual-toggle').style.display='none';const msg=document.getElementById('cep-msg');if(msg)msg.style.display='none';document.getElementById('cli-logradouro')?.focus();}
+function toggleSidebar() { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebar-overlay'); if(sb) sb.classList.toggle('active'); if(ov) ov.classList.toggle('active'); }
+
+// CONFIG E IMAGENS
+function loadLogoCfg(input) { 
+  const file = input.files[0]; 
+  if(!file) return; 
+  compressImage(file, dataUrl => { 
+    S.config.logo = dataUrl; 
+    renderLogoPreview(); 
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Logo carregado (não esqueça de Salvar)'); 
+  }); 
+  input.value = '';
+}
+
+function clearLogoCfg() {
+  S.config.logo = '';
+  document.getElementById('cfg-logo-file').value = '';
+  renderLogoPreview();
+}
+
+function loadSigCfg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { S.config.assinatura = e.target.result; renderSigPreview(); };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+function clearSigCfg() {
+  S.config.assinatura = '';
+  document.getElementById('cfg-sig-file').value = '';
+  renderSigPreview();
+}
+function renderSigPreview() {
+  const img = document.getElementById('cfg-sig-preview');
+  const ph  = document.getElementById('cfg-sig-placeholder');
+  if (!img || !ph) return;
+  if (S.config.assinatura) {
+    img.src = S.config.assinatura;
+    img.style.display = 'block';
+    ph.style.display  = 'none';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+    ph.style.display  = 'block';
+  }
+}
+
+// ── ASSINATURA: ABAS ──────────────────────────────────────────
+function sigTab(tab) {
+  const isUpload = tab === 'upload';
+  document.getElementById('sig-panel-upload').style.display = isUpload ? 'block' : 'none';
+  document.getElementById('sig-panel-draw').style.display   = isUpload ? 'none' : 'block';
+  const btnU = document.getElementById('sig-tab-upload');
+  const btnD = document.getElementById('sig-tab-draw');
+  if (btnU) { btnU.style.background = isUpload ? 'var(--bl)' : 'transparent'; btnU.style.color = isUpload ? '#fff' : 'var(--ink3)'; }
+  if (btnD) { btnD.style.background = isUpload ? 'transparent' : 'var(--bl)'; btnD.style.color = isUpload ? 'var(--ink3)' : '#fff'; }
+  if (!isUpload) _sigCanvasInit();
+}
+
+// ── ASSINATURA: CANVAS DE DESENHO ─────────────────────────────
+let _sigDrawing = false, _sigLastX = 0, _sigLastY = 0, _sigCtx = null;
+
+function _sigCanvasInit() {
+  const c = document.getElementById('sig-canvas');
+  if (!c || c._sigInited) return;
+  c._sigInited = true;
+  _sigCtx = c.getContext('2d');
+  _sigCtx.strokeStyle = '#1e293b';
+  _sigCtx.lineWidth = 2.2;
+  _sigCtx.lineCap = 'round';
+  _sigCtx.lineJoin = 'round';
+  const pos = (e) => {
+    const r = c.getBoundingClientRect();
+    const sc = c.width / r.width;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * sc, y: (src.clientY - r.top) * sc };
+  };
+  const start = (e) => { e.preventDefault(); _sigDrawing = true; const p = pos(e); _sigLastX = p.x; _sigLastY = p.y; _sigCtx.beginPath(); _sigCtx.moveTo(p.x, p.y); };
+  const move  = (e) => { if (!_sigDrawing) return; e.preventDefault(); const p = pos(e); _sigCtx.lineTo(p.x, p.y); _sigCtx.stroke(); _sigLastX = p.x; _sigLastY = p.y; };
+  const end   = () => { _sigDrawing = false; };
+  c.addEventListener('mousedown', start); c.addEventListener('mousemove', move); c.addEventListener('mouseup', end); c.addEventListener('mouseleave', end);
+  c.addEventListener('touchstart', start, { passive: false }); c.addEventListener('touchmove', move, { passive: false }); c.addEventListener('touchend', end);
+}
+
+function sigCanvasClear() {
+  const c = document.getElementById('sig-canvas');
+  if (c && _sigCtx) _sigCtx.clearRect(0, 0, c.width, c.height);
+}
+
+function sigCanvasSave() {
+  const c = document.getElementById('sig-canvas');
+  if (!c) return;
+  S.config.assinatura = c.toDataURL('image/png');
+  renderSigPreview();
+  sigTab('upload');
+  _cfgDirty = true;
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Assinatura salva!');
+}
+
+function renderLogoPreview() { 
+  // Variáveis Padrão Independentes
+  const menuDefaultLogo = 'https://lh3.googleusercontent.com/d/1WJXU6NvZ12GeL3GA4NzzGeGeaZvHpkfn';
+  const userLogo = S.config.logo; 
+
+  // Elementos HTML
+  const img = document.getElementById('cfg-logo-preview'); 
+  const txt = document.getElementById('cfg-logo-placeholder'); 
+  const homeImg = document.getElementById('home-logo-img'); 
+  const sideImg = document.getElementById('sidebar-logo-img'); 
+  // Sidebar sempre exibe o favicon do Pintor Plus (não o logo da empresa)
+  if(sideImg) { sideImg.src = '/apple-touch-icon.png'; sideImg.style.display = 'block'; }
+
+  // Lógica Opcional: Ecrã Home e Menu de Configurações (Apenas exibem se o user fez upload de foto)
+  if(userLogo) {
+    if(img){img.src = userLogo; img.style.display = 'block';} 
+    if(txt)txt.style.display = 'none'; 
+    if(homeImg){homeImg.src = userLogo; homeImg.style.display = 'block';} 
+  } else {
+    if(img){img.src = ''; img.style.display = 'none';} 
+    if(txt)txt.style.display = 'block'; 
+    if(homeImg){homeImg.src = ''; homeImg.style.display = 'none';} 
+  }
+}
+
+function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
+function saveConfig() {
+  S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false, flashNomes: (document.getElementById('cfg-flash-nomes')||{}).value||defCfg.flashNomes, flashServicos: (document.getElementById('cfg-flash-servicos')||{}).value||defCfg.flashServicos, flashMateriais: (document.getElementById('cfg-flash-materiais')||{}).value||defCfg.flashMateriais };
+  document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
+  S.DEFAULT_SERVICES = S.config.servicos.split(',').map(s=>s.trim()).filter(Boolean); 
+  if(!S.DEFAULT_SERVICES.length) S.DEFAULT_SERVICES = defCfg.servicos.split(',').map(s=>s.trim()); 
+  S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); 
+  try {
+    _Vault.save('pp-config', JSON.stringify(S.config));
+    _cfgDirty = false;
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações salvas!');
+    populateStatusSelect(); loadGoogleMaps(); homeTab('home');
+  } catch(e) {
+    console.error(e);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro: Armazenamento cheio! O logotipo pode ser muito grande, tente usar uma imagem menor.');
+  }
+}
+
+// BACKUP E TABS
+let backupTimerHandle; let pendingBackupData = null;
+function exportBackup() { const data = { versao: 1, dataGeracao: new Date().toISOString(), config: S.config, orcs: S.orcs, clientes: S.clientes, fornecedores: S.fornecedores, eventos: S.eventos }; const json = JSON.stringify(data); const blob = new Blob([json], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `PintorPlus_Backup_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`; a.click(); URL.revokeObjectURL(url); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Exportado!'); }
+function handleBackupFile(input) { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { try { const data = JSON.parse(e.target.result); if(!data.orcs || !data.config) throw new Error("Formato inválido"); pendingBackupData = data; openBackupModal(); } catch(err) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro no backup'); } }; reader.readAsText(file); input.value = ''; }
+function openBackupModal() { document.getElementById('backup-confirm-modal').style.display = 'flex'; const btn = document.getElementById('btn-force-replace'); btn.classList.add('btn-disabled'); let secs = 3; btn.textContent = `Substituir Tudo (${secs}s)`; clearInterval(backupTimerHandle); backupTimerHandle = setInterval(() => { secs--; if(secs <= 0) { clearInterval(backupTimerHandle); btn.classList.remove('btn-disabled'); btn.textContent = 'Substituir Tudo'; } else { btn.textContent = `Substituir Tudo (${secs}s)`; } }, 1000); }
+function closeBackupModal(proceed) { clearInterval(backupTimerHandle); document.getElementById('backup-confirm-modal').style.display = 'none'; if(!proceed) pendingBackupData = null; }
+function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; _Vault.save('pp-config', JSON.stringify(S.config)); _saveOrcs(); _Vault.save('pp-clientes', JSON.stringify(S.clientes)); _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); _Vault.save('pp-eventos', JSON.stringify(S.eventos)); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
+function homeTab(tab){
+  // Se estiver em config com alterações não salvas, pede confirmação antes de sair
+  if (tab !== 'config' && typeof _cfgDirty !== 'undefined' && _cfgDirty && document.getElementById('pg-config')?.classList.contains('active')) {
+    _cfgExitCallback = () => homeTab(tab);
+    document.getElementById('cfg-save-modal').style.display = 'flex';
+    return;
+  }
+  if(tab === 'config') { openConfig(); return; } if(tab === 'flash') { canNavigateAsync(() => { S.isDirty = false; openFlash(); }); return; } canNavigateAsync(() => { S.isDirty = false; ['orc-search','cli-search','forn-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); if(tab === 'home') { showPage('pg-home'); renderHomeMini(); renderHomeEvents(); renderHomeNews(); } else if(tab === 'orcamentos') { showPage('pg-orcamentos'); renderOrcamentosList(); } else if(tab === 'clientes') { showPage('pg-clientes'); renderClientes(); } else if(tab === 'fornecedores') { showPage('pg-fornecedores'); renderFornecedores(); } else if(tab === 'agenda') { showPage('pg-agenda'); renderAgenda(); } else if(tab === 'backup') { showPage('pg-backup'); GDrive._renderStorageInfo?.(); if(GDrive.accessToken && !GDrive._storageQuota) GDrive.checkStorageQuota?.(); } else if(tab === 'termos') { showPage('pg-termos'); } }); }
+
+// ── TERMOS & PRIVACIDADE — LGPD ──────────────────────────────
+const TERMS_VERSION = '1';
+const TERMS_KEY     = 'pp-terms-v' + TERMS_VERSION;
+
+function _hasAcceptedTerms(email) {
+  try {
+    const raw = localStorage.getItem(TERMS_KEY);
+    if (!raw) return false;
+    const rec = JSON.parse(raw);
+    return rec.accepted === true && rec.email === email;
+  } catch(e) { return false; }
+}
+
+function showTermsModal() {
+  const modal = document.getElementById('terms-modal');
+  if (!modal) return;
+  const chk = document.getElementById('terms-agree-chk');
+  const btn = document.getElementById('terms-accept-btn');
+  if (chk) chk.checked = false;
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'not-allowed'; }
+  const body = document.getElementById('terms-modal-body');
+  if (body) body.scrollTop = 0;
+  modal.style.display = 'flex';
+}
+
+function toggleTermsAccept(checked) {
+  const btn = document.getElementById('terms-accept-btn');
+  if (!btn) return;
+  btn.disabled = !checked;
+  btn.style.opacity = checked ? '1' : '0.4';
+  btn.style.cursor = checked ? 'pointer' : 'not-allowed';
+}
+
+function acceptTerms() {
+  const chk = document.getElementById('terms-agree-chk');
+  if (!chk || !chk.checked) return;
+  const email = (GDrive.user && GDrive.user.email) ? GDrive.user.email : '';
+  localStorage.setItem(TERMS_KEY, JSON.stringify({
+    version: TERMS_VERSION, accepted: true,
+    ts: Date.now(), email: email, ua: navigator.userAgent
+  }));
+  document.getElementById('terms-modal').style.display = 'none';
+  showPage('pg-home');
+  renderHomeMini(); renderHomeEvents(); renderHomeNews();
+  GDrive._findFile();
+}
+
+function rejectTerms() {
+  document.getElementById('terms-modal').style.display = 'none';
+  GDrive.signOut();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> É necessário aceitar os Termos para usar o Pintor Plus.');
+}
+// ─────────────────────────────────────────────────────────────
+
+function buildDateLabel(ts) { if(!ts) return 'Sem data'; const d = new Date(ts); return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; }
+
+function renderHomeMini() {
+  const sg = document.getElementById('home-saudacao'); 
+  if(sg) sg.textContent = S.config.empresa || 'Sua Empresa';
+  renderLogoPreview(); // Sincroniza todos os logos simultaneamente
+  
+  const wrap=document.getElementById('home-orcs-mini');if(!wrap)return;
+  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
+  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(o.nome||'(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
+}
+
+// --- MÓDULO: EVENTOS DA SEMANA NA HOME ---
+function renderHomeEvents() {
+  const wrap = document.getElementById('home-events-mini');
+  if(!wrap) return;
+  const evMap = getUnifiedEvents();
+  const today = new Date();
+  let html = '';
+  let count = 0;
+
+  for(let i=0; i<7; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+    const dtStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    
+    if(evMap[dtStr]) {
+      const parts = dtStr.split('-');
+      const dataFormatada = `${parts[2]}/${parts[1]}`;
+      
+      evMap[dtStr].forEach(item => {
+        count++;
+        if(count > 4) return; // Limitar a 4 eventos na visualização rápida
+        
+        if(item.type === 'ev') {
+          const e = item.data;
+          html += `<div class="hoc" style="border-left: 3px solid var(--bl); margin-bottom:8px; padding:12px;"><div class="hot" style="margin-bottom:0;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> ${_esc(e.tit)}</div><div class="hos" style="font-size:11px;">${dataFormatada} - ${_esc(e.hora||'O dia todo')}</div></div></div></div>`;
+        } else {
+          const o = item.data;
+          html += `<div class="hoc" style="border-left: 3px solid var(--gn); margin-bottom:8px; padding:12px; cursor:pointer;" onclick="editOrcByObjId('${o.id}')"><div class="hot" style="margin-bottom:0; width:100%;"><div><div class="hon" style="font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-hard-hat"/></svg> Obra: ${_esc(o.nome)}</div><div class="hos" style="font-size:11px;">Início a ${dataFormatada}</div></div><span class="hbadge ${getStatusBadgeClass(o.status)}" style="margin-left:auto;">${_esc(o.status||'Pendente')}</span></div></div>`;
+        }
+      });
+    }
+  }
+  
+  if(count === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum evento nos próximos 7 dias.</div>';
+  } else {
+    wrap.innerHTML = html;
+  }
+}
+
+// --- MÓDULO: FEED DE NOTÍCIAS RSS ---
+async function renderHomeNews() {
+  const wrap = document.getElementById('home-news-mini');
+  if(!wrap) return;
+  
+  try {
+    const res = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.pintorabrapp.com.br%2Ffeed%2F');
+    const data = await res.json();
+    
+    if(data.status === 'ok' && data.items && data.items.length > 0) {
+      const items = data.items.slice(0, 3);
+      wrap.innerHTML = items.map(item => {
+        let imgUrl = item.thumbnail;
+        if(!imgUrl && item.content) {
+           const match = item.content.match(/<img[^>]+src="([^">]+)"/);
+           if(match) imgUrl = match[1];
+        }
+        if(!imgUrl) imgUrl = 'https://www.pintorabrapp.com.br/wp-content/uploads/2023/10/logo-abrapp.png';
+        
+        const date = new Date(item.pubDate.replace(/-/g, '/')).toLocaleDateString('pt-BR');
+        
+        return `
+        <div class="news-card" onclick="const _u=_safeUrl('${_esc(item.link)}');if(_u)window.open(_u,'_blank')">
+          <img src="${imgUrl}" onerror="this.src='https://lh3.googleusercontent.com/d/1mwtQDispSbBU3HBvLa0T46vOoHAmWNNN'">
+          <div style="flex:1;">
+            <div class="news-title">${_esc(item.title)}</div>
+            <div class="news-date">${_esc(date)}</div>
+          </div>
+        </div>`;
+      }).join('');
+    } else {
+      throw new Error('Feed vazio');
+    }
+  } catch(err) {
+    wrap.innerHTML = `
+      <div class="news-card" onclick="window.open('https://www.pintorabrapp.com.br/revista-pintura-em-movimento', '_blank')">
+        <div style="font-size:24px; margin-right:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-newspaper"/></svg></div>
+        <div style="flex:1;">
+          <div class="news-title">Revista Pintura em Movimento</div>
+          <div class="news-date">Não foi possível carregar as notícias. Prima aqui para aceder.</div>
+        </div>
+      </div>`;
+  }
+}
+
+function _orcMatch(o, q) {
+  const tot = calcOrcTotal(o);
+  const parts = [o.nome,o.apelido,o.tel,o.email,o.cpf,o.cep,o.logradouro,o.numero,o.comp,o.bairro,o.cidade,o.end,o.status,o.obs,o.date,o.inicio,o.tipoServico,o.pagNome,o.pagTel,o.pagEnd,(o.pgto||[]).join(' '),tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'',(o.rooms||[]).map(r=>[r.nome,r.obs,(r.items||[]).map(it=>[it.name,it.obs].join(' ')).join(' ')].join(' ')).join(' ')];
+  return parts.some(p=>p&&String(p).toLowerCase().includes(q));
+}
+function renderOrcamentosList() {
+  const q=(document.getElementById('orc-search')?.value||'').toLowerCase().trim();
+  const wrap=document.getElementById('orcamentos-list-full');if(!wrap)return;
+  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="newOrc()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>'; return; }
+  const indexed = S.orcs.map((o,i)=>({o,i}));
+  const filtered = q ? indexed.filter(({o})=>_orcMatch(o,q)) : indexed;
+  if(!filtered.length){ wrap.innerHTML=`<div class="srch-empty">Nenhum orçamento encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
+  wrap.innerHTML=filtered.map(({o,i})=>{
+    let tot=calcOrcTotal(o); const qtdLocais=(o.rooms||[]).length; const infoTxt=qtdLocais===1?`${o.rooms[0].items?.length||0} item(ns)`:`${qtdLocais} local(is)`;
+    const isRascunho=(o.status||'')==='Rascunho';
+    const badgeHtml=isRascunho?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
+    const orcShortId=String(o.id||'').slice(-6);
+    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${_esc(o.nome||'(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${_esc(o.end||'—')} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
+  }).join('');
+}
+
+function delOrc(i){ S.orcs.splice(i,1); _saveOrcs(); renderOrcamentosList(); renderHomeMini(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Removido'); }
+
+// ── RECIBO ────────────────────────────────────────────────────────
+let _reciboOrcIdx = -1;
+
+function abrirModalRecibo(i) {
+  _reciboOrcIdx = i;
+  const o = S.orcs[i];
+  if (!o) return;
+  const tot = calcOrcTotal(o);
+
+  // Preenche campo cliente
+  document.getElementById('rb-cliente-label').textContent = o.nome || '(sem nome)';
+
+  // Data de hoje no formato yyyy-mm-dd
+  const hoje = new Date();
+  document.getElementById('rb-data').value =
+    hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0') + '-' + String(hoje.getDate()).padStart(2,'0');
+
+  // Valor total
+  document.getElementById('rb-total-label').textContent =
+    tot > 0 ? 'R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : 'R$ 0,00';
+  document.getElementById('rb-valor-auto').checked = true;
+  document.getElementById('rb-valor-input').style.display = 'none';
+  document.getElementById('rb-valor-input').value = '';
+
+  // Forma de pagamento do orçamento (se tiver)
+  document.getElementById('rb-pgto').value = o.pgto || '';
+  document.getElementById('rb-obs').value = '';
+
+  document.getElementById('modal-recibo').style.display = 'flex';
+}
+
+function fecharModalRecibo() {
+  document.getElementById('modal-recibo').style.display = 'none';
+  _reciboOrcIdx = -1;
+}
+
+function toggleRbValor() {
+  const custom = document.getElementById('rb-valor-custom').checked;
+  document.getElementById('rb-valor-input').style.display = custom ? '' : 'none';
+}
+
+function valorPorExtenso(valor) {
+  const inteiro = Math.floor(Math.abs(valor));
+  const dec = Math.round((Math.abs(valor) - inteiro) * 100);
+  const u = ['','um','dois','três','quatro','cinco','seis','sete','oito','nove',
+    'dez','onze','doze','treze','quatorze','quinze','dezesseis','dezessete','dezoito','dezenove'];
+  const d = ['','','vinte','trinta','quarenta','cinquenta','sessenta','setenta','oitenta','noventa'];
+  const c = ['','cento','duzentos','trezentos','quatrocentos','quinhentos',
+    'seiscentos','setecentos','oitocentos','novecentos'];
+  function g3(n) {
+    if (n === 0) return '';
+    if (n === 100) return 'cem';
+    const ct = Math.floor(n/100), r = n%100, dz = Math.floor(r/10), un = r%10;
+    let s = ct > 0 ? c[ct] : '';
+    if (ct > 0 && r > 0) s += ' e ';
+    if (r > 0 && r < 20) s += u[r];
+    else if (dz > 0) { s += d[dz]; if (un > 0) s += ' e ' + u[un]; }
+    return s;
+  }
+  function i2e(n) {
+    if (n === 0) return 'zero';
+    const mi = Math.floor(n/1000000), mil = Math.floor((n%1000000)/1000), res = n%1000;
+    const p = [];
+    if (mi > 0) p.push(g3(mi) + (mi === 1 ? ' milhão' : ' milhões'));
+    if (mil > 0) p.push(g3(mil) + ' mil');
+    if (res > 0) p.push(g3(res));
+    return p.join(', ');
+  }
+  let r = '';
+  if (inteiro > 0) r += i2e(inteiro) + (inteiro === 1 ? ' real' : ' reais');
+  if (dec > 0) {
+    if (inteiro > 0) r += ' e ';
+    r += i2e(dec) + (dec === 1 ? ' centavo' : ' centavos');
+  }
+  return r || 'zero reais';
+}
+
+function _reciboFmtBRL(v) {
+  return 'R$\u00A0' + Number(v).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+function _reciboFmtData(ymd) {
+  // ymd = "2025-03-20" → "20/03/2025"
+  if (!ymd) return '—';
+  const p = ymd.split('-');
+  return (p[2]||'??') + '/' + (p[1]||'??') + '/' + (p[0]||'????');
+}
+
+function gerarReciboPDF() {
+  const i = _reciboOrcIdx;
+  if (i < 0) return;
+  const o = S.orcs[i];
+  if (!o) return;
+
+  const tot = calcOrcTotal(o);
+  const custom = document.getElementById('rb-valor-custom').checked;
+  let valor = custom
+    ? ptFloat(document.getElementById('rb-valor-input').value)
+    : tot;
+  if (valor <= 0) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Informe um valor válido.'); return; }
+
+  const dataYMD = document.getElementById('rb-data').value;
+  const pgto    = document.getElementById('rb-pgto').value.trim() || 'Não informada';
+  const obs     = document.getElementById('rb-obs').value.trim();
+  const cfg     = S.config || {};
+
+  // Monta lista de serviços do orçamento
+  const servicos = [];
+  (o.rooms || []).forEach(room => {
+    (room.items || []).forEach(item => {
+      if (item.name) servicos.push(item.name);
+    });
+  });
+  const descServicos = servicos.length
+    ? servicos.join(', ')
+    : 'Serviços de pintura conforme combinado';
+
+  const data = {
+    id:           'REC-' + new Date().getFullYear() + String(new Date().getMonth()+1).padStart(2,'0') + String(new Date().getDate()).padStart(2,'0') + '-' + Math.random().toString(36).substring(2,6).toUpperCase(),
+    dataRecebimento: dataYMD,
+    empresa:      { nome: cfg.empresa || 'Prestador', cnpj: cfg.doc || '', tel: cfg.tel || '', email: cfg.emailEmpresa || '', end: cfg.endEmpresa || '', logo: cfg.logo || '' },
+    cliente:      { nome: o.nome || '—', doc: o.cpf || '', tel: o.tel || '', end: o.end || '' },
+    descServicos,
+    valor,
+    pgto,
+    obs,
+    sigPintor: cfg.assinatura || '',
+  };
+
+  fecharModalRecibo();
+
+  const html = gerarReciboHTML(data);
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const w    = window.open(url, '_blank');
+  if (!w) toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Pop-up bloqueado. Permita pop-ups para abrir o recibo.');
+  else setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function gerarReciboHTML(d) {
+  const extenso    = valorPorExtenso(d.valor);
+  const valorFmt   = _reciboFmtBRL(d.valor);
+  const dataFmt    = _reciboFmtData(d.dataRecebimento);
+  const cidade     = (d.empresa.end || '').split('—').pop().trim() || 'Local';
+  const logoHtml   = d.empresa.logo
+    ? `<img src="${d.empresa.logo}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;" alt="Logo">`
+    : `<div style="width:60px;height:60px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#7C3AED;">${(d.empresa.nome||'P').charAt(0)}</div>`;
+  const sigHtml    = d.sigPintor
+    ? `<img src="${d.sigPintor}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="Assinatura">`
+    : `<div style="height:50px;border-bottom:1.5px solid #334155;width:220px;"></div>`;
+  const obsHtml    = d.obs ? `<p style="margin-top:18px;font-size:12px;color:#475569;line-height:1.6;"><strong>Observações:</strong> ${d.obs}</p>` : '';
+  const docHtml    = d.empresa.cnpj ? `CPF/CNPJ: ${d.empresa.cnpj} · ` : '';
+  const cliDocHtml = d.cliente.doc  ? `, portador(a) do CPF/CNPJ <strong>${d.cliente.doc}</strong>,` : '';
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Recibo ${d.id}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0F172A;padding:32px 40px;}
+  @media print{body{padding:20px 28px;}@page{margin:12mm 14mm;}}
+  .doc{max-width:720px;margin:0 auto;}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:20px;border-bottom:2px solid #0F172A;margin-bottom:22px;}
+  .company-row{display:flex;gap:14px;align-items:flex-start;}
+  .company-info .name{font-size:17px;font-weight:800;color:#0F172A;}
+  .company-info .detail{font-size:11px;color:#64748B;line-height:1.7;margin-top:4px;}
+  .title-block{text-align:right;}
+  .rec-title{font-size:26px;font-weight:800;color:#7C3AED;letter-spacing:-0.5px;}
+  .rec-id{font-family:monospace;font-size:12px;color:#475569;margin-top:3px;}
+  .rec-date{font-size:11px;color:#64748B;margin-top:4px;}
+  .legal-text{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:18px 20px;font-size:13.5px;color:#1E293B;line-height:1.85;margin-bottom:22px;}
+  .legal-text strong{color:#0F172A;}
+  .section{margin-bottom:18px;}
+  .section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#7C3AED;margin-bottom:8px;}
+  .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}
+  .info-item{display:flex;flex-direction:column;gap:1px;}
+  .info-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#94A3B8;}
+  .info-val{font-size:13px;font-weight:600;color:#1E293B;}
+  .sig-area{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px;padding-top:18px;border-top:1px solid #E2E8F0;}
+  .sig-box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .sig-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94A3B8;}
+  .sig-name{font-size:12px;font-weight:600;color:#334155;}
+  .disclaimer{margin-top:24px;padding:10px 14px;background:#FEF3C7;border-radius:8px;font-size:11px;color:#92400E;text-align:center;line-height:1.5;}
+  .footer{margin-top:18px;text-align:center;font-size:10px;color:#94A3B8;border-top:1px solid #E2E8F0;padding-top:12px;}
+</style>
+</head>
+<body onload="setTimeout(()=>window.print(),400)">
+<div class="doc">
+  <div class="head">
+    <div class="company-row">
+      ${logoHtml}
+      <div class="company-info">
+        <div class="name">${d.empresa.nome}</div>
+        <div class="detail">${docHtml}${d.empresa.tel ? 'Tel: ' + d.empresa.tel : ''}${d.empresa.email ? ' · ' + d.empresa.email : ''}<br>${d.empresa.end || ''}</div>
+      </div>
+    </div>
+    <div class="title-block">
+      <div class="rec-title">RECIBO</div>
+      <div class="rec-id">${d.id}</div>
+      <div class="rec-date">Data: <strong>${dataFmt}</strong></div>
+    </div>
+  </div>
+
+  <div class="legal-text">
+    Recebi(emos) de <strong>${d.cliente.nome}</strong>${cliDocHtml} a importância de
+    <strong>${extenso}</strong> (<strong>${valorFmt}</strong>),
+    referente a <strong>${d.descServicos}</strong>,
+    pago mediante <strong>${d.pgto}</strong>.
+    ${cidade ? '<br>' + cidade + ', ' + dataFmt + '.' : ''}
+  </div>
+
+  <div class="section">
+    <div class="section-title">Dados do Cliente</div>
+    <div class="info-grid">
+      <div class="info-item"><span class="info-lbl">Nome</span><span class="info-val">${d.cliente.nome}</span></div>
+      ${d.cliente.doc ? `<div class="info-item"><span class="info-lbl">CPF / CNPJ</span><span class="info-val">${d.cliente.doc}</span></div>` : ''}
+      ${d.cliente.tel ? `<div class="info-item"><span class="info-lbl">Telefone</span><span class="info-val">${d.cliente.tel}</span></div>` : ''}
+      ${d.cliente.end ? `<div class="info-item" style="grid-column:1/-1"><span class="info-lbl">Endereço</span><span class="info-val">${d.cliente.end}</span></div>` : ''}
+    </div>
+  </div>
+
+  ${obsHtml}
+
+  <div class="sig-area">
+    <div class="sig-box">
+      <div class="sig-lbl">Prestador de Serviço</div>
+      ${sigHtml}
+      <div class="sig-name">${d.empresa.nome}</div>
+      ${d.empresa.cnpj ? `<div style="font-size:10px;color:#94A3B8;">${d.empresa.cnpj}</div>` : ''}
+    </div>
+    <div class="sig-box">
+      <div class="sig-lbl">Cliente (opcional)</div>
+      <div style="height:50px;border-bottom:1.5px solid #334155;width:220px;"></div>
+      <div class="sig-name">${d.cliente.nome}</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ Este recibo <strong>não tem valor como documento fiscal</strong>.
+    Não substitui Nota Fiscal de Serviço (NFS-e). Serve apenas como comprovante de pagamento entre as partes.
+  </div>
+
+  <div class="footer">
+    Gerado pelo <strong>Pintor Plus</strong> · pintorplus.com.br · ID: ${d.id}
+  </div>
+</div>
+</body>
+</html>`;
+}
+function sendWAIdx(i){ const o=S.orcs[i];if(!o)return; const msg=buildWAMsg(o); const tel=(o.tel||'').replace(/\D/g,''); const url = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`; window.open(url,'_blank'); }
+function editOrc(i){
+  canNavigateAsync(() => {
+    const o=S.orcs[i];if(!o)return; toast('<svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Carregando orçamento…');
+    S.isDirty=true; S.editId=o.id; S.rooms=JSON.parse(JSON.stringify(o.rooms||[])); S.pgto=new Set(o.pgto||[]); S.fmt=o.fmt||'completo'; S.pagador=o.pagador||false;
+    renderPgtoList(); go(1);
+    setTimeout(()=>{
+      const v=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val||'';};
+      v('cli-nome',o.nome);v('cli-apelido',o.apelido||'');v('cli-tel',o.tel);v('cli-email',o.email);v('cli-cpf',o.cpf);v('cli-cep',o.cep);v('cli-logradouro',o.logradouro);v('cli-numero',o.numero);v('cli-comp',o.comp);v('cli-bairro',o.bairro);v('cli-cidade',o.cidade);
+      if(o.logradouro)document.getElementById('end-fields').style.display='block';
+      v('pag-nome',o.pagNome);v('pag-tel',o.pagTel);v('pag-end',o.pagEnd);v('preco-m2',o.preco);v('orc-status',o.status);v('orc-valid',o.valid);v('orc-inicio',o.inicio);v('orc-obs',o.obs);
+      if(o.tipoServico) document.getElementById('orc-tipo-serv').value = o.tipoServico;
+      document.getElementById('pag-sw')?.classList.toggle('on',o.pagador);document.getElementById('pag-fields')?.classList.toggle('show',o.pagador);
+      document.querySelectorAll('.fmt-card').forEach(c=>{const fn=c.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];c.classList.toggle('on',fn===o.fmt);});
+      renderRooms();
+    },50);
+  });
+}
+
+function closeViewOrc() { document.getElementById('view-orc-modal').style.display = 'none'; }
+function _showStatusPicker(i) {
+  const o = S.orcs[i];
+  if (!o) return;
+  const list = document.getElementById('status-picker-list');
+  list.innerHTML = S.statusArr.map(s => {
+    const isCur = (o.status || '') === s;
+    return `<div onclick="_applyStatus(${i},'${s.replace(/'/g,"\\'")}');document.getElementById('status-picker-modal').style.display='none';"
+      style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;cursor:pointer;
+      background:${isCur?'var(--bll)':'var(--bg-card)'};border:1.5px solid ${isCur?'var(--bl)':'var(--bdr)'};">
+      <span style="flex:1;font-size:13px;font-weight:${isCur?'800':'600'};color:${isCur?'var(--bl)':'var(--ink)'};">${s}</span>
+      ${isCur?'<svg class="ico" aria-hidden="true" style="color:var(--bl);"><use href="#ico-check-circle"/></svg>':''}
+    </div>`;
+  }).join('');
+  document.getElementById('status-picker-modal').style.display = 'flex';
+}
+function _applyStatus(i, newStatus) {
+  const o = S.orcs[i];
+  if (!o) return;
+  o.status = newStatus;
+  o.tsEdit = Date.now();
+  _saveOrcs();
+  renderOrcamentosList(); renderHomeMini();
+  _onStatusChange({ value: newStatus });
+}
+function _onStatusChange(sel) {
+  const v = (sel.value || '').toLowerCase();
+  const msgs = {
+    'aprovado': '👍 Ótimo! Lembre de salvar e de combinar data de início.',
+    'em andamento': '🎨 Obra em andamento! Não esqueça de salvar.',
+    'obra iniciada': '🏗️ Obra iniciada! Atualize quando concluir.',
+    'obra finalizada': '✅ Obra finalizada! Que tal emitir o recibo?',
+    'pagamento iniciado': '💰 Pagamento iniciado. Salve para registrar.',
+    'pagamento finalizado': '🎉 Pagamento recebido! Salve o orçamento.',
+  };
+  const tip = Object.entries(msgs).find(([k]) => v.includes(k));
+  if (tip) toast(tip[1]);
+  else toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Status alterado. Não esqueça de salvar.');
+}
+
+function viewOrc(i) {
+  const o = S.orcs[i]; if (!o) return;
+  const tot = calcOrcTotal(o);
+  const fmtVal = v => v ? 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2}) : '—';
+  const fmtDate = ts => { if (!ts) return '—'; const d = new Date(ts); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; };
+  const row = (label, val) => val ? `<div style="display:flex;gap:8px;margin-bottom:6px;font-size:13px;"><span style="color:var(--ink3);min-width:110px;flex-shrink:0;">${label}</span><span style="font-weight:600;color:var(--ink);word-break:break-word;">${val}</span></div>` : '';
+  const sec = (title, content) => `<div style="margin-bottom:16px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px;">${title}</div>${content}</div>`;
+
+  let roomsHtml = '';
+  (o.rooms || []).forEach((r, ri) => {
+    const meds = getRoomMeds(r);
+    let itemsHtml = (r.items || []).map(it => {
+      const a = ptFloat(it.alt), c = ptFloat(it.comp);
+      const m2 = a && c ? (a * c).toFixed(2) + ' m²' : (a || c) ? (a || c).toFixed(2) + ' ml' : '';
+      const price = it.price ? (it.perMeter ? `R$ ${it.price}/m` : `R$ ${it.price.toLocaleString('pt-BR',{minimumFractionDigits:2})}`) : '';
+      return `<div style="font-size:12px;padding:5px 8px;background:var(--bg2);border-radius:7px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;"><span style="color:var(--ink2);">${it.name || it.serv || '—'}${m2 ? ' · ' + m2 : ''}</span><span style="color:var(--bl);font-weight:700;flex-shrink:0;">${price}</span></div>`;
+    }).join('');
+    const rPrice = r.preco ? (r.precoPerM2 ? `R$ ${r.preco}/m² · ${meds.m2.toFixed(2)}m² = ${fmtVal(r.preco * meds.m2)}` : fmtVal(r.preco)) : '';
+    roomsHtml += `<div style="margin-bottom:12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;"><div style="padding:8px 12px;background:var(--bg-card);font-size:13px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;"><span>${_esc(r.name || 'Ambiente ' + (ri+1))}</span>${rPrice ? `<span style="color:var(--bl);">${rPrice}</span>` : ''}</div>${itemsHtml ? `<div style="padding:8px;">${itemsHtml}</div>` : ''}</div>`;
+  });
+
+  const addr = [o.logradouro, o.numero, o.comp, o.bairro, o.cidade].filter(Boolean).join(', ');
+  const body = document.getElementById('view-orc-body');
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px;background:var(--bg-card);border-radius:12px;">
+      <div style="flex:1;"><div style="font-size:16px;font-weight:800;color:var(--ink);">${_esc(o.nome || '(sem nome)')}</div><div style="font-size:12px;color:var(--ink3);margin-top:2px;">${fmtDate(o.tsEdit || o.ts)}</div></div>
+      <span class="hbadge ${getStatusBadgeClass(o.status)}" style="font-size:11px;">${_esc(o.status || 'Pendente')}</span>
+    </div>
+    <div style="background:var(--bg-card);border-radius:12px;padding:14px;margin-bottom:16px;">
+      <div style="font-size:22px;font-weight:800;color:var(--bl);text-align:center;">R$ ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      <div style="font-size:11px;color:var(--ink3);text-align:center;margin-top:2px;">Valor total do orçamento</div>
+    </div>
+    ${sec('Cliente', row('Telefone', _esc(o.tel)) + row('Email', _esc(o.email)) + row('CPF', _esc(o.cpf)) + row('Endereço', _esc(addr)))}
+    ${o.pagador ? sec('Pagador', row('Nome', _esc(o.pagNome)) + row('Telefone', _esc(o.pagTel)) + row('Endereço', _esc(o.pagEnd))) : ''}
+    ${roomsHtml ? sec('Ambientes e Serviços', roomsHtml) : ''}
+    ${sec('Detalhes', row('Tipo de Serviço', _esc(o.tipoServico)) + row('Validade', o.valid ? o.valid + ' dias' : '') + row('Início', _esc(o.inicio)) + row('Pagamento', [...(o.pgto||[])].map(_esc).join(', ')))}
+    ${o.obs ? sec('Observações', `<div style="font-size:13px;color:var(--ink2);line-height:1.6;background:var(--bg2);border-radius:8px;padding:10px;white-space:pre-wrap;">${_esc(o.obs)}</div>`) : ''}
+  `;
+  const tel = (o.tel || '').replace(/\D/g, '');
+  const waUrl = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(buildWAMsg(o))}` : `https://wa.me/?text=${encodeURIComponent(buildWAMsg(o))}`;
+  document.getElementById('view-orc-actions').innerHTML = `
+    <button onclick="closeViewOrc();editOrc(${i})" style="flex:1;height:44px;border-radius:12px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</button>
+    <button onclick="closeViewOrc();_showSendOptions(${i})" style="height:44px;width:44px;border-radius:12px;background:var(--gnl);border:1.5px solid var(--gn);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--gn);flex-shrink:0;" title="Enviar / PDF"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+  `;
+  document.getElementById('view-orc-modal').style.display = 'flex';
+}
+
+const FIELD_ORDER = { 's1': ['cli-nome','cli-tel','cli-email','cli-cpf','cli-cep','cli-logradouro','cli-numero','cli-comp','cli-bairro','cli-cidade'], };
+function nextField(currentId, pageKey) { const order = FIELD_ORDER[pageKey]; if (!order) return; const idx = order.indexOf(currentId); if (idx === -1) return; for (let i = idx + 1; i < order.length; i++) { const el = document.getElementById(order[i]); if (el && !el.disabled && el.offsetParent !== null) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } } }
+function attachEnterNav() { Object.entries(FIELD_ORDER).forEach(([pageKey, ids]) => { ids.forEach((id, i) => { const el = document.getElementById(id); if (!el) return; el.addEventListener('input', () => { S.isDirty = true; }); el.setAttribute('enterkeyhint', i === ids.length - 1 ? 'done' : 'next'); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); nextField(id, pageKey); } }); }); }); }
+
+window.addEventListener('load', () => {
+  try { history.replaceState({ page: 'pg-home' }, '', '#pg-home'); } catch(e) {}
+  renderHomeMini(); renderHomeEvents(); renderHomeNews(); buildSteps(1); attachEnterNav(); populateStatusSelect(); loadGoogleMaps();
+  // Sincroniza lembretes com SW ao abrir o app (para notificações em background)
+  navigator.serviceWorker?.ready.then(() => _syncAlarmsToSW()).catch(()=>{});
+});
+
+function showTutorial() { document.getElementById('info-modal-title').textContent = '<svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial'; document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>Bem-vindo ao Pintor Plus!</b></div><ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 12px;"><li><b>1. Criação de Orçamento:</b> Na página inicial, toque em "Criar Novo Orçamento". Preencha os dados e avance.</li><li><b>2. Inserindo Medidas:</b> Clique no grande botão laranja "+ Adicionar Novo Item" para abrir o formulário.</li><li><b>3. CRM e Lembretes:</b> Seus clientes são salvos automaticamente. Utilize a aba "Agenda" para gerenciar retornos.</li></ul>`; document.getElementById('info-modal').style.display = 'flex'; }
+function showFaq() { document.getElementById('info-modal-title').textContent = '<svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ'; document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>1. Preciso de internet?</b><br>Apenas para buscar o CEP. O resto funciona offline no seu navegador.</div><div style="margin-bottom: 16px;"><b>2. Como calculo por metro quadrado?</b><br>Ao definir o "Preço base do local", selecione a opção "Por m²".</div>`; document.getElementById('info-modal').style.display = 'flex'; }
+
+
+
+
+
+// ══════════════════════════════════════════════
+// APP FLASH — Integração com PintorPlus
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  CÂMERA DETALHADO — getUserMedia + torch + zoom
+// ══════════════════════════════════════════════════════════
+(function() {
+  let _dcStream = null, _dcTorchOn = false;
+
+  function _renderDCThumbs() {
+    const el = document.getElementById('detail-cam-thumbs');
+    if (!el) return;
+    const photos = S.tempItem?.photos || [];
+    el.innerHTML = photos.map(p => `<div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;border:2px solid #fff;"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover;"></div>`).join('');
+  }
+
+  function _closeDC() {
+    const m = document.getElementById('detail-cam-modal');
+    if (m) m.style.display = 'none';
+    if (_dcStream) { _dcStream.getTracks().forEach(t => t.stop()); _dcStream = null; }
+    _dcTorchOn = false;
+    const bt = document.getElementById('detail-cam-torch');
+    if (bt) { bt.style.display = 'none'; bt.style.background = 'rgba(255,255,255,0.15)'; }
+    const zc = document.getElementById('detail-cam-zoom');
+    if (zc) zc.style.display = 'none';
+  }
+
+  window.openDetailedCamera = async function() {
+    document.getElementById('photo-choice-modal').style.display = 'none';
+    const m = document.getElementById('detail-cam-modal');
+    if (!m) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      document.getElementById('file-camera').click(); return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      _dcStream = stream; _dcTorchOn = false;
+      document.getElementById('detail-cam-video').srcObject = stream;
+      m.style.display = 'flex';
+      _renderDCThumbs();
+      const track = stream.getVideoTracks()[0];
+      const caps = track.getCapabilities ? track.getCapabilities() : {};
+      const bt = document.getElementById('detail-cam-torch');
+      if (bt && caps.torch) { bt.style.display = 'flex'; }
+      const zc = document.getElementById('detail-cam-zoom');
+      const zs = document.getElementById('detail-cam-zoom-slider');
+      if (zc && zs && caps.zoom) {
+        zs.min = caps.zoom.min; zs.max = caps.zoom.max;
+        zs.step = (caps.zoom.max - caps.zoom.min) / 20;
+        zs.value = caps.zoom.min;
+        zc.style.display = 'block';
+        zs.oninput = function() { track.applyConstraints({ advanced: [{ zoom: parseFloat(zs.value) }] }); };
+      }
+    } catch(e) {
+      toast('\u26A0\uFE0F ' + (e?.name === 'NotAllowedError' ? 'Permiss\u00E3o negada' : 'C\u00E2mera indispon\u00EDvel'));
+      document.getElementById('file-camera').click();
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('detail-cam-close')?.addEventListener('click', _closeDC);
+    document.getElementById('detail-cam-torch')?.addEventListener('click', function() {
+      const track = _dcStream?.getVideoTracks()[0];
+      if (!track) return;
+      _dcTorchOn = !_dcTorchOn;
+      track.applyConstraints({ advanced: [{ torch: _dcTorchOn }] });
+      this.style.background = _dcTorchOn ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.15)';
+    });
+    document.getElementById('detail-cam-capture')?.addEventListener('click', function() {
+      const v = document.getElementById('detail-cam-video');
+      if (!v.videoWidth) { toast('\u26A0\uFE0F Aguarde a c\u00E2mera'); return; }
+      const c = document.getElementById('detail-cam-canvas');
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      if (!S.tempItem.photos) S.tempItem.photos = [];
+      S.tempItem.photos.push({ url: c.toDataURL('image/jpeg', 0.75), filename: 'Foto_' + Date.now() + '.jpg' });
+      _renderDCThumbs();
+      toast('\uD83D\uDCF8 Foto capturada!');
+    });
+    document.getElementById('detail-cam-confirm')?.addEventListener('click', function() {
+      if (!S.tempItem?.photos?.length) { toast('\u26A0\uFE0F Capture ao menos uma foto'); return; }
+      _closeDC();
+      renderItemModal();
+      toast('\u2705 Fotos adicionadas!');
+    });
+    document.getElementById('detail-cam-gallery')?.addEventListener('change', function(e) {
+      Array.from(e.target.files || []).forEach(f => {
+        compressImage(f, url => {
+          if (!S.tempItem.photos) S.tempItem.photos = [];
+          S.tempItem.photos.push({ url, filename: f.name || 'foto.jpg' });
+          _renderDCThumbs();
+          toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
+        });
+      });
+      e.target.value = '';
+    });
+  });
+})();
+
+(function() {
+
+    // Abre o App Flash
+  window.openFlash = function() {
+    localStorage.removeItem('orcamento-pocket-draft');
+    const iframe = document.getElementById('flash-iframe');
+    const pg = document.getElementById('pg-flash');
+    if (pg) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      pg.classList.add('active');
+      pg.style.display = 'flex';
+    }
+    if (!iframe) return;
+    const _rawSrc = iframe.getAttribute('data-srcdoc') || '';
+    const _nomes = (S.config.flashNomes || defCfg.flashNomes).split(',').map(s=>s.trim()).filter(Boolean);
+    const _servs = (S.config.flashServicos || defCfg.flashServicos).split(',').map(s=>s.trim()).filter(Boolean);
+    const _mats = (S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean);
+    const _flashSrc = _rawSrc
+      .replace('%%NOME_SUGESTOES%%', JSON.stringify(_nomes))
+      .replace('%%OBS_SERVICOS%%', JSON.stringify(_servs))
+      .replace('%%OBS_MATERIAIS%%', JSON.stringify(_mats));
+    const ppTheme = sessionStorage.getItem('pp-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function _onFlashLoad() {
+      if (!iframe.srcdoc) return;
+      iframe.removeEventListener('load', _onFlashLoad);
+      try {
+        iframe.contentWindow.postMessage({ type: 'pp-theme', theme: ppTheme }, '*');
+        iframe.contentWindow.postMessage({ type: 'flash-clear' }, '*');
+      } catch(e) {}
+    }
+    iframe.addEventListener('load', _onFlashLoad);
+    iframe.srcdoc = '';
+    setTimeout(() => { iframe.srcdoc = _flashSrc; }, 80);
+  };
+
+  // Sai do Flash e volta ao PintorPlus
+  window.exitFlash = function() {
+    // Para o stream de câmera no iframe antes de ocultar
+    const flashIframe = document.getElementById('flash-iframe');
+    try { flashIframe?.contentWindow?.postMessage({ type: 'stop-camera' }, '*'); } catch(e) {}
+    const pg = document.getElementById('pg-flash');
+    if (pg) { pg.classList.remove('active'); pg.style.display = 'none'; }
+    convertFlashDraft();
+    showPage('pg-home');
+    renderHomeMini(); renderHomeEvents(); renderHomeNews();
+  };
+
+  // Converte rascunho do Flash em orçamento PintorPlus
+  function convertFlashDraft() {
+    const raw = localStorage.getItem('orcamento-pocket-draft');
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw);
+      if (!draft.cliente) return;
+
+      const now = Date.now();
+      const valorBase = parseFloat(String(draft.valorTexto || '').replace(',', '.')) || 0;
+      const isM2 = draft.valueMode === 'm2';
+      const isTotal = draft.valueMode === 'total';
+
+      const rooms = [{
+        id: String(now),
+        name: 'Geral',
+        items: (draft.items || []).map(it => ({
+          name: it.nome || 'Item',
+          alt: String(it.altura || ''),
+          comp: String(it.largura || ''),
+          services: it.services || [],
+          price: isTotal ? 0 : 0,
+          perMeter: false,
+          obs: it.observacao || it.obs || '',
+          photos: (it.fotos || []).map((url, i) => ({ url, filename: 'Flash_' + (i+1) + '.jpg' }))
+        })),
+        preco: isM2 ? valorBase : (isTotal ? valorBase : 0),
+        precoPerM2: isM2,
+        services: (S.DEFAULT_SERVICES || []).slice(),
+        collapsed: false
+      }];
+
+      const orc = {
+        id: String(now),
+        nome: draft.cliente || '',
+        apelido: draft.apelido || '',
+        tel: draft.telefone || '',
+        email: '', cpf: '', cep: '', logradouro: '', numero: '',
+        comp: '', bairro: '', cidade: '', end: '',
+        pagNome: '', pagTel: '', pagEnd: '', pagador: false,
+        rooms,
+        pgto: [],
+        fmt: 'completo',
+        preco: isM2 ? valorBase : 0,
+        status: '<svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg> Rascunho Flash',
+        valid: '15',
+        tipoServico: 'Somente Mão de Obra (M.O)',
+        inicio: '', obs: '',
+        date: new Date().toLocaleDateString('pt-BR'),
+        ts: now, tsEdit: now,
+        isFlashDraft: true
+      };
+
+      // Evita duplicata (mesmo cliente + últimos 10s)
+      const dup = S.orcs.find(o => o.isFlashDraft && o.nome === orc.nome &&
+        Math.abs((o.ts || 0) - now) < 10000);
+      if (dup) return;
+
+      S.orcs.unshift(orc);
+      _saveOrcs();
+      localStorage.removeItem('orcamento-pocket-draft');
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg> Rascunho Flash importado!');
+    } catch(e) { console.error('Flash draft conversion error', e); }
+  }
+
+})();
+
+  // Listener: recebe mensagem do App Flash via postMessage
+  window.addEventListener('message', function(e) {
+    // iframes srcdoc têm origin 'null' em https
+    if (e.origin !== window.location.origin && e.origin !== 'null') return;
+    if (e.data && e.data.type === 'flash-exit') {
+      exitFlash();
+    }
+  });
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GOOGLE DRIVE – BACKUP NA NUVEM (appDataFolder)         ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const GDrive = {
+  // ── CONFIGURAÇÃO ──────────────────────────────────────────
+  CLIENT_ID: '789734865703-hp9drtdvcc5jokgl1qehefvd1fle3ocs.apps.googleusercontent.com',
+  SCOPES: 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/contacts.readonly',
+  FILE_NAME: 'pintor-plus-backup.json',
+  SYNC_DEBOUNCE: 3000,
+
+  // ── ESTADO ────────────────────────────────────────────────
+  tokenClient: null,
+  _gapiReady: false,
+  _gisReady: false,
+  fileId: null,
+  syncTimer: null,
+  isSyncing: false,
+  pendingSync: false,
+  user: null,
+  accessToken: null,
+  guestMode: false,
+  _restoringSession: false, // bloqueia redirecionamento enquanto GIS ainda inicializa
+  _tokenRefreshTimer: null,
+  _userInitiatedAuth: false,
+
+  // ── INICIALIZAÇÃO ─────────────────────────────────────────
+  init() {
+    // ── Detecta retorno de redirect OAuth (implicit flow) ─────
+    // Google redireciona de volta com access_token no hash da URL
+    const _hp = new URLSearchParams(window.location.hash.slice(1));
+    const _redirectToken = _hp.get('access_token');
+    if (_redirectToken) {
+      history.replaceState(null, '', window.location.pathname);
+      this.accessToken = _redirectToken;
+    }
+
+    this._initGapi();
+    this._initGis();
+    this._initConnectivity();
+    this._hookLocalStorage();
+    // Carrega sessão local imediatamente — não espera Google
+    this._loadLocalSession();
+    // Fallback: se libs do Google não carregarem em 8s
+    setTimeout(() => {
+      if (!this._gapiReady || !this._gisReady) {
+        if (!this._sessionLoaded) this._showLoginBtn();
+        else this._setStatus('off', 'Drive desconectado');
+      }
+    }, 8000);
+
+    // Se voltou de redirect OAuth: confirma token e reconecta Drive
+    if (_redirectToken) {
+      this._fetchUserInfo();
+    }
+  },
+
+  // ── SESSÃO LOCAL ──────────────────────────────────────────
+  _loadLocalSession() {
+    console.log('[PP-AUTH] _loadLocalSession start | sessionLoaded=', this._sessionLoaded, '| guestMode=', this.guestMode);
+    try {
+      const raw = localStorage.getItem('pp-session');
+      if (!raw) {
+        console.log('[PP-AUTH] _loadLocalSession: sem pp-session');
+        // Verifica modo convidado
+        if (localStorage.getItem('pp-guest-mode') === '1') {
+          this.guestMode = true;
+          _showGuestBanner();
+          showPage('pg-home');
+          renderHomeMini(); renderHomeEvents(); renderHomeNews();
+        }
+        return;
+      }
+      const s = JSON.parse(raw);
+      if (!s || !s.email) return;
+      console.log('[PP-AUTH] _loadLocalSession: sessão encontrada email=', s.email);
+      this.user = s;
+      this._sessionLoaded = true;
+      // Bloqueia qualquer redirect para login enquanto GIS ainda não confirmou o token.
+      // Auto-libera em 15s como safety-net caso GIS não responda.
+      this._restoringSession = true;
+      setTimeout(() => { this._restoringSession = false; }, 15000);
+      this._showLoggedIn();
+      this._setStatus('off', 'Reconectando ao Drive...');
+      if (_hasAcceptedTerms(s.email)) {
+        showPage('pg-home');
+        renderHomeMini(); renderHomeEvents(); renderHomeNews();
+      } else {
+        showTermsModal();
+      }
+    } catch(e) { /* sessão inválida — aguarda login */ }
+  },
+
+  _initGapi() {
+    const self = this;
+    // Não carrega discovery doc — todas as operações Drive usam fetch() diretamente
+    // Apenas aguarda gapi estar disponível para não travar GIS
+    const check = setInterval(() => {
+      if (typeof gapi === 'undefined') return;
+      clearInterval(check);
+      self._gapiReady = true;
+      self._tryStart();
+    }, 100);
+  },
+
+  _initGis() {
+    const self = this;
+    const check = setInterval(() => {
+      if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) return;
+      clearInterval(check);
+      self.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: self.CLIENT_ID,
+        scope: self.SCOPES,
+        callback: (resp) => self._onToken(resp),
+        error_callback: (err) => {
+          console.warn('[PP-AUTH] error_callback | type=', err?.type, '| sessionLoaded=', self._sessionLoaded, '| restoringSession=', self._restoringSession, '| err=', err);
+          if (err && (err.type === 'popup_blocked_by_browser' || err.type === 'popup_failed_to_open')) {
+            self._restoringSession = false;
+            if (self._sessionLoaded) {
+              // Já está logado: mostra banner de reconexão
+              self._showReconnectBanner();
+            } else {
+              // No login: popup bloqueado → usa redirect automaticamente (sem popup, sem clique extra)
+              self._authViaRedirect();
+            }
+            return;
+          }
+          self._restoringSession = false;
+          if (!self.accessToken) {
+            if (self._sessionLoaded) {
+              self._setStatus('off', 'Drive desconectado');
+            } else {
+              self._showLoginBtn();
+            }
+          }
+        },
+      });
+      self._gisReady = true;
+      self._tryStart();
+    }, 100);
+  },
+
+  _tryStart() {
+    console.log('[PP-AUTH] _tryStart | gapiReady=', this._gapiReady, '| gisReady=', this._gisReady, '| sessionLoaded=', this._sessionLoaded, '| restoringSession=', this._restoringSession, '| accessToken=', !!this.accessToken);
+    if (!this._gapiReady || !this._gisReady) return;
+    if (this.accessToken) return; // Já temos token (ex: retorno de redirect OAuth)
+    if (this._sessionLoaded) {
+      // Sessão local existe: tenta reconectar Drive em background
+      const savedEmail = localStorage.getItem('pp-gdrive-email');
+      if (savedEmail) {
+        this.tokenClient.requestAccessToken({ prompt: '', login_hint: savedEmail });
+      } else {
+        // Sem email salvo — status silencioso, usuário reconecta pelo backup
+        this._setStatus('off', 'Drive desconectado');
+      }
+    } else if (!this.guestMode) {
+      // Primeira vez: mostra botão de login
+      this._showLoginBtn();
+    }
+  },
+
+  // ── CALLBACK DO TOKEN ─────────────────────────────────────
+  _onToken(resp) {
+    console.log('[PP-AUTH] _onToken | error=', resp.error, '| sessionLoaded=', this._sessionLoaded, '| restoringSession=', this._restoringSession);
+    if (resp.error) {
+      // immediate_failed = renovação silenciosa não disponível — app continua normalmente em background
+      if (resp.error === 'immediate_failed') {
+        this._restoringSession = false;
+        if (this._userInitiatedAuth) {
+          // Usuário clicou em reconectar → escalona direto para seletor de conta (sem 2º clique)
+          this._userInitiatedAuth = false;
+          const hint = localStorage.getItem('pp-gdrive-email');
+          this.tokenClient.requestAccessToken({ prompt: 'select_account', ...(hint ? { login_hint: hint } : {}) });
+          return;
+        }
+        if (this._sessionLoaded) this._setStatus('off', 'Drive desconectado');
+        else this._showLoginBtn();
+        return;
+      }
+      // Qualquer outro erro: com sessão → banner de reconexão, sem sessão → botão de login
+      this._restoringSession = false;
+      this._userInitiatedAuth = false;
+      if (this._sessionLoaded) this._showReconnectBanner();
+      else this._showLoginBtn();
+      return;
+    }
+    this.accessToken = resp.access_token;
+    this._restoringSession = false;
+    this._userInitiatedAuth = false;
+
+    // ── Agenda renovação silenciosa antes do token expirar ────
+    clearTimeout(this._tokenRefreshTimer);
+    const expiresIn = (parseInt(resp.expires_in) || 3600) - 120; // renova 2 min antes
+    this._tokenRefreshTimer = setTimeout(() => {
+      if (!this.accessToken || !this.tokenClient) return;
+      const hint = localStorage.getItem('pp-gdrive-email');
+      this.tokenClient.requestAccessToken({ prompt: '', ...(hint ? { login_hint: hint } : {}) });
+    }, expiresIn * 1000);
+
+    if (this._sessionLoaded) {
+      // Já está em pg-home: apenas reconecta Drive
+      this._hideOfflineBanner();
+      this._findFile().then(() => { if (this.pendingSync) this.scheduleSync(); });
+    } else {
+      this._fetchUserInfo();
+    }
+  },
+
+  // ── LOGIN / LOGOUT ────────────────────────────────────────
+  signIn() {
+    if (!this._gisReady) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Aguarde o carregamento...'); return; }
+    // prompt:'' = usa sessão salva sem forçar consent; login_hint acelera seleção de conta
+    const savedEmail = localStorage.getItem('pp-gdrive-email');
+    const opts = { prompt: '' };
+    if (savedEmail) opts.login_hint = savedEmail;
+    this.tokenClient.requestAccessToken(opts);
+  },
+
+  signOut() {
+    clearTimeout(this._tokenRefreshTimer);
+    if (this.accessToken) google.accounts.oauth2.revoke(this.accessToken, () => {});
+    this.accessToken = null;
+    this.user = null;
+    this.fileId = null;
+    this.guestMode = false;
+    this._restoringSession = false;
+    localStorage.removeItem('pp-gdrive-email');
+    localStorage.removeItem('pp-gdrive-lastSync');
+    localStorage.removeItem('pp-session');
+    localStorage.removeItem('pp-guest-mode');
+    this._sessionLoaded = false;
+    _hideGuestBanner();
+    this._showLoggedOut();
+    this._showLoginBtn();
+    toast(' Desconectado do Google');
+  },
+
+  // ── INFO DO USUÁRIO ───────────────────────────────────────
+  async _fetchUserInfo() {
+    try {
+      const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: 'Bearer ' + this.accessToken }
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      this.user = { name: data.name, email: data.email, picture: data.picture };
+      localStorage.setItem('pp-gdrive-email', data.email);
+      localStorage.setItem('pp-session', JSON.stringify({ name: data.name, email: data.email, picture: data.picture }));
+      // Limpa modo convidado ao fazer login real com Google
+      if (this.guestMode) {
+        this.guestMode = false;
+        localStorage.removeItem('pp-guest-mode');
+        _hideGuestBanner();
+      }
+      this._sessionLoaded = true;
+      this._showLoggedIn();
+      if (_hasAcceptedTerms(data.email)) {
+        showPage('pg-home');
+        renderHomeMini();
+        renderHomeEvents();
+        renderHomeNews();
+        this._findFile().then(() => {
+          if (this.pendingSync) this.scheduleSync();
+        });
+      } else {
+        showTermsModal();
+      }
+    } catch(e) {
+      console.error('GDrive: userinfo falhou', e);
+      this.accessToken = null;
+      this._showLoginBtn();
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao autenticar. Tente novamente.');
+    }
+  },
+
+  // ── OPERAÇÕES NO DRIVE (fetch direto — sem dependency do gapi discovery doc) ──
+  async _findFile() {
+    if (!this.accessToken) return;
+    try {
+      const q = encodeURIComponent("name = '" + this.FILE_NAME + "' or name = 'pintor-pro-backup.json'");
+      const r = await fetch(
+        'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' + q +
+        '&fields=files(id,name,modifiedTime)&pageSize=2&orderBy=modifiedTime%20desc',
+        { headers: { Authorization: 'Bearer ' + this.accessToken } }
+      );
+      if (r.status === 401) {
+        this.accessToken = null;
+        this.pendingSync = true;
+        this._showReconnectBanner();
+        return;
+      }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const files = data.files || [];
+      this.fileId = files.length > 0 ? files[0].id : null;
+
+      // ── Auto-sync: se Drive tem dados mais recentes, importa automaticamente ──
+      if (this.fileId && files[0].modifiedTime) {
+        const driveTs = new Date(files[0].modifiedTime).getTime();
+        const localTsStr = localStorage.getItem('pp-gdrive-lastSyncIso');
+        const localTs = localTsStr ? new Date(localTsStr).getTime() : 0;
+        if (driveTs > localTs) {
+          await this._autoImportFromDrive();
+          return;
+        }
+      }
+
+      const lastSync = localStorage.getItem('pp-gdrive-lastSync');
+      this._setStatus('ok', 'Conectado' + (lastSync ? ' · Último sync: ' + lastSync : ''));
+      this.checkStorageQuota(); // Verifica espaço disponível
+    } catch(e) {
+      console.error('GDrive: findFile falhou', e);
+      this._setStatus('err', 'Erro ao conectar ao Drive');
+    }
+  },
+
+  // ── AUTO-IMPORT: importa dados do Drive quando Drive é mais recente ────────
+  async _autoImportFromDrive() {
+    try {
+      this._setStatus('sync', 'Recebendo dados do Drive...');
+      const data = await this.readFromDrive();
+      if (!data || !data.orcs) {
+        const lastSync = localStorage.getItem('pp-gdrive-lastSync');
+        this._setStatus('ok', 'Conectado' + (lastSync ? ' · Último sync: ' + lastSync : ''));
+        return;
+      }
+
+      const isFirstDevice = !localStorage.getItem('pp-gdrive-lastSyncIso');
+
+      if (isFirstDevice) {
+        // Primeiro uso neste dispositivo — importa tudo diretamente
+        S.orcs = data.orcs || [];
+        S.clientes = data.clientes || [];
+        S.fornecedores = data.fornecedores || [];
+        S.eventos = data.eventos || [];
+        if (data.config) S.config = Object.assign({}, S.config, data.config);
+        _saveOrcs();
+        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+        _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores));
+        _Vault.save('pp-eventos', JSON.stringify(S.eventos));
+        _Vault.save('pp-config', JSON.stringify(S.config));
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados do Drive carregados!');
+      } else {
+        // Dispositivo já usado antes — mescla, mantendo versão mais recente de cada item
+        let changed = false;
+
+        // Orçamentos: ganha quem tem tsEdit maior
+        const localOrcs = S.orcs || [];
+        (data.orcs || []).forEach(imp => {
+          const idx = localOrcs.findIndex(o => o.id === imp.id);
+          if (idx >= 0) {
+            if ((imp.tsEdit || 0) > (localOrcs[idx].tsEdit || 0)) { localOrcs[idx] = imp; changed = true; }
+          } else { localOrcs.push(imp); changed = true; }
+        });
+        if (changed) { S.orcs = localOrcs.sort((a, b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); }
+
+        // Clientes: adiciona os que não existem localmente (por nome)
+        const localCl = S.clientes || [];
+        (data.clientes || []).forEach(c => {
+          if (!localCl.some(lc => lc.nome === c.nome)) { localCl.push(c); changed = true; }
+        });
+        if (changed) { S.clientes = localCl; _Vault.save('pp-clientes', JSON.stringify(S.clientes)); }
+
+        // Fornecedores: idem
+        const localForn = S.fornecedores || [];
+        (data.fornecedores || []).forEach(f => {
+          if (!localForn.some(lf => lf.nome === f.nome)) { localForn.push(f); changed = true; }
+        });
+        if (changed) { S.fornecedores = localForn; _Vault.save('pp-fornecedores', JSON.stringify(S.fornecedores)); }
+
+        // Eventos: adiciona os que não existem localmente (por id)
+        const localEvts = S.eventos || [];
+        (data.eventos || []).forEach(ev => {
+          if (!localEvts.some(le => le.id === ev.id)) { localEvts.push(ev); changed = true; }
+        });
+        if (changed) { S.eventos = localEvts; _Vault.save('pp-eventos', JSON.stringify(S.eventos)); }
+
+        if (changed) toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Dados sincronizados do Drive');
+      }
+
+      // Re-renderiza home com dados atualizados
+      if (typeof renderHomeMini === 'function') renderHomeMini();
+      if (typeof renderHomeEvents === 'function') renderHomeEvents();
+
+      const nowIso = new Date().toISOString();
+      const nowFmt = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      localStorage.setItem('pp-gdrive-lastSyncIso', nowIso);
+      localStorage.setItem('pp-gdrive-lastSync', nowFmt);
+      this._setStatus('ok', 'Sincronizado · ' + nowFmt);
+      this.checkStorageQuota();
+    } catch(e) {
+      console.error('GDrive: autoImport falhou', e);
+      const lastSync = localStorage.getItem('pp-gdrive-lastSync');
+      this._setStatus('ok', 'Conectado' + (lastSync ? ' · Último sync: ' + lastSync : ''));
+    }
+  },
+
+  _buildBackupData() {
+    return {
+      versao: 1,
+      dataGeracao: new Date().toISOString(),
+      config: S.config,
+      orcs: S.orcs,
+      clientes: S.clientes,
+      fornecedores: S.fornecedores,
+      eventos: S.eventos,
+    };
+  },
+
+  async saveToDrive() {
+    if (!this.accessToken || this.isSyncing) return;
+    this.isSyncing = true;
+    this._setStatus('sync', 'Sincronizando...');
+    const btnSync = document.getElementById('gd-btn-sync');
+    if (btnSync) btnSync.innerHTML = '<span class="gd-spinner"></span> Enviando...';
+    try {
+      const data = JSON.stringify(this._buildBackupData());
+      const boundary = '----PintorPlusBoundary';
+      const metadata = JSON.stringify({
+        name: this.FILE_NAME,
+        ...(this.fileId ? {} : { parents: ['appDataFolder'] }),
+      });
+      const body =
+        '--' + boundary + '\r\n' +
+        'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+        metadata + '\r\n' +
+        '--' + boundary + '\r\n' +
+        'Content-Type: application/json\r\n\r\n' +
+        data + '\r\n' +
+        '--' + boundary + '--';
+      const url = this.fileId
+        ? 'https://www.googleapis.com/upload/drive/v3/files/' + this.fileId + '?uploadType=multipart'
+        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+      const resp = await fetch(url, {
+        method: this.fileId ? 'PATCH' : 'POST',
+        headers: {
+          Authorization: 'Bearer ' + this.accessToken,
+          'Content-Type': 'multipart/related; boundary=' + boundary,
+        },
+        body: body,
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const result = await resp.json();
+      this.fileId = result.id;
+      const now = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      localStorage.setItem('pp-gdrive-lastSync', now);
+      localStorage.setItem('pp-gdrive-lastSyncIso', new Date().toISOString());
+      this._setStatus('ok', 'Sincronizado às ' + now);
+    } catch(e) {
+      console.error('GDrive: saveToDrive falhou', e);
+      if (!navigator.onLine || e instanceof TypeError) {
+        this.pendingSync = true;
+        this._showOfflineBanner('drive-err');
+        this._setStatus('offline', 'Sem conexão com o Drive');
+      } else {
+        this._setStatus('err', 'Erro ao salvar no Drive');
+        if (e.message && e.message.includes('401')) {
+          this.accessToken = null;
+          // Marca sync pendente para executar após reconexão
+          this.pendingSync = true;
+          this._showReconnectBanner();
+        }
+      }
+    } finally {
+      this.isSyncing = false;
+      if (btnSync) btnSync.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#ico-refresh"/></svg> Sincronizar Agora';
+    }
+  },
+
+  async readFromDrive() {
+    if (!this.accessToken) return null;
+    try {
+      if (!this.fileId) await this._findFile();
+      if (!this.fileId) return null;
+      const r = await fetch(
+        'https://www.googleapis.com/drive/v3/files/' + this.fileId + '?alt=media',
+        { headers: { Authorization: 'Bearer ' + this.accessToken } }
+      );
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch(e) {
+      console.error('GDrive: readFromDrive falhou', e);
+      return null;
+    }
+  },
+
+  // ── AÇÕES DO USUÁRIO ──────────────────────────────────────
+  async syncNow() {
+    if (!this.accessToken) {
+      if (this._sessionLoaded) {
+        this.pendingSync = true;
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-link"/></svg> Reconectando ao Drive...');
+        this.reconnectDrive();
+      } else {
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Faça login primeiro');
+      }
+      return;
+    }
+    await this.saveToDrive();
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Sincronizado!');
+  },
+
+  async restoreFromDrive() {
+    if (!this.accessToken) {
+      if (this._sessionLoaded) { this.pendingSync = false; toast('<svg class="ico" aria-hidden="true"><use href="#ico-link"/></svg> Reconectando ao Drive...'); this.reconnectDrive(); }
+      else { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Faça login primeiro'); }
+      return;
+    }
+    this._setStatus('sync', 'Baixando do Drive...');
+    const data = await this.readFromDrive();
+    if (!data || !data.orcs) {
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Nenhum backup encontrado no Drive');
+      this._setStatus('err', 'Sem backup no Drive');
+      return;
+    }
+    pendingBackupData = data;
+    openBackupModal();
+    this._setStatus('ok', 'Backup baixado · escolha a ação');
+  },
+
+  // ── CONECTIVIDADE ─────────────────────────────────────────
+  _initConnectivity() {
+    const self = this;
+    if (!navigator.onLine) self._showOfflineBanner('offline');
+    window.addEventListener('offline', () => {
+      self._showOfflineBanner('offline');
+      self._setStatus('offline', 'Sem conexão');
+    });
+    window.addEventListener('online', () => {
+      self._hideOfflineBanner();
+      if (self.pendingSync && self.accessToken) {
+        self.pendingSync = false;
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-refresh"/></svg> Conexão restaurada · sincronizando...');
+        self.scheduleSync();
+      } else if (self.accessToken) {
+        self._setStatus('ok', 'Conectado');
+      }
+    });
+  },
+
+  _showOfflineBanner(mode) {
+    const el = document.getElementById('offline-banner');
+    if (!el) return;
+    el.className = 'show mode-' + mode;
+    el.innerHTML = mode === 'offline'
+      ? '⚠️ Modo offline — dados sendo salvos localmente'
+      : '🚨 Drive desconectado! Dados em risco. <strong>Exporte um backup agora!</strong>';
+  },
+
+  _hideOfflineBanner() {
+    const el = document.getElementById('offline-banner');
+    if (el) { el.className = ''; el.style.display = ''; el.onclick = null; }
+  },
+
+  // ── AUTO-SYNC (debounce) ──────────────────────────────────
+  scheduleSync() {
+    this.pendingSync = true; // Marca sempre — sync ocorre quando token e conexão disponíveis
+    if (!this.accessToken) return;
+    if (!navigator.onLine) {
+      this._showOfflineBanner('drive-err');
+      this._setStatus('offline', 'Aguardando conexão...');
+      return;
+    }
+    clearTimeout(this.syncTimer);
+    this.syncTimer = setTimeout(() => {
+      if (this.isSyncing) {
+        // Sync em curso — reagenda para não perder dados
+        this.scheduleSync();
+        return;
+      }
+      this.pendingSync = false;
+      this.saveToDrive();
+    }, this.SYNC_DEBOUNCE);
+  },
+
+  // ── HOOK NO LOCALSTORAGE ──────────────────────────────────
+  _hookLocalStorage() {
+    const self = this;
+    const PP_KEYS = ['pp-orcs','pp-config','pp-clientes','pp-fornecedores','pp-eventos'];
+    const orig = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(key, value) {
+      orig(key, value);
+      if (PP_KEYS.includes(key)) self.scheduleSync();
+    };
+  },
+
+  // ── UI ────────────────────────────────────────────────────
+  _showLoggedIn() {
+    const out = document.getElementById('gd-logged-out');
+    const inn = document.getElementById('gd-logged-in');
+    if (out) out.style.display = 'none';
+    if (inn) inn.style.display = 'block';
+    if (this.user) {
+      const av = document.getElementById('gd-avatar');
+      const avFb = document.getElementById('gd-avatar-fb');
+      const nm = document.getElementById('gd-uname');
+      const em = document.getElementById('gd-uemail');
+      const initial = (this.user.name || this.user.email || '?').charAt(0).toUpperCase();
+      if (avFb) { avFb.textContent = initial; avFb.style.display = 'none'; }
+      if (av) {
+        if (this.user.picture) {
+          av.style.display = 'block';
+          av.src = this.user.picture;
+        } else {
+          av.style.display = 'none';
+          if (avFb) avFb.style.display = 'flex';
+        }
+      }
+      if (nm) nm.textContent = this.user.name || '';
+      if (em) em.textContent = this.user.email || '';
+    }
+  },
+
+  _showLoggedOut() {
+    const out = document.getElementById('gd-logged-out');
+    const inn = document.getElementById('gd-logged-in');
+    if (out) out.style.display = 'block';
+    if (inn) inn.style.display = 'none';
+    this._setStatus('off', 'Desconectado');
+  },
+
+  _showPopupBlockedMsg() {
+    const msgId = 'popup-blocked-msg';
+    let el = document.getElementById(msgId);
+    if (!el) {
+      el = document.createElement('div');
+      el.id = msgId;
+      el.style.cssText = 'position:fixed;bottom:88px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;background:#FFF3CD;border:1.5px solid #F59E0B;border-radius:14px;padding:14px 16px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.18);';
+      document.body.appendChild(el);
+    }
+    el.innerHTML = '<div style="font-size:13px;font-weight:700;color:#92400E;margin-bottom:6px;"><svg class="ico" aria-hidden="true"><use href="#ico-ban"/></svg> Pop-up bloqueado pelo navegador</div>'
+      + '<div style="font-size:12px;color:#78350F;line-height:1.6;margin-bottom:10px;">O navegador bloqueou a janela de login do Google.<br>Na barra de endereço, toque em <b>"Pop-up bloqueado"</b> e escolha <b>"Sempre permitir"</b>. Depois tente novamente.</div>'
+      + '<div style="display:flex;gap:8px;">'
+      + '<button onclick="document.getElementById(\'' + msgId + '\').remove();GDrive.reconnectDrive();" style="flex:1;height:36px;border-radius:8px;background:#F59E0B;border:none;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Tentar novamente</button>'
+      + '<button onclick="document.getElementById(\'' + msgId + '\').remove();" style="height:36px;padding:0 14px;border-radius:8px;background:none;border:1.5px solid #D97706;color:#92400E;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">Fechar</button>'
+      + '</div>';
+  },
+
+  _showLoginBtn() {
+    console.log('[PP-AUTH] _showLoginBtn chamado | guestMode=', this.guestMode, '| restoringSession=', this._restoringSession, '| sessionLoaded=', this._sessionLoaded, new Error().stack);
+    if (this.guestMode) return; // Modo convidado: não redireciona para login
+    if (this._restoringSession) return; // GIS ainda inicializando — aguarda confirmação do token
+    const loading = document.getElementById('login-loading');
+    const btnWrap = document.getElementById('login-btn-wrap');
+    if (loading) loading.style.display = 'none';
+    if (btnWrap) btnWrap.style.display = 'flex';
+    showPage('pg-login', true);
+  },
+
+  _showReconnectBanner() {
+    const el = document.getElementById('offline-banner');
+    if (!el) return;
+    el.className = 'show mode-reconnect';
+    el.style.display = '';
+    el.innerHTML = '🚨 Drive desconectado — <u style="text-underline-offset:3px;">Toque AQUI para reconectar</u>';
+    el.onclick = () => GDrive.reconnectDrive();
+  },
+
+  // Redirect OAuth (implicit flow) — nunca bloqueado pelo navegador
+  _authViaRedirect() {
+    const savedEmail = localStorage.getItem('pp-gdrive-email');
+    // redirect_uri deve apontar para app.html (onde o token é lido no hash da URL)
+    const redirectUri = window.location.origin + '/app.html';
+    const params = new URLSearchParams({
+      client_id: this.CLIENT_ID,
+      response_type: 'token',
+      redirect_uri: redirectUri,
+      scope: this.SCOPES,
+      prompt: 'select_account',
+    });
+    if (savedEmail) params.set('login_hint', savedEmail);
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+  },
+
+  reconnectDrive() {
+    if (!this.tokenClient) { this._authViaRedirect(); return; }
+    // Tenta silencioso; se falhar com immediate_failed, _onToken escala para select_account
+    this._userInitiatedAuth = true;
+    const savedEmail = localStorage.getItem('pp-gdrive-email');
+    this.tokenClient.requestAccessToken({ prompt: '', ...(savedEmail ? { login_hint: savedEmail } : {}) });
+  },
+
+  _setStatus(state, msg) {
+    const dot = document.getElementById('gd-dot');
+    const txt = document.getElementById('gd-status-text');
+    const btn = document.getElementById('gd-reconnect-btn');
+    const syncIcon = document.getElementById('hdr-sync-icon');
+    const syncBtn = document.getElementById('hdr-sync-btn');
+    if (dot) dot.className = 'gd-dot ' + state;
+    if (txt) txt.textContent = msg || '';
+    if (btn) btn.style.display = (state === 'off' || state === 'err') && this._sessionLoaded ? 'inline-block' : 'none';
+    const isSyncing = state === 'sync';
+    if (syncIcon) syncIcon.style.animation = isSyncing ? 'spin 1s linear infinite' : '';
+    if (syncBtn) {
+      syncBtn.style.color = isSyncing ? 'var(--bl)' : '';
+      syncBtn.style.borderColor = isSyncing ? 'var(--bl)' : '';
+      syncBtn.disabled = isSyncing;
+    }
+  },
+
+  // ── COTA DE ARMAZENAMENTO DO GOOGLE DRIVE ─────────────────
+  async checkStorageQuota() {
+    if (!this.accessToken) return;
+    try {
+      const r = await fetch('https://www.googleapis.com/drive/v3/about?fields=storageQuota', {
+        headers: { Authorization: 'Bearer ' + this.accessToken }
+      });
+      if (!r.ok) return;
+      const data = await r.json();
+      const q = data.storageQuota;
+      if (!q) return;
+      const limit = q.limit ? parseInt(q.limit) : 0;
+      const used = q.usage ? parseInt(q.usage) : 0;
+      this._storageQuota = { limit, used };
+      this._renderStorageInfo();
+      // Aviso crítico se < 200 MB livres ou > 95% usado
+      if (limit > 0) {
+        const free = limit - used;
+        const pct = (used / limit) * 100;
+        if (free < 200 * 1024 * 1024 || pct > 95) {
+          toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento Google quase cheio! O backup pode falhar.');
+        }
+      }
+    } catch(e) { console.warn('GDrive: quota check falhou', e); }
+  },
+
+  _renderStorageInfo() {
+    const el = document.getElementById('gd-storage-info');
+    if (!el || !this._storageQuota) return;
+    const { limit, used } = this._storageQuota;
+    if (!limit) {
+      el.innerHTML = '<div style="margin-top:10px;padding:10px 12px;background:var(--bg-card);border-radius:10px;border:1.5px solid var(--bdr);font-size:12px;color:var(--ink3);">✅ Armazenamento ilimitado (Google One)</div>';
+      return;
+    }
+    const free = limit - used;
+    const pct = Math.round((used / limit) * 100);
+    const freeGB = (free / (1024 ** 3)).toFixed(2);
+    const usedGB = (used / (1024 ** 3)).toFixed(2);
+    const totalGB = (limit / (1024 ** 3)).toFixed(1);
+    const isLow = free < 200 * 1024 * 1024 || pct > 95;
+    const isWarn = free < 1024 * 1024 * 1024 || pct > 80;
+    const barColor = isLow ? 'var(--rd)' : isWarn ? 'var(--am)' : 'var(--gn)';
+    const icon = isLow ? '⚠️' : isWarn ? '⚡' : '✅';
+    const alertMsg = isLow
+      ? '<div style="font-size:11px;color:var(--rd);margin-top:6px;font-weight:700;">Armazenamento quase cheio! O backup pode falhar. Libere espaço no Google Drive.</div>'
+      : isWarn ? '<div style="font-size:11px;color:var(--am);margin-top:6px;">Armazenamento ficando cheio. Considere liberar espaço.</div>' : '';
+    el.innerHTML = `<div style="margin-top:12px;padding:10px 12px;background:var(--bg-card);border-radius:10px;border:1.5px solid var(--bdr);">
+      <div style="font-size:12px;font-weight:700;color:var(--ink2);margin-bottom:6px;">${icon} Armazenamento Google Drive</div>
+      <div style="background:var(--bg2);border-radius:6px;height:6px;margin-bottom:6px;overflow:hidden;">
+        <div style="height:100%;width:${Math.min(pct,100)}%;background:${barColor};border-radius:6px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);">
+        <span>${usedGB} GB usados de ${totalGB} GB</span>
+        <span style="color:${barColor};font-weight:700;">${100 - pct}% livre (${freeGB} GB)</span>
+      </div>${alertMsg}
+    </div>`;
+  },
+};
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  VAULT — Criptografia AES-GCM do localStorage           ║
+// ╚══════════════════════════════════════════════════════════╝
+const _Vault = {
+  _key: null,
+
+  // ── IndexedDB helpers ──────────────────────────────────
+  async _idbGet(k) {
+    return new Promise(res => {
+      const req = indexedDB.open('pp-vault', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('k');
+      req.onsuccess = e => {
+        const r = e.target.result.transaction('k','readonly').objectStore('k').get(k);
+        r.onsuccess = () => res(r.result || null);
+        r.onerror   = () => res(null);
+      };
+      req.onerror = () => res(null);
+    });
+  },
+  async _idbSet(k, v) {
+    return new Promise(res => {
+      const req = indexedDB.open('pp-vault', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('k');
+      req.onsuccess = e => {
+        const tx = e.target.result.transaction('k','readwrite');
+        tx.objectStore('k').put(v, k);
+        tx.oncomplete = () => res();
+        tx.onerror    = () => res();
+      };
+      req.onerror = () => res();
+    });
+  },
+
+  // ── Geração / carregamento da chave ────────────────────
+  async _loadKey() {
+    const raw = await this._idbGet('key');
+    if (raw) return crypto.subtle.importKey('raw', raw, {name:'AES-GCM'}, false, ['encrypt','decrypt']);
+    const key = await crypto.subtle.generateKey({name:'AES-GCM', length:256}, true, ['encrypt','decrypt']);
+    await this._idbSet('key', await crypto.subtle.exportKey('raw', key));
+    return key;
+  },
+
+  // ── Crypto ─────────────────────────────────────────────
+  async encrypt(s) {
+    const iv  = crypto.getRandomValues(new Uint8Array(12));
+    const enc = await crypto.subtle.encrypt({name:'AES-GCM', iv}, this._key, new TextEncoder().encode(s));
+    const buf = new Uint8Array(12 + enc.byteLength);
+    buf.set(iv);
+    buf.set(new Uint8Array(enc), 12);
+    return btoa(String.fromCharCode(...buf));
+  },
+  async decrypt(b64) {
+    try {
+      const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const pt  = await crypto.subtle.decrypt({name:'AES-GCM', iv:buf.slice(0,12)}, this._key, buf.slice(12));
+      return new TextDecoder().decode(pt);
+    } catch(e) { return null; }
+  },
+
+  // Dados criptografados começam com base64 (nunca com '[' ou '{')
+  _isEncrypted(s) {
+    if (!s || s[0] === '[' || s[0] === '{') return false;
+    try { return atob(s).length > 12; } catch(e) { return false; }
+  },
+
+  // ── API pública ────────────────────────────────────────
+  // Fire-and-forget: callers não precisam de await
+  save(key, value) {
+    if (!this._key) { localStorage.setItem(key, value); return; }
+    this.encrypt(value)
+      .then(enc => localStorage.setItem(key, enc))
+      .catch(()  => localStorage.setItem(key, value));
+  },
+
+  async init() {
+    if (!crypto?.subtle) return; // navegador sem Web Crypto — usa localStorage puro
+    try { this._key = await this._loadKey(); } catch(e) { return; }
+
+    const keys = ['pp-orcs','pp-clientes','pp-fornecedores','pp-config','pp-eventos'];
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      if (this._isEncrypted(raw)) {
+        // Decripta e popula S
+        const dec = await this.decrypt(raw);
+        if (dec === null) continue;
+        const parsed = JSON.parse(dec);
+        if      (k === 'pp-orcs')         S.orcs         = parsed || [];
+        else if (k === 'pp-clientes')     S.clientes     = parsed || [];
+        else if (k === 'pp-fornecedores') S.fornecedores = parsed || [];
+        else if (k === 'pp-eventos')      S.eventos      = parsed || [];
+        else if (k === 'pp-config')       S.config       = parsed || defCfg;
+      } else {
+        // Dado legado não criptografado — re-salva criptografado
+        this.save(k, raw);
+      }
+    }
+    // Re-processa dependências do config após possivelmente ter atualizado S.config
+    S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean);
+    S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean);
+  }
+};
+
+// Inicializa quando DOM pronto — Vault primeiro, depois GDrive
+async function _startApp() {
+  await _Vault.init();
+  GDrive.init();
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _startApp);
+} else {
+  _startApp();
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GOOGLE CALENDAR – Enviar eventos para Google Agenda     ║
+// ╚══════════════════════════════════════════════════════════╝
+
+// Autenticação Google unificada — Drive + Calendar + Contacts usam o mesmo token
+function _ensureGoogleAuth() {
+  if (GDrive.accessToken) return true;
+  if (GDrive._sessionLoaded) { GDrive.reconnectDrive(); }
+  else { GDrive.signIn(); }
+  return false;
+}
+
+const GCalendar = {
+  async _ensureAuth() {
+    if (GDrive.accessToken) return true;
+    _ensureGoogleAuth();
+    return false;
+  },
+
+  async exportEvent(evId) {
+    if (!(await this._ensureAuth())) return;
+    const ev = S.eventos.find(x => x.id == evId);
+    if (!ev) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Evento não encontrado.');
+
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const startTime = ev.hora || '09:00';
+      const [h, m] = startTime.split(':').map(Number);
+      const endH = String(h + 1 > 23 ? 23 : h + 1).padStart(2, '0');
+      const body = {
+        summary: ev.tit,
+        start: { dateTime: ev.dat + 'T' + startTime + ':00', timeZone: tz },
+        end:   { dateTime: ev.dat + 'T' + endH + ':' + String(m).padStart(2,'0') + ':00', timeZone: tz },
+        reminders: (() => {
+          if (!ev.avisoVal || parseInt(ev.avisoVal) <= 0) return { useDefault: true };
+          let mins = parseInt(ev.avisoVal);
+          if (ev.avisoUnid === 'h') mins *= 60;
+          if (ev.avisoUnid === 'd') mins *= 1440;
+          return { useDefault: false, overrides: [{ method: 'popup', minutes: mins }] };
+        })(),
+      };
+      if (ev.repete && ev.repete !== '0') {
+        const freqMap = { '1': 'DAILY', '7': 'WEEKLY' };
+        if (freqMap[ev.repete]) body.recurrence = ['RRULE:FREQ=' + freqMap[ev.repete]];
+      }
+      // Fetch direto — sem dependência de gapi.client.calendar (discovery doc)
+      const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + GDrive.accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (r.status === 401) {
+        GDrive.accessToken = null; GDrive.pendingSync = true; GDrive._showReconnectBanner();
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Sessão expirada. Reconecte a conta Google.');
+        return;
+      }
+      if (!r.ok) { const err = await r.json().catch(()=>{}); throw new Error(err?.error?.message || ('HTTP ' + r.status)); }
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Adicionado ao Google Agenda!');
+      return await r.json();
+    } catch (e) {
+      console.error('GCalendar: erro', e);
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro ao enviar para Google Agenda: ' + (e.message || 'desconhecido'));
+    }
+  },
+
+  async syncAllEvents() {
+    if (!(await this._ensureAuth())) return;
+    const evs = S.eventos.filter(e => e.tit && e.dat);
+    if (!evs.length) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Nenhum evento para sincronizar.');
+
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Enviando ' + evs.length + ' evento(s)...');
+    let ok = 0, err = 0;
+    for (const ev of evs) {
+      try {
+        await this.exportEvent(ev.id);
+        ok++;
+      } catch (e) { err++; }
+    }
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ' + ok + ' enviado(s)' + (err ? ', ' + err + ' erro(s)' : '') + ' ao Google Agenda');
+  },
+};
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GOOGLE CONTACTS – Importar contatos da conta Google     ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const GContacts = {
+  _contacts: [],
+  _filtered: [],
+  _selected: new Set(),
+  _mode: 'import', // 'import' ou 'wizard'
+
+  async _ensureAuth() {
+    if (GDrive.accessToken) return true;
+    _ensureGoogleAuth();
+    return false;
+  },
+
+  async _fetchContacts() {
+    // Busca todos os contatos com paginação (nextPageToken) — pageSize máximo é 1000
+    const baseUrl = 'https://people.googleapis.com/v1/people/me/connections'
+      + '?pageSize=1000&personFields=names,phoneNumbers,emailAddresses,addresses'
+      + '&sortOrder=FIRST_NAME_ASCENDING';
+    let allConns = [];
+    let pageToken = null;
+    do {
+      const url = pageToken ? baseUrl + '&pageToken=' + encodeURIComponent(pageToken) : baseUrl;
+      const resp = await fetch(url, {
+        headers: { Authorization: 'Bearer ' + GDrive.accessToken },
+      });
+      if (!resp.ok) {
+        const err = new Error('HTTP ' + resp.status);
+        err.status = resp.status;
+        throw err;
+      }
+      const data = await resp.json();
+      allConns = allConns.concat(data.connections || []);
+      pageToken = data.nextPageToken || null;
+    } while (pageToken);
+    return allConns.map(c => ({
+      nome: c.names?.[0]?.displayName || '',
+      tel: c.phoneNumbers?.[0]?.value || '',
+      email: c.emailAddresses?.[0]?.value || '',
+      end: c.addresses?.[0]?.formattedValue || '',
+    })).filter(c => c.nome);
+  },
+
+  async importFromGoogle() {
+    if (!(await this._ensureAuth())) return;
+    this._mode = 'import';
+    await this._openPicker();
+  },
+
+  async pickForWizard() {
+    if (!(await this._ensureAuth())) return;
+    this._mode = 'wizard';
+    await this._openPicker();
+  },
+
+  async _openPicker() {
+    this._selected.clear();
+    const modal = document.getElementById('gc-picker-modal');
+    const loading = document.getElementById('gc-picker-loading');
+    const list = document.getElementById('gc-list');
+    const search = document.getElementById('gc-search');
+
+    modal.style.display = 'flex';
+    loading.style.display = 'block';
+    list.innerHTML = '';
+    search.value = '';
+
+    try {
+      this._contacts = await this._fetchContacts();
+      this._filtered = [...this._contacts];
+      loading.style.display = 'none';
+      if (!this._contacts.length) {
+        list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--ink3);">Nenhum contato encontrado na conta Google.</div>';
+        return;
+      }
+      this._renderList();
+    } catch (e) {
+      console.error('GContacts: erro', e);
+      loading.style.display = 'none';
+      if (e.status === 401) {
+        GDrive.accessToken = null;
+        GDrive._showReconnectBanner();
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Sessão expirada. Toque no banner para reconectar.');
+        modal.style.display = 'none';
+      } else {
+        list.innerHTML = '<div style="text-align:center;padding:24px;font-size:13px;color:var(--rd);">Erro ao carregar contatos.</div>';
+      }
+    }
+  },
+
+  _renderList() {
+    const list = document.getElementById('gc-list');
+    list.innerHTML = this._filtered.map((c, i) => {
+      const initials = (_esc(c.nome) || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      const origIdx = this._contacts.indexOf(c);
+      const sel = this._selected.has(origIdx) ? ' selected' : '';
+      return `<div class="gc-item${sel}" onclick="GContacts.toggleSelect(${origIdx})" role="button" tabindex="0" aria-label="Selecionar ${_esc(c.nome)}">
+        <div class="gc-avatar-sm">${initials}</div>
+        <div class="gc-info">
+          <div class="gc-name">${_esc(c.nome)}</div>
+          <div class="gc-detail">${_esc(c.tel || c.email || 'Sem contato')}</div>
+        </div>
+        <div class="gc-check">${sel ? '<svg class="ico" aria-hidden="true"><use href="#ico-check"/></svg>' : ''}</div>
+      </div>`;
+    }).join('');
+    this._updateBtn();
+  },
+
+  toggleSelect(idx) {
+    if (this._mode === 'wizard') {
+      // Wizard: seleciona apenas 1
+      this._selected.clear();
+      this._selected.add(idx);
+    } else {
+      if (this._selected.has(idx)) this._selected.delete(idx);
+      else this._selected.add(idx);
+    }
+    this._renderList();
+  },
+
+  _updateBtn() {
+    const btn = document.getElementById('gc-confirm-btn');
+    const n = this._selected.size;
+    if (this._mode === 'wizard') {
+      btn.textContent = n ? 'Usar este contato' : 'Selecione 1';
+    } else {
+      btn.textContent = 'Importar (' + n + ')';
+    }
+  },
+
+  filterList(q) {
+    const term = q.toLowerCase().trim();
+    this._filtered = term
+      ? this._contacts.filter(c => (c.nome + ' ' + c.tel + ' ' + c.email).toLowerCase().includes(term))
+      : [...this._contacts];
+    this._renderList();
+  },
+
+  confirmPick() {
+    if (!this._selected.size) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Selecione ao menos um contato.');
+
+    if (this._mode === 'wizard') {
+      const idx = [...this._selected][0];
+      const c = this._contacts[idx];
+      // Preenche campos do wizard S1
+      const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v || ''; };
+      setVal('cli-nome', c.nome);
+      setVal('cli-tel', c.tel);
+      setVal('cli-email', c.email);
+      setVal('cli-end', c.end);
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato preenchido!');
+    } else {
+      // Import: adiciona a S.clientes
+      let added = 0, skipped = 0;
+      for (const idx of this._selected) {
+        const c = this._contacts[idx];
+        const exists = S.clientes.some(x =>
+          x.nome === c.nome && (x.tel === c.tel || x.email === c.email)
+        );
+        if (!exists) {
+          S.clientes.push({ nome: c.nome, tel: c.tel, email: c.email, end: c.end, cpf: '' });
+          added++;
+        } else { skipped++; }
+      }
+      if (added) {
+        _Vault.save('pp-clientes', JSON.stringify(S.clientes));
+        renderClientes();
+      }
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ' + added + ' importado(s)' + (skipped ? ', ' + skipped + ' já existia(m)' : ''));
+    }
+    this.closePicker();
+  },
+
+  closePicker() {
+    document.getElementById('gc-picker-modal').style.display = 'none';
+    this._contacts = [];
+    this._filtered = [];
+    this._selected.clear();
+  },
+};
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  GOOGLE PHOTOS – Salvar fotos dos orçamentos no Drive   ║
+// ╚══════════════════════════════════════════════════════════╝
+
+const GPhotos = {
+  FOLDER_NAME: 'PintorPlus_Fotos',
+  _folderId: null,
+
+  async _ensureAuth() {
+    if (GDrive.accessToken) return true;
+    _ensureGoogleAuth();
+    return false;
+  },
+
+  // Cria/encontra pasta no Drive RAIZ (visível ao usuário, para ver as fotos)
+  async _ensureFolder() {
+    if (this._folderId) return this._folderId;
+    await GDrive._ensureToken();
+
+    // Busca pasta existente
+    const resp = await gapi.client.drive.files.list({
+      q: "name='" + this.FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+      fields: 'files(id,name)',
+      spaces: 'drive',
+    });
+    const files = resp.result.files || [];
+    if (files.length) {
+      this._folderId = files[0].id;
+      return this._folderId;
+    }
+
+    // Cria pasta
+    const created = await gapi.client.drive.files.create({
+      resource: { name: this.FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' },
+      fields: 'id',
+    });
+    this._folderId = created.result.id;
+    return this._folderId;
+  },
+
+  // Converte base64 data URL para Blob
+  _dataUrlToBlob(dataUrl) {
+    const parts = dataUrl.split(',');
+    const mime = parts[0].match(/:(.*?);/)[1];
+    const raw = atob(parts[1]);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  },
+
+  // Upload de uma foto para o Drive
+  async _uploadPhoto(dataUrl, fileName, folderId) {
+    const blob = this._dataUrlToBlob(dataUrl);
+    const metadata = JSON.stringify({ name: fileName, parents: [folderId] });
+    const boundary = '----PPFotoBoundary';
+
+    const body =
+      '--' + boundary + '\r\n' +
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      metadata + '\r\n' +
+      '--' + boundary + '\r\n' +
+      'Content-Type: ' + blob.type + '\r\n\r\n';
+
+    const end = '\r\n--' + boundary + '--';
+
+    const bodyBlob = new Blob([body, blob, end], { type: 'multipart/related; boundary=' + boundary });
+
+    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + GDrive.accessToken },
+      body: bodyBlob,
+    });
+    return await resp.json();
+  },
+
+  // Exporta todas as fotos de um orçamento
+  async exportOrcPhotos(orcIdx) {
+    if (!(await this._ensureAuth())) return;
+    const orc = S.orcs[orcIdx];
+    if (!orc) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Orçamento não encontrado.');
+
+    let photos = [];
+    (orc.rooms || []).forEach((r, ri) => {
+      (r.items || []).forEach((it, ii) => {
+        (it.photos || []).forEach((p, pi) => {
+          photos.push({
+            url: p.url,
+            name: 'Orc_' + (orc.nome || 'sem-nome').replace(/\s+/g, '_') + '_' + r.name + '_' + it.name + '_' + (pi + 1) + '.jpg',
+          });
+        });
+      });
+    });
+
+    if (!photos.length) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Este orçamento não tem fotos.');
+
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Enviando ' + photos.length + ' foto(s) para o Drive...');
+    try {
+      const folderId = await this._ensureFolder();
+      // Cria subpasta para o orçamento
+      const orcFolder = await gapi.client.drive.files.create({
+        resource: {
+          name: (orc.nome || 'Orçamento') + ' - ' + (orc.date || 'sem-data'),
+          mimeType: 'application/vnd.google-apps.folder',
+          parents: [folderId],
+        },
+        fields: 'id',
+      });
+
+      let ok = 0;
+      for (const p of photos) {
+        try {
+          await this._uploadPhoto(p.url, p.name, orcFolder.result.id);
+          ok++;
+        } catch (e) { console.error('GPhotos: erro upload', e); }
+      }
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> ' + ok + '/' + photos.length + ' foto(s) salvas no Google Drive!');
+    } catch (e) {
+      console.error('GPhotos: erro', e);
+      if (e.status === 401 || (e.message && e.message.includes('401'))) {
+        GDrive.accessToken = null;
+        GDrive._showReconnectBanner();
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Sessão expirada. Toque no banner para reconectar.');
+      } else {
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro ao enviar fotos.');
+      }
+    }
+  },
+
+  // Exporta TODAS as fotos de TODOS os orçamentos
+  async exportAll() {
+    if (!(await this._ensureAuth())) return;
+    let totalPhotos = 0;
+    S.orcs.forEach(orc => {
+      (orc.rooms || []).forEach(r => {
+        (r.items || []).forEach(it => { totalPhotos += (it.photos || []).length; });
+      });
+    });
+    if (!totalPhotos) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Nenhuma foto encontrada nos orçamentos.');
+
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-cloud"/></svg> Enviando ' + totalPhotos + ' foto(s) de todos os orçamentos...');
+    for (let i = 0; i < S.orcs.length; i++) {
+      let hasPhotos = false;
+      (S.orcs[i].rooms || []).forEach(r => {
+        (r.items || []).forEach(it => { if (it.photos?.length) hasPhotos = true; });
+      });
+      if (hasPhotos) await this.exportOrcPhotos(i);
+    }
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Todas as fotos foram enviadas ao Google Drive!');
+  },
+};
+
+
+// ─── 3-DOT CARD MENU ──────────────────────────────────────────────────────
+function toggleCardMenu(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  closeCardMenus();
+  if (!isOpen) { el.style.display = 'block'; }
+}
+function closeCardMenus() {
+  document.querySelectorAll('.card-menu-drop').forEach(el => el.style.display = 'none');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.card-menu-wrap')) closeCardMenus();
+});
+
+function _canRecibo(o) {
+  if (o.isFlashDraft) return false;
+  const s = (o.status || '').toLowerCase().trim();
+  const allowed = ['em andamento', 'aprovado', 'obra iniciada', 'obra finalizada', 'pagamento iniciado', 'pagamento finalizado'];
+  return allowed.some(x => s === x || s.includes(x));
+}
+function _canPDF(o) {
+  const s = (o.status || '').toLowerCase();
+  return !o.isFlashDraft && !!s && s !== 'draft' && !s.includes('rascunho');
+}
+async function genPDFFromIdx(i) {
+  const o = S.orcs[i];
+  if (!o) return;
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(o, false);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({ title: `Orçamento — ${o.nome||''}`, files: [pdfFile] });
+      return;
+    }
+    _downloadBlob(blob, fileName);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> PDF salvo!');
+  } catch(e) {
+    if (e?.name === 'AbortError') return;
+    // Fallback: janela de impressão
+    const html = genPDFHtml(o, false);
+    const w = window.open('', '_blank');
+    if (!w) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Popup bloqueado.'); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => { try { w.print(); } catch(e) {} }, 400);
+  }
+}
+
+var _sendOptIdx = -1, _sendFmt = 'completo';
+function _showSendOptions(realIdx) {
+  _sendOptIdx = realIdx;
+  const o = S.orcs[realIdx]; if (!o) return;
+  _setSendFmt(o.fmt || 'completo');
+  let photoCount = 0;
+  (o.rooms||[]).forEach(r => (r.items||[]).forEach(it => { photoCount += (it.photos||[]).length; }));
+  const pr = document.getElementById('send-photos-row');
+  if (pr) { pr.style.display = photoCount > 0 ? 'block' : 'none'; }
+  const cb = document.getElementById('send-with-photos'); if (cb) cb.checked = false;
+  const pdfBtn = document.getElementById('send-pdf-btn');
+  if (pdfBtn) pdfBtn.style.display = _canPDF(o) ? 'flex' : 'none';
+  document.getElementById('send-opts-modal').style.display = 'flex';
+}
+function _setSendFmt(fmt) {
+  _sendFmt = fmt;
+  ['completo','area','simples'].forEach(f => {
+    const b = document.getElementById('sfmt-' + f); if (!b) return;
+    if (f === fmt) { b.style.borderColor='var(--bl)'; b.style.background='var(--bl)'; b.style.color='#fff'; }
+    else { b.style.borderColor='var(--bdr-input)'; b.style.background='var(--bg2)'; b.style.color='var(--ink2)'; }
+  });
+}
+function _rascunhoModalAlterarStatus() {
+  document.getElementById('rascunho-block-modal').style.display = 'none';
+  _showStatusPicker(_sendOptIdx);
+}
+
+async function _doSendWA() {
+  document.getElementById('send-opts-modal').style.display = 'none';
+  const o = S.orcs[_sendOptIdx]; if (!o) return;
+  // Bloqueia rascunho
+  const stLow = (o.status || '').toLowerCase();
+  if (stLow === 'rascunho' || stLow === 'draft' || !o.status) {
+    document.getElementById('rascunho-block-modal').style.display = 'flex';
+    return;
+  }
+  const prev = o.fmt; o.fmt = _sendFmt;
+  const withPhotos = document.getElementById('send-with-photos')?.checked || false;
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(o, withPhotos);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+    const shareText = buildPDFShareMsg(o);
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({ title: `Orçamento — ${o.nome||''}`, text: shareText, files: [pdfFile] });
+    } else {
+      // Fallback: texto via WA link
+      const msg = buildWAMsg(o);
+      const tel = (o.tel||'').replace(/\D/g,'');
+      window.open(tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Abrindo WhatsApp…');
+    }
+  } catch(e) {
+    if (e?.name !== 'AbortError') {
+      const msg = buildWAMsg(o);
+      const tel = (o.tel||'').replace(/\D/g,'');
+      window.open(tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Abrindo WhatsApp…');
+    }
+  }
+  o.fmt = prev;
+}
+async function _uploadPDFtoDrive(blob, fileName) {
+  if (!GDrive?.accessToken) return null;
+  try {
+    const metadata = { name: fileName, mimeType: 'application/pdf' };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob, fileName);
+    const r = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + GDrive.accessToken },
+      body: form
+    });
+    if (!r.ok) return null;
+    return await r.json(); // { id, webViewLink }
+  } catch(e) { return null; }
+}
+
+async function _doSendPDF() {
+  document.getElementById('send-opts-modal').style.display = 'none';
+  const o = S.orcs[_sendOptIdx]; if (!o) return;
+
+  // Bloqueia rascunho
+  const stLow = (o.status || '').toLowerCase();
+  if (!stLow || stLow === 'rascunho' || stLow === 'draft' || stLow.includes('rascunho')) {
+    document.getElementById('rascunho-block-modal').style.display = 'flex';
+    return;
+  }
+
+  const withPhotos = document.getElementById('send-with-photos')?.checked || false;
+  const prev = o.fmt; o.fmt = _sendFmt;
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(o, withPhotos);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+
+    // Faz upload para o Drive em paralelo
+    const drivePromise = _uploadPDFtoDrive(blob, fileName);
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      // Compartilha direto via sheet nativa (WhatsApp, email, etc.)
+      await navigator.share({ title: `Orçamento — ${o.nome||''}`, files: [pdfFile] });
+      drivePromise.then(d => {
+        if (d) toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> PDF salvo no Google Drive!');
+      });
+    } else {
+      // Aguarda upload no Drive para compartilhar o link
+      const driveData = await drivePromise;
+      if (driveData?.webViewLink) {
+        if (navigator.share) {
+          await navigator.share({ title: `Orçamento — ${o.nome||''}`, url: driveData.webViewLink });
+        } else {
+          window.open(driveData.webViewLink, '_blank');
+        }
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> PDF salvo no Drive e link copiado!');
+      } else {
+        // Último recurso: download local
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = fileName; a.click();
+        URL.revokeObjectURL(url);
+        toast('<svg class="ico" aria-hidden="true"><use href="#ico-download"/></svg> PDF baixado para o dispositivo.');
+      }
+    }
+  } catch(e) {
+    if (e?.name !== 'AbortError') {
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro ao gerar PDF.');
+    }
+  }
+  o.fmt = prev;
+}
+function _buildCardMenu(menuId, realIdx, o) {
+  const tel = (o.tel || '').replace(/\D/g, '');
+  const waUrl = tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(buildWAMsg(o))}` : `https://wa.me/?text=${encodeURIComponent(buildWAMsg(o))}`;
+  const canR = _canRecibo(o);
+  const canP = _canPDF(o);
+  return `<div class="card-menu-wrap">
+    <button class="card-menu-btn" onclick="event.stopPropagation();toggleCardMenu('${menuId}')" title="Ações">⋯</button>
+    <div id="${menuId}" class="card-menu-drop">
+      <div class="cmd-item" onclick="closeCardMenus();editOrc(${realIdx})"><svg class="ico" aria-hidden="true"><use href="#ico-edit"/></svg> Editar</div>
+      <div class="cmd-item" onclick="closeCardMenus();_showSendOptions(${realIdx})"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Enviar / PDF</div>
+      ${canR
+        ? `<div class="cmd-item" onclick="closeCardMenus();abrirModalRecibo(${realIdx})"><svg class="ico" aria-hidden="true"><use href="#ico-file-text"/></svg> Gerar Recibo</div>`
+        : `<div class="cmd-item cmd-disabled"><svg class="ico" aria-hidden="true"><use href="#ico-file-text"/></svg> Recibo indisponível</div>`}
+      <div class="cmd-item" onclick="closeCardMenus();_showStatusPicker(${realIdx})"><svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg> Mudar Status</div>
+      <div class="cmd-item cmd-danger" onclick="closeCardMenus();askDelete('Excluir este orçamento?',()=>delOrc(${realIdx}))"><svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Excluir</div>
+    </div>
+  </div>`;
+}
+
+// ─── SUPORTE / BUG REPORT ─────────────────────────────────────────────────
+let _supportImages = [];
+
+function _gerarLogSuporte() {
+  const now = new Date().toLocaleString('pt-BR');
+  const cfg = S.config || {};
+  const session = (() => { try { return JSON.parse(localStorage.getItem('pp-session') || '{}'); } catch(e) { return {}; } })();
+  const gUser = (typeof GDrive !== 'undefined' && GDrive.user) ? GDrive.user : session;
+  const lines = [
+    '=== LOG PINTOR PLUS ===',
+    'Data/Hora: ' + now,
+    'Versão SW:  pintorplus-v13',
+    'UA: ' + navigator.userAgent,
+    '',
+    '--- CONTA GOOGLE ---',
+    'Nome:  ' + (gUser.name || '—'),
+    'Email: ' + (gUser.email || '—'),
+    '',
+    '--- CADASTRO DO APP ---',
+    'Nome empresa: ' + (cfg.nome || '—'),
+    'Telefone:     ' + (cfg.tel || '—'),
+    'Email app:    ' + (cfg.email || '—'),
+    'CNPJ/CPF:     ' + (cfg.cnpj || '—'),
+    'Endereço:     ' + (cfg.end || '—'),
+    '',
+    '--- DADOS ---',
+    'Orçamentos:  ' + (S.orcs ? S.orcs.length : 0),
+    'Clientes:    ' + (S.clientes ? S.clientes.length : 0),
+    'Fornecedores:' + (S.fornecedores ? S.fornecedores.length : 0),
+    'Eventos:     ' + (S.eventos ? S.eventos.length : 0),
+    '',
+    '--- LOCAL STORAGE ---',
+    'pp-gdrive-lastSync: ' + (localStorage.getItem('pp-gdrive-lastSync') || '—'),
+    'pp-gdrive-email:    ' + (localStorage.getItem('pp-gdrive-email') || '—'),
+    '====================='
+  ];
+  return lines.join('\n');
+}
+
+function abrirModalSuporte() {
+  _supportImages = [];
+  const preview = document.getElementById('sp-img-preview');
+  if (preview) preview.innerHTML = '';
+  const imgInput = document.getElementById('sp-img-input');
+  if (imgInput) imgInput.value = '';
+  const msg = document.getElementById('sp-msg');
+  if (msg) msg.value = '';
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = 'none';
+
+  const log = _gerarLogSuporte();
+  const logEl = document.getElementById('sp-log');
+  if (logEl) { logEl.textContent = log; logEl.style.display = 'none'; }
+
+  const session = (() => { try { return JSON.parse(localStorage.getItem('pp-session') || '{}'); } catch(e) { return {}; } })();
+  const gUser = (typeof GDrive !== 'undefined' && GDrive.user) ? GDrive.user : session;
+  const cfg = S.config || {};
+  const infoEl = document.getElementById('sp-user-info');
+  if (infoEl) {
+    infoEl.innerHTML = [
+      gUser.name ? `<strong>${gUser.name}</strong>` : '',
+      gUser.email ? gUser.email : '',
+      cfg.nome ? cfg.nome : '',
+      cfg.tel ? cfg.tel : '',
+      cfg.cnpj ? cfg.cnpj : ''
+    ].filter(Boolean).join('<br>') || '—';
+  }
+
+  document.getElementById('modal-suporte').style.display = 'flex';
+}
+
+function addSupportImages(input) {
+  const files = Array.from(input.files || []);
+  _supportImages = _supportImages.concat(files);
+  const preview = document.getElementById('sp-img-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  _supportImages.forEach((file, idx) => {
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0;';
+    wrap.innerHTML = `<img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr);">
+      <button onclick="_removeSupportImage(${idx})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rd);color:#fff;border:none;font-size:11px;font-weight:800;cursor:pointer;line-height:1;">✕</button>`;
+    preview.appendChild(wrap);
+  });
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = _supportImages.length ? 'block' : 'none';
+}
+
+function _removeSupportImage(idx) {
+  _supportImages.splice(idx, 1);
+  const fakeInput = { files: _supportImages };
+  const preview = document.getElementById('sp-img-preview');
+  if (!preview) return;
+  preview.innerHTML = '';
+  _supportImages.forEach((file, i) => {
+    const url = URL.createObjectURL(file);
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;width:72px;height:72px;flex-shrink:0;';
+    wrap.innerHTML = `<img src="${url}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr);">
+      <button onclick="_removeSupportImage(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:var(--rd);color:#fff;border:none;font-size:11px;font-weight:800;cursor:pointer;line-height:1;">✕</button>`;
+    preview.appendChild(wrap);
+  });
+  const imgNote = document.getElementById('sp-img-note');
+  if (imgNote) imgNote.style.display = _supportImages.length ? 'block' : 'none';
+}
+
+// ── PWA Install Prompt ──────────────────────────────────────────────────
+const PWA = {
+  _prompt: null,
+  _DISMISSED_KEY: 'pwa_install_dismissed',
+
+  isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream; },
+  isStandalone() { return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; },
+  wasDismissed() {
+    try {
+      const t = localStorage.getItem(this._DISMISSED_KEY);
+      if (!t) return false;
+      if (Date.now() - parseInt(t) > 30 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(this._DISMISSED_KEY);
+        return false;
+      }
+      return true;
+    } catch(e) { return false; }
+  },
+
+  showBar() {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.classList.add('show');
+  },
+  hideBar() {
+    const bar = document.getElementById('pwa-install-bar');
+    if (bar) bar.classList.remove('show');
+  },
+  showIOSModal() {
+    document.getElementById('pwa-ios-modal')?.classList.add('open');
+  },
+};
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  PWA._prompt = e;
+  if (!PWA.isStandalone() && !PWA.wasDismissed()) {
+    setTimeout(() => PWA.showBar(), 5000);
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  PWA.hideBar();
+  PWA._prompt = null;
+});
+
+// Mostra banner/modal automaticamente no iOS após 5s
+if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasDismissed()) {
+  setTimeout(() => PWA.showIOSModal(), 5000);
+}
+
+// Chamado pelo botão "Instalar" no banner e no menu lateral
+window.pwaShowInstallUI = async function() {
+  if (PWA.isStandalone()) {
+    toast('✓ App já está instalado neste dispositivo.');
+    return;
+  }
+  if (PWA._prompt) {
+    PWA.hideBar();
+    PWA._prompt.prompt();
+    const { outcome } = await PWA._prompt.userChoice;
+    PWA._prompt = null;
+    if (outcome === 'dismissed') {
+      try { localStorage.setItem(PWA._DISMISSED_KEY, Date.now().toString()); } catch(e) {}
+    }
+    return;
+  }
+  if (PWA.isIOS()) { PWA.showIOSModal(); return; }
+  // Android/PC sem prompt disponível: orienta o usuário
+  document.getElementById('pwa-ios-sheet').innerHTML = `
+    <div class="ios-title">Instalar Pintor Plus</div>
+    <div class="ios-sub">Para instalar, siga os passos no seu navegador:</div>
+    <div class="ios-step"><div class="ios-step-num">1</div><div class="ios-step-text">Abra o site no <b>Chrome</b> ou <b>Edge</b></div></div>
+    <div class="ios-step"><div class="ios-step-num">2</div><div class="ios-step-text">Clique no menu <b>⋮</b> (três pontos) no canto superior direito</div></div>
+    <div class="ios-step"><div class="ios-step-num">3</div><div class="ios-step-text">Toque em <b>"Adicionar à tela inicial"</b> ou <b>"Instalar app"</b></div></div>
+    <button id="pwa-ios-close" onclick="document.getElementById('pwa-ios-modal').classList.remove('open')">Entendi</button>`;
+  PWA.showIOSModal();
+};
+
+window.pwaTriggerInstall = window.pwaShowInstallUI;
+
+window.pwaDismiss = function() {
+  PWA.hideBar();
+  try { localStorage.setItem(PWA._DISMISSED_KEY, Date.now().toString()); } catch(e) {}
+};
+
+function enviarSuporte() {
+  const msg = (document.getElementById('sp-msg')?.value || '').trim();
+  if (!msg) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Descreva o problema antes de enviar.'); return; }
+  const log = document.getElementById('sp-log')?.textContent || _gerarLogSuporte();
+  const body = [msg, '', '---', log].join('\n');
+  const subject = 'Bug/Suporte — Pintor Plus';
+  const mailto = `mailto:suporte@pintorplus.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(mailto);
+  document.getElementById('modal-suporte').style.display = 'none';
+  if (_supportImages.length) {
+    setTimeout(() => toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Lembre-se de anexar as imagens ao email!'), 600);
+  }
+}
+

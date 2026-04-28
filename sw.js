@@ -1,174 +1,135 @@
-// ============================================
-// PINTOR PLUS - SERVICE WORKER
-// ============================================
-
-const CACHE_NAME = 'pintor-plus-v1';
-const OFFLINE_URL = '/offline.html';
-
-// Files to cache during installation
-const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/css/styles.css',
-  '/js/app_main.js',
-  '/js/app_script.js',
-  '/js/db.js',
-  '/js/sync.js',
-  '/js/pdfgen.js',
-  '/js/index.js'
+const CACHE_NAME = 'pintorplus-v16';
+const STATIC_ASSETS = [
+  'https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap'
 ];
 
-// Install service worker and cache files
-self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+self.addEventListener('install', (evt) => {
+  evt.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+  self.skipWaiting();
+});
 
+self.addEventListener('activate', (evt) => {
+  evt.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+// ── Notificações em background ───────────────────────────────────────────
+let _pendingAlarms = [];
+
+function _msUntilAlarm(ev) {
+  const evDate = new Date(`${ev.dat}T${ev.hora}`);
+  let alertTime = new Date(evDate.getTime());
+  const val = parseInt(ev.avisoVal) || 0;
+  if (val > 0) {
+    if (ev.avisoUnid === 'm') alertTime.setMinutes(alertTime.getMinutes() - val);
+    else if (ev.avisoUnid === 'h') alertTime.setHours(alertTime.getHours() - val);
+    else if (ev.avisoUnid === 'd') alertTime.setDate(alertTime.getDate() - val);
+  }
+  return alertTime.getTime() - Date.now();
+}
+
+async function _checkSWAlarms() {
+  const now = Date.now();
+  for (const ev of _pendingAlarms) {
+    if (_msUntilAlarm(ev) <= 0) {
+      await self.registration.showNotification('🔔 Pintor Plus — Lembrete', {
+        body: ev.tit,
+        icon: '/android-chrome-192x192.png',
+        badge: '/favicon-96x96.png',
+        tag: 'pp-alarm-' + ev.id,
+        renotify: true,
+        data: { evId: ev.id }
+      });
+    }
+  }
+  // Remove os que já foram disparados
+  _pendingAlarms = _pendingAlarms.filter(ev => _msUntilAlarm(ev) > 0);
+}
+
+// Recebe dados do app
+self.addEventListener('message', (event) => {
+  if (!event.data) return;
+  if (event.data.type === 'show-notification') {
+    self.registration.showNotification(event.data.title || 'Pintor Plus', {
+      body: event.data.body || '',
+      icon: '/android-chrome-192x192.png',
+      badge: '/favicon-96x96.png',
+      tag: 'pp-alarm',
+      renotify: true,
+    });
+  }
+  if (event.data.type === 'sync-alarms') {
+    _pendingAlarms = event.data.alarms || [];
+    // Agenda verificações futuras
+    _pendingAlarms.forEach(ev => {
+      const ms = _msUntilAlarm(ev);
+      if (ms > 0 && ms < 86400000) { // só agenda para as próximas 24h
+        setTimeout(() => _checkSWAlarms(), ms + 1000);
+      }
+    });
+  }
+});
+
+// Clique na notificação → abre o app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('[SW] Caching core files');
-        return cache.addAll(FILES_TO_CACHE);
-      })
-      .then(() => {
-        console.log('[SW] Service worker installed');
-        return self.skipWaiting();
-      })
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      const appClient = clients.find(c => c.url.includes('pintorplus') || c.url.includes('app.html'));
+      if (appClient) return appClient.focus();
+      return self.clients.openWindow('/app.html#pg-agenda');
+    })
   );
 });
 
-// Activate service worker and clean old caches
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
-
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames
-            .filter((cacheName) => cacheName !== CACHE_NAME)
-            .map((cacheName) => caches.delete(cacheName))
-        );
-      })
-      .then(() => {
-        console.log('[SW] Service worker activated');
-        return self.clients.claim();
-      })
-  );
+// Periodic Background Sync (Chrome Android — instalado como PWA)
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'pp-check-alarms') {
+    event.waitUntil(_checkSWAlarms());
+  }
 });
 
-// Fetch event - serve from cache, fallback to network
-self.addEventListener('fetch', (event) => {
-  // Skip cross-origin requests
-  if (!event.request.url.startsWith(self.location.origin)) {
+self.addEventListener('fetch', (evt) => {
+  // Aproveita cada requisição de rede para verificar alarmes pendentes
+  if (_pendingAlarms.length > 0) _checkSWAlarms();
+
+  const url = evt.request.url;
+
+  // Nunca cachear chamadas a APIs externas (Google, OAuth, Drive etc.)
+  if (!url.startsWith(self.location.origin) && !url.startsWith('https://fonts.')) {
+    evt.respondWith(fetch(evt.request));
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
+  // Páginas HTML principais: network-first (sempre busca versão atualizada)
+  if (url.endsWith('/') || url.includes('index.html') || url.includes('app.html') || url === self.location.origin + '/') {
+    evt.respondWith(
+      fetch(evt.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(evt.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(evt.request))
+    );
+    return;
+  }
 
-        // Return online or offline page
-        return fetch(event.request)
-          .then((networkResponse) => {
-            // Cache successful requests
-            if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
-              const responseClone = networkResponse.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseClone);
-                });
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // If offline, try to serve offline page
-            if (event.request.mode === 'navigate') {
-              return caches.match(OFFLINE_URL);
-            }
-            return caches.match(event.request);
-          });
-      })
-  );
-});
-
-// Handle push notifications (if implemented)
-self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received:', event);
-
-  const options = {
-    body: event.data ? event.data.text() : 'Nova notificação do Pintor Plus',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification('Pintor Plus', options)
-  );
-});
-
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event);
-
-  event.notification.close();
-
-  event.waitUntil(
-    clients.matchAll({
-      type: 'window'
-    })
-    .then((clientList) => {
-      if (clientList.length > 0) {
-        // Focus existing window
-        return clientList[0].focus();
-      }
-      // Open new window
-      return clients.openWindow('/');
+  // Demais ativos locais e fontes: cache-first
+  evt.respondWith(
+    caches.match(evt.request).then((cachedResp) => {
+      return cachedResp || fetch(evt.request).then((response) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(evt.request, response.clone());
+          return response;
+        });
+      });
     })
   );
 });
-
-// Background sync (for syncing data when connection is restored)
-self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync event:', event);
-
-  if (event.tag === 'sync-data') {
-    event.waitUntil(
-      // This would trigger data synchronization
-      // For now, we'll just log it
-      new Promise((resolve) => {
-        console.log('[SW] Performing background sync');
-        resolve();
-      })
-    );
-  }
-});
-
-// Periodic background sync (for periodic updates)
-self.addEventListener('periodicsync', (event) => {
-  console.log('[SW] Periodic background sync:', event);
-
-  if (event.tag === 'update-data') {
-    event.waitUntil(
-      new Promise((resolve) => {
-        console.log('[SW] Performing periodic sync');
-        resolve();
-      })
-    );
-  }
-});
-
-// Export for use in other modules (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { CACHE_NAME, OFFLINE_URL, FILES_TO_CACHE };
-}
