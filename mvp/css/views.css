@@ -1,0 +1,318 @@
+/* ── VIEW HEADER ── */
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-top: var(--space-sm);
+}
+
+.view-header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ── SEARCH ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: var(--space-md);
+}
+
+.search-wrap svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  width: 18px; height: 18px;
+  pointer-events: none;
+}
+
+.search-wrap input {
+  padding-left: 42px;
+  padding-right: 40px;
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  display: none;
+}
+
+.search-clear.visible { display: block; }
+
+/* ── LIST ── */
+.list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── ORC CARD ── */
+.orc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.orc-card:active { box-shadow: none; }
+
+.orc-card-body { flex: 1; min-width: 0; }
+
+.orc-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.orc-card-phone {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.orc-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.orc-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.orc-total {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.orc-date {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.ctx-trigger {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── FORM ── */
+.form-view-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding-top: var(--space-sm);
+}
+
+.back-btn {
+  background: var(--surface-soft);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.form-view-header h1 { font-size: 20px; font-weight: 800; }
+
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  box-shadow: var(--shadow);
+}
+
+.form-section-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-md);
+}
+
+.form-grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 480px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ── ITEM CARD (dentro do form) ── */
+.item-card {
+  background: var(--surface-soft);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px var(--space-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+}
+
+.item-card-body { flex: 1; min-width: 0; }
+
+.item-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.item-card-measure {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.item-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.item-del-btn {
+  background: transparent;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  padding: 4px;
+  opacity: 0.7;
+}
+
+/* ── FORM STICKY BOTTOM ── */
+.form-bottom-bar {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  position: sticky;
+  bottom: calc(var(--nav-h) + var(--safe-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  margin: 0 calc(-1 * var(--space-md));
+  margin-top: var(--space-lg);
+}
+
+/* ── CLIENTE CARD ── */
+.cli-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  position: relative;
+}
+
+.cli-card-body { flex: 1; min-width: 0; }
+
+.cli-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cli-phone {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ── AREA BADGE ── */
+.area-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--success);
+  background: var(--success-bg);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+/* ── TOTAL CALC HINT ── */
+.total-hint {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--success);
+  background: var(--success-bg);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-top: var(--space-sm);
+}
+
+/* ── FILTER ROW ── */
+.filter-row {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  border-color: transparent;
+  color: #fff;
+}
