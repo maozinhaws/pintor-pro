@@ -68,7 +68,7 @@ function maskCep(input: HTMLInputElement): void {
   input.value = digits.length > 5 ? digits.slice(0, 5) + '-' + digits.slice(5) : digits;
   const msg = document.getElementById('cep-msg');
   if (msg) msg.style.display = 'none';
-  if (digits.length === 8) { clearTimeout(_cepTimer); _cepTimer = setTimeout(() => fetchCep(digits), 400); }
+  if (digits.length === 8) { clearTimeout(_cepTimer); _cepTimer = setTimeout(() => fetchCep(digits), 500); }
 }
 
 async function fetchCep(cep: string): Promise<void> {

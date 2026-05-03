@@ -23,14 +23,14 @@
 | XSS-08 | BAIXA | `agenda.ts:217` | Injeção de formato ICS via `e.tit` | ✅ Fixado |
 | RL-01 | ALTA | `gauth.ts:108` | `uploadToDrive` sem rate limiting | ✅ Corrigido (1,5s cooldown) |
 | RL-02 | ALTA | `gauth.ts:161` | `uploadBudgetPhotos` sem limite de fotos | ✅ Corrigido (máx 20 fotos) |
-| RL-03 | MÉDIA | `data.ts:100`, `appConfig.ts:69` | CEP sem debounce — 9 requisições externas por digitação | ⚠️ Pendente |
-| RL-04 | MÉDIA | `gauth.ts:204-207` | `downloadFromDrive` global — exfiltração via XSS | ⚠️ Pendente |
+| RL-03 | MÉDIA | `data.ts:70`, `appConfig.ts:42` | CEP debounce 500ms | ✅ Corrigido |
+| RL-04 | MÉDIA | `gauth.ts:48` | `listDriveBackups`/`downloadFromDrive` removidos do window | ✅ Corrigido |
 | SEC-01 | MÉDIA | `gauth.ts:4` | Client ID OAuth hardcoded — risco de phishing | ℹ️ Ação no GCP |
 | SEC-02 | ALTA | `appConfig.ts:487` | Backup importado sem sanitização — XSS persistente | ✅ Corrigido |
 | SEC-03 | MÉDIA | `gauth.ts:152` | `atob()` sem try/catch, MIME sem whitelist | ✅ Corrigido |
-| SEC-04 | BAIXA | `appConfig.ts:576` | CNPJ/CPF no log de suporte enviado por e-mail | ⚠️ Pendente |
-| SEC-05 | MÉDIA | `sw.js` | SW sem CSP e sem verificação de integridade | ⚠️ Pendente |
-| SEC-06 | MÉDIA | `_headers` | Headers HTTP de segurança ausentes | ⚠️ Pendente |
+| SEC-04 | BAIXA | `appConfig.ts:634` | CNPJ/CPF mascarado com `_maskDoc()` | ✅ Corrigido |
+| SEC-05 | MÉDIA | `_headers` | CSP atualizado com Google APIs | ✅ Corrigido |
+| SEC-06 | MÉDIA | `_headers` | Headers HTTP de segurança ausentes | ✅ Fixado |
 
 ---
 
@@ -167,17 +167,13 @@ Recibo é renderizado em nova aba e salvo no Google Drive como `.html`. Campos c
 
 ## Vulnerabilidades Pendentes (MÉDIA/BAIXA)
 
-### XSS-07 — Modal de suporte com campos sem escape (MÉDIA)
-**Arquivo:** `src/ui.ts:769`, `src/appConfig.ts:626`  
-**Fix recomendado:**
-```typescript
-infoEl.innerHTML = [cfg.nome, cfg.tel, cfg.cnpj]
-  .filter(Boolean).map(v => esc(String(v))).join('<br>') || '—';
-```
+### XSS-07 — Modal de suporte com campos sem escape (MÉDIA) ✅ FIXADO
+**Arquivo:** `src/ui.ts:776`, `src/appConfig.ts:671`
+**Aplicado:** Todos os campos (`nome`, `tel`, `cnpj`, `name`, `email`) já usam `esc()`.
 
-### XSS-08 — Injeção de formato ICS (BAIXA)
-**Arquivo:** `src/agenda.ts:217`  
-**Fix recomendado:**
+### XSS-08 — Injeção de formato ICS (BAIXA) ✅ FIXADO
+**Arquivo:** `src/agenda.ts:215-216`
+**Aplicado:**
 ```typescript
 const safeTit = e.tit.replace(/[;:\\,\n]/g, ' ');
 const ics = `...SUMMARY:${safeTit}\n...`;
@@ -203,12 +199,9 @@ const ics = `...SUMMARY:${safeTit}\n...`;
 Content-Security-Policy: default-src 'self'; script-src 'self' https://accounts.google.com https://apis.google.com; connect-src 'self' https://www.googleapis.com https://brasilapi.com.br https://viacep.com.br https://opencep.com https://api.rss2json.com; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline';
 ```
 
-### SEC-06 — Headers HTTP de segurança ausentes (MÉDIA)
-**Fix recomendado:**
+### SEC-06 — Headers HTTP de segurança ausentes (MÉDIA) ✅ FIXADO
+**Aplicado em:** `_headers:8`, `vercel.json:17`
 ```
-X-Frame-Options: DENY
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 ```
 

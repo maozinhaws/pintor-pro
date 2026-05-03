@@ -45,5 +45,4 @@ export async function backupToDrive(): Promise<boolean> { return false; }
 (window as any).backupToDrive = backupToDrive;
 (window as any).uploadBudgetPhotos = uploadBudgetPhotos;
 (window as any).uploadClientList = uploadClientList;
-(window as any).listDriveBackups = listDriveBackups;
-(window as any).downloadFromDrive = downloadFromDrive;
+// listDriveBackups e downloadFromDrive NÃO expostos no window (RL-04: mitigar exfiltração via XSS)
