@@ -1,0 +1,52 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist/
+build/
+.vite/
+
+# Ambiente
+.env
+.env.local
+.env.*.local
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Backup / temporários
+*.bak
+*.tmp
+*.zip
+
+# Overclock / Claude Code internos
+.claude/
+.overclock-app/
+overclock-skill/
+_panel_output.json
+_panel_panes.json
+_panel_queue.json
+auto-refresh.mjs
+chat-watcher.mjs
+monitor.mjs
+panel-queue-processor.mjs
+panel-server.mjs
+panel.html
+push-output.mjs
+*.db
+*.db-shm
+*.db-wal
+
+# TypeScript
+*.tsbuildinfo
