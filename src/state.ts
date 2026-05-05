@@ -33,6 +33,7 @@ export const S = {
   statusArr: [] as string[],
   isDirty: false,
   tempItem: null as any,
+  googleEmail: '' as string,
 };
 
 // Fix legacy config

@@ -4736,41 +4736,11 @@ function hideSpinner() {
 window.showSpinner = showSpinner;
 window.hideSpinner = hideSpinner;
 
-// ── Google Drive UI ──
-function renderGoogleStatus() {
-  const signedIn = window.isGSignedIn?.() || false;
-  const email = (window.S?.googleEmail) || localStorage.getItem('pp-google-email') || '';
-
-  const cfgWrap = document.getElementById('gdrive-cfg-status');
-  const bkpWrap = document.getElementById('gdrive-backup-btns');
-  const bkpInfo = document.getElementById('gdrive-backup-info');
-
-  if (cfgWrap) {
-    if (signedIn) {
-      cfgWrap.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#4285F4,#34A853);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;flex-shrink:0;">${(email||'G').charAt(0).toUpperCase()}</div><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--gn);">✓ Conectado</div><div style="font-size:12px;color:var(--ink3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${email}</div></div><button onclick="gSignOut()" style="padding:6px 12px;border-radius:8px;background:var(--rdl);border:1.5px solid var(--rd);color:var(--rd);font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">Desconectar</button></div>`;
-    } else {
-      cfgWrap.innerHTML = `<div style="font-size:12px;color:var(--ink3);margin-bottom:12px;line-height:1.5;">Conecte para salvar backups, PDFs e fotos no seu Google Drive.</div><button onclick="gDriveConnect()" style="width:100%;height:46px;border-radius:12px;background:#fff;border:2px solid #4285F4;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#4285F4;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Entrar com Google</button>`;
-    }
-  }
-
-  if (bkpWrap) {
-    if (signedIn) {
-      if (bkpInfo) bkpInfo.textContent = `Conectado como ${email}. Seus arquivos ficam em "Pintor Plus" no Drive.`;
-      bkpWrap.innerHTML = `
-        <button onclick="gDriveBackup()" style="width:100%;height:48px;border-radius:12px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Salvar Backup no Drive</button>
-        <button onclick="gDriveRestoreList()" style="width:100%;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">📂 Restaurar do Drive</button>
-        <button onclick="gDriveUploadPhotos()" style="width:100%;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">🖼️ Upload Fotos dos Orçamentos</button>
-        <button onclick="gDriveSyncClientes()" style="width:100%;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">👥 Sincronizar Lista de Clientes</button>`;
-    } else {
-      if (bkpInfo) bkpInfo.textContent = 'Salve backups, orçamentos (PDF) e fotos diretamente no seu Google Drive.';
-      bkpWrap.innerHTML = `<button onclick="gDriveConnect()" style="width:100%;height:48px;border-radius:12px;background:#fff;border:2px solid #4285F4;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#4285F4;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Entrar com Google para habilitar</button>`;
-    }
-  }
-}
+// ── Google Drive UI ── (renderGoogleStatus vive em src/ui.ts, exposto via window)
 
 async function gDriveConnect() {
   const token = await window.gSignIn?.();
-  if (token) renderGoogleStatus();
+  if (token) window.renderGoogleStatus?.();
 }
 
 async function gDriveBackup() {
@@ -4835,7 +4805,6 @@ async function gDriveSyncClientes() {
     : '<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Falha ao sincronizar clientes.');
 }
 
-window.renderGoogleStatus = renderGoogleStatus;
 
 </script>
 <div id="spinner-overlay">

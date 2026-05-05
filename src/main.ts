@@ -110,5 +110,23 @@ function closeDelConfirm(proceed: boolean): void {
 window.addEventListener('load', () => {
   try { history.replaceState({ page: 'pg-home' }, '', location.href); } catch {}
   initGAuth();
+
+  // OAuth callback — após redirect Google/Supabase, o hash contém #access_token
+  if (location.hash.includes('access_token')) {
+    (async () => {
+      const client = (window as any).supabaseClient;
+      if (client) {
+        const { data } = await client.auth.getSession();
+        if (data?.session?.user?.email) {
+          S.googleEmail = data.session.user.email;
+          localStorage.setItem('pp-google-email', S.googleEmail);
+          (window as any).renderGoogleStatus?.();
+        }
+      }
+      // limpa o hash da URL sem recarregar
+      history.replaceState(null, '', location.pathname + location.search);
+    })();
+  }
+
   window.dispatchEvent(new Event('pp-ready'));
 });
