@@ -1,0 +1,50 @@
+[
+  {
+    "id": "chat",
+    "label": "Chat",
+    "model": "claude-sonnet-4-6",
+    "status": "running"
+  },
+  {
+    "id": "G3U2d4pogRWv",
+    "label": "[Orquestrador]",
+    "model": "claude-sonnet-4-6",
+    "status": "running"
+  },
+  {
+    "id": "MIjamK1H",
+    "label": "Haiku - CHANGELOG",
+    "model": "claude-haiku-4-5",
+    "status": "running"
+  },
+  {
+    "id": "3WMCuokr",
+    "label": "Mimo - Review",
+    "model": "mimo-v2.5-pro",
+    "status": "running"
+  },
+  {
+    "id": "kB2EUxFx",
+    "label": "Mimo - gauth",
+    "model": "mimo-v2.5-pro",
+    "status": "running"
+  },
+  {
+    "id": "qZ7j4CKp",
+    "label": "Mimo - aux",
+    "model": "mimo-v2.5-pro",
+    "status": "running"
+  },
+  {
+    "id": "xj0_nLYA",
+    "label": "Claude - FINAL",
+    "model": "claude-sonnet-4-6",
+    "status": "running"
+  },
+  {
+    "id": "0C2SUNSO",
+    "label": "Claude - Github",
+    "model": "claude-sonnet-4-6",
+    "status": "running"
+  }
+]

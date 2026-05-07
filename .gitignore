@@ -1,25 +1,52 @@
 # Dependências
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Dados internos do Claude Code
-.claude/
+# Build
+dist/
+build/
+.vite/
 
-# Arquivos de desenvolvimento local
-_replace_icons.py
-recibo-teste.html
+# Ambiente
+.env
+.env.local
+.env.*.local
 
-# Pasta de deploy Netlify (arquivos temporários)
-DEPLOY NETLIFY/
-
-# Native App Project — node_modules
-Native_App_Project/node_modules/
-
-# Capacitor generated platforms (generated via npx cap add)
-Native_App_Project/android/
-Native_App_Project/ios/
-Native_App_Project/dist/
-
-# Misc
-*.log
+# Editores
+.vscode/
+.idea/
+*.swp
+*.swo
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Backup / temporários
+*.bak
+*.tmp
+*.zip
+
+# Overclock / Claude Code internos
+.claude/
+.overclock-app/
+overclock-skill/
+_panel_output.json
+_panel_panes.json
+_panel_queue.json
+auto-refresh.mjs
+chat-watcher.mjs
+monitor.mjs
+panel-queue-processor.mjs
+panel-server.mjs
+panel.html
+push-output.mjs
+*.db
+*.db-shm
+*.db-wal
+
+# TypeScript
+*.tsbuildinfo

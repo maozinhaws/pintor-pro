@@ -1,0 +1,450 @@
+[
+  {
+    "id": 1777749327696,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.111Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327755,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.159Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327776,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.217Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327821,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.243Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327840,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.283Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327864,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.305Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749327887,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:28.326Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329756,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.187Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329776,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.218Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329801,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.239Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329823,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.264Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329843,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.285Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329867,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.306Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749329888,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:30.330Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331604,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.041Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331626,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.069Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331646,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.088Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331666,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.108Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331686,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.128Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331706,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.149Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749331730,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.169Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332508,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.939Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332529,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.972Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332551,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:32.991Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332573,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:33.014Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332593,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:33.035Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332614,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:33.055Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749332634,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:15:33.075Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749528809,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:43.112Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533678,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.102Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533694,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.130Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533707,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.143Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533720,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.157Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533740,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.169Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533762,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.190Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749533785,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:18:54.211Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638313,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.739Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638329,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.768Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638342,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.779Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638363,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.793Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638383,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.814Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638402,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.834Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749638424,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:20:38.855Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777749669686,
+    "paneId": "G3U2d4pogRWv",
+    "command": "Teste de envio de comando pelo painel através do tunnel",
+    "ts": "2026-05-02T19:21:10.103Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155245,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.663Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155262,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.699Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155275,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.710Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155294,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.723Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155314,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.743Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155336,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.763Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750155356,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:29:15.785Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750223314,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:30:23.739Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750227415,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:30:27.819Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750231782,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:30:32.192Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750234187,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:30:34.616Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750236311,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:30:36.721Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750271130,
+    "paneId": "MIjamK1H",
+    "command": "O que você está fazendo nesse momento?",
+    "ts": "2026-05-02T19:31:11.537Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750275969,
+    "paneId": "G3U2d4pogRWv",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.344Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750275995,
+    "paneId": "MIjamK1H",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.422Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750276019,
+    "paneId": "3WMCuokr",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.443Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750276043,
+    "paneId": "kB2EUxFx",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.468Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750276063,
+    "paneId": "qZ7j4CKp",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.491Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750276083,
+    "paneId": "xj0_nLYA",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.512Z",
+    "status": "pending"
+  },
+  {
+    "id": 1777750276106,
+    "paneId": "0C2SUNSO",
+    "command": "READ_OUTPUT",
+    "ts": "2026-05-02T19:31:16.531Z",
+    "status": "pending"
+  }
+]

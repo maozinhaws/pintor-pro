@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Painel OCk</title>
+<style>
+:root{--bg:#080808;--bg2:#101010;--bg3:#181818;--bdr:#1e1e1e;--ink:#d0d0d0;--ink2:#666;--ink3:#333;--red:#e03030;--or:#e07030;--gn:#00c070;--bl:#3377ee;--pu:#8844ee;--yw:#e0b020;--mono:'JetBrains Mono','Fira Code',monospace;--safe:env(safe-area-inset-bottom,0px)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;height:100dvh;background:var(--bg);color:var(--ink);font-family:var(--mono);overflow:hidden;font-size:13px}
+
+/* TOP BAR */
+.topbar{height:44px;background:#0a0a0a;border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 14px;gap:10px;flex-shrink:0;padding-top:env(safe-area-inset-top,0)}
+.tb-logo{font-size:13px;font-weight:700;color:var(--red);letter-spacing:-0.3px}
+.tb-sub{font-size:11px;color:var(--ink2);flex:1}
+.tb-live{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--ink2)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--gn);flex-shrink:0}
+.dot.off{background:var(--ink3)}.dot.busy{background:var(--yw);animation:pulse .6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* LAYOUT: panes row + detail */
+.body{display:flex;flex-direction:column;height:calc(100dvh - 44px)}
+
+/* PANE TABS (horizontal scroll at top) */
+.pane-tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--bdr);background:#0a0a0a;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.pane-tabs::-webkit-scrollbar{display:none}
+.ptab{display:flex;flex-direction:column;align-items:flex-start;padding:8px 14px;border-right:1px solid var(--bdr);cursor:pointer;min-width:120px;border-bottom:2px solid transparent;flex-shrink:0;position:relative;gap:2px}
+.ptab.on{border-bottom-color:var(--red);background:#0d0d0d}
+.ptab-model{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:.5px;text-transform:uppercase}
+.ch-c{background:#e0303018;color:var(--red);border:1px solid #e0303030}
+.ch-m{background:#8844ee18;color:var(--pu);border:1px solid #8844ee30}
+.ch-h{background:#00c07018;color:var(--gn);border:1px solid #00c07030}
+.ch-g{background:#3377ee18;color:var(--bl);border:1px solid #3377ee30}
+.ptab-id{font-size:10px;color:var(--ink2)}
+.ptab-desc{font-size:10px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+.ptab-dot{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--ink3)}
+.ptab-dot.ok{background:var(--gn)}.ptab-dot.busy{background:var(--yw);animation:pulse .6s infinite}
+.ptab-add{padding:8px 14px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink3);cursor:pointer;min-width:44px;flex-shrink:0}
+.ptab-add:hover{color:var(--ink2)}
+
+/* TERMINAL VIEW */
+.term-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.term-hdr{padding:6px 12px;background:#0a0a0a;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;font-size:11px;flex-shrink:0}
+.term-hdr-l{display:flex;align-items:center;gap:8px;color:var(--ink2)}
+.term-hdr-r{display:flex;gap:6px}
+.tbtn{background:none;border:1px solid var(--bdr);border-radius:4px;padding:4px 10px;font-family:var(--mono);font-size:10px;color:var(--ink2);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tbtn:active{background:var(--bg3)}
+.tbtn.red{border-color:#e0303030;color:var(--red)}
+.terminal{flex:1;overflow-y:auto;padding:10px 12px;font-size:11.5px;line-height:1.7;background:var(--bg);-webkit-overflow-scrolling:touch;word-break:break-word}
+.terminal::-webkit-scrollbar{display:none}
+.tl{white-space:pre-wrap;color:#bbb}
+.tl.cmd{color:var(--or)}.tl.sys{color:var(--ink3);font-style:italic}.tl.err{color:var(--red)}.tl.ok{color:var(--gn)}
+.ts{color:var(--ink3);font-size:9px;margin-right:6px;user-select:none}
+
+/* QUICK CMDS */
+.qrow{display:flex;overflow-x:auto;gap:6px;padding:6px 10px;border-top:1px solid var(--bdr);background:#0a0a0a;flex-shrink:0;-webkit-overflow-scrolling:touch}
+.qrow::-webkit-scrollbar{display:none}
+.qb{flex-shrink:0;font-size:11px;padding:6px 10px;border-radius:5px;border:1px solid var(--bdr);background:var(--bg2);color:var(--ink2);cursor:pointer;font-family:var(--mono);white-space:nowrap}
+.qb:active{background:var(--bg3);color:var(--ink)}
+
+/* INPUT */
+.ibar{display:flex;gap:8px;padding:8px 12px;padding-bottom:calc(8px + var(--safe));border-top:1px solid var(--bdr);background:#0a0a0a;flex-shrink:0}
+.ci{flex:1;background:#141414;border:1px solid var(--bdr);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--ink);outline:none;-webkit-appearance:none}
+.ci:focus{border-color:#2a2a2a}
+.ci::placeholder{color:var(--ink3)}
+.sbtn{background:var(--red);color:#fff;border:none;border-radius:6px;padding:10px 16px;font-size:16px;cursor:pointer;flex-shrink:0;min-width:44px}
+.sbtn:disabled{opacity:.3}
+
+/* QUEUE INDICATOR */
+.queue-bar{padding:5px 12px;background:#0d0a00;border-top:1px solid #2a1a00;font-size:10px;color:var(--yw);display:none;flex-shrink:0}
+
+/* EMPTY */
+.empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--ink3)}
+.empty-icon{font-size:40px;opacity:.2}
+
+/* ADD PANE MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#0f0f0f;border:1px solid var(--bdr);border-radius:16px 16px 0 0;padding:20px 16px;width:100%;max-width:500px;padding-bottom:calc(20px + var(--safe))}
+.modal h3{font-size:14px;color:var(--ink);margin-bottom:16px;font-weight:700}
+.mi{width:100%;background:#1a1a1a;border:1px solid var(--bdr);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:13px;color:var(--ink);outline:none;margin-bottom:10px;-webkit-appearance:none}
+.mi::placeholder{color:var(--ink3)}
+.mi:focus{border-color:#333}
+.mbtns{display:flex;gap:8px;margin-top:4px}
+.mbtn-add{flex:1;background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px;font-family:var(--mono);font-size:13px;font-weight:700;cursor:pointer}
+.mbtn-cancel{flex:1;background:var(--bg3);color:var(--ink2);border:1px solid var(--bdr);border-radius:8px;padding:12px;font-family:var(--mono);font-size:13px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="tb-logo">OCk</div>
+  <div class="tb-sub">Overclock Remote</div>
+  <div class="tb-live">
+    <span class="dot off" id="live-dot"></span>
+    <span id="live-txt">conectando...</span>
+  </div>
+  <button class="tbtn" onclick="reqRefreshAll()" title="Ler todos os agentes" style="font-size:14px;padding:4px 8px;margin-left:6px">⟳</button>
+</div>
+
+<div class="body">
+  <!-- PANE TABS -->
+  <div class="pane-tabs" id="pane-tabs">
+    <div class="ptab-add" onclick="showAddModal()">＋</div>
+  </div>
+
+  <!-- TERMINAL -->
+  <div class="term-wrap" id="tw">
+    <div class="empty" id="empty">
+      <div class="empty-icon">⬡</div>
+      <div style="font-size:12px">Nenhum agente selecionado</div>
+      <div style="font-size:11px;color:var(--ink3)">Toque em ＋ para adicionar</div>
+    </div>
+    <div id="pv" style="display:none;flex-direction:column;height:100%">
+      <div class="term-hdr">
+        <div class="term-hdr-l">
+          <span class="ptab-model" id="v-chip"></span>
+          <span id="v-id" style="color:var(--ink3);font-size:10px"></span>
+          <span id="v-desc" style="color:var(--ink2)"></span>
+        </div>
+        <div class="term-hdr-r">
+          <button class="tbtn" onclick="clearPaneHistory()" title="Limpar histórico">🗑</button>
+          <button class="tbtn" onclick="reqRefresh()">↺</button>
+          <button class="tbtn red" onclick="removePane()">✕</button>
+        </div>
+      </div>
+      <div class="terminal" id="term"></div>
+      <div class="queue-bar" id="qbar"></div>
+      <div class="qrow">
+        <button class="qb" onclick="sq('/caveman full')">/caveman full</button>
+        <button class="qb" onclick="sq('/caveman ultra')">/caveman ultra</button>
+        <button class="qb" onclick="sq('continue')">continue</button>
+        <button class="qb" onclick="sq('/clear')">/clear</button>
+        <button class="qb" onclick="sq('npx tsc --noEmit')">tsc</button>
+        <button class="qb" onclick="sq('cat CHANGELOG.md')">changelog</button>
+        <button class="qb" onclick="sq('git status')">git status</button>
+        <button class="qb" onclick="sq('READ_OUTPUT')">ler output</button>
+      </div>
+      <div class="ibar">
+        <input class="ci" id="ci" placeholder="Enviar para o agente..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}">
+        <button class="sbtn" id="sbtn" onclick="send()">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PANE MODAL -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)hideModal()">
+  <div class="modal">
+    <h3>Adicionar Agente</h3>
+    <input class="mi" id="mi-id" placeholder="Pane ID (ex: MIjamK1H)" maxlength="8" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <input class="mi" id="mi-desc" placeholder="Descrição (ex: Changelog Keeper)" autocorrect="off">
+    <select class="mi" id="mi-model">
+      <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+      <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
+      <option value="claude-opus-4-7">Claude Opus 4.7</option>
+      <option value="mimo-v2.5-pro">Mimo v2.5-pro</option>
+      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+    </select>
+    <div class="mbtns">
+      <button class="mbtn-cancel" onclick="hideModal()">Cancelar</button>
+      <button class="mbtn-add" onclick="addPane()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/panel-api';
+let panes = [], sel = null, out = {}, pendingQ = [];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const ts = () => new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function chipCls(m){ if(!m)return'ch-c'; if(m.includes('haiku'))return'ch-h'; if(m.includes('mimo'))return'ch-m'; if(m.includes('gemini'))return'ch-g'; return'ch-c'; }
+function chipLbl(m){ if(!m)return'SONNET'; if(m.includes('haiku'))return'HAIKU'; if(m.includes('opus'))return'OPUS'; if(m.includes('mimo-v2.5'))return'MIMO 2.5'; if(m.includes('gemini'))return'GEMINI'; return'SONNET'; }
+
+// ── SSE ──────────────────────────────
+let sse = null;
+function connectSSE() {
+  sse = new EventSource(API + '/stream');
+  sse.addEventListener('init', e => {
+    const d = JSON.parse(e.data);
+    if (d.output) out = d.output;
+    if (d.panes?.length) { panes = d.panes; renderTabs(); }
+    if (d.queue) updateQueueBar(d.queue);
+    setLive(true);
+    if (sel) renderTerm();
+  });
+  sse.addEventListener('output', e => {
+    const d = JSON.parse(e.data);
+    out[d.paneId] = { lines: d.lines, ts: d.ts };
+    renderTabs();
+    if (sel?.id === d.paneId) renderTerm();
+  });
+  sse.addEventListener('queue', e => { pendingQ = JSON.parse(e.data); updateQueueBar(pendingQ); });
+  sse.addEventListener('panes', e => { panes = JSON.parse(e.data); renderTabs(); });
+  sse.onerror = () => { setLive(false); setTimeout(connectSSE, 4000); };
+}
+
+function setLive(ok) {
+  $('live-dot').className = 'dot' + (ok ? '' : ' off');
+  $('live-txt').textContent = ok ? 'ao vivo' : 'reconectando...';
+}
+
+// ── RENDER ────────────────────────────
+function renderTabs() {
+  const el = $('pane-tabs');
+  el.innerHTML = panes.map((p, i) => `
+    <div class="ptab ${sel?.id === p.id ? 'on' : ''}" onclick="selPane(${i})">
+      <span class="ptab-model ptab ${chipCls(p.model)}">${chipLbl(p.model)}</span>
+      <span class="ptab-id">${p.id}</span>
+      <span class="ptab-desc">${p.label || p.desc || '—'}</span>
+      <span class="ptab-dot ${out[p.id] ? 'ok' : ''}"></span>
+    </div>`).join('') + '<div class="ptab-add" onclick="showAddModal()">＋</div>';
+}
+
+function selPane(i) {
+  sel = panes[i]; renderTabs();
+  $('empty').style.display = 'none';
+  const pv = $('pv'); pv.style.display = 'flex'; pv.style.flexDirection = 'column'; pv.style.height = '100%';
+  const ch = $('v-chip'); ch.className = 'ptab-model ptab ' + chipCls(sel.model); ch.textContent = chipLbl(sel.model);
+  $('v-id').textContent = sel.id; $('v-desc').textContent = sel.label || sel.desc || '';
+  renderTerm();
+  updateQueueBar(pendingQ);
+}
+
+function renderTerm() {
+  if (!sel) return;
+  const term = $('term'), o = out[sel.id];
+  if (!o?.lines?.length) {
+    term.innerHTML = '<div class="tl sys">⬡ Aguardando output. Toque em ↺ ou ⟳ (topo) para solicitar leitura.</div>'; return;
+  }
+  const lines = o.lines.slice(-300);
+  const tsStr = o.ts ? new Date(o.ts).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '';
+  term.innerHTML =
+    `<div class="tl sys">── snapshot ${tsStr} ──</div>` +
+    lines.map(l => {
+      const t = l.trim();
+      const cls = t.startsWith('●') || t.startsWith('✅') || t.includes('ok') ? 'ok'
+                : t.startsWith('✗') || t.startsWith('⚠') || t.includes('err') ? 'err'
+                : t.startsWith('>') || t.startsWith('$') ? 'cmd' : '';
+      return `<div class="tl ${cls}">${esc(l)}</div>`;
+    }).join('') +
+    `<div class="tl sys">── fim ──</div>`;
+  term.scrollTop = term.scrollHeight;
+}
+
+function addLine(text, cls = '') {
+  const term = $('term');
+  const d = document.createElement('div'); d.className = 'tl ' + cls;
+  d.innerHTML = `<span class="ts">${ts()}</span>${esc(text)}`;
+  term.appendChild(d); term.scrollTop = term.scrollHeight;
+}
+
+function updateQueueBar(q) {
+  const mine = (q || []).filter(c => c.paneId === sel?.id && c.status === 'pending');
+  const bar = $('qbar');
+  if (mine.length) { bar.style.display = ''; bar.textContent = `⏳ ${mine.length} na fila: ${mine.map(c => c.command).join(' · ')}`; }
+  else { bar.style.display = 'none'; }
+  const total = (q || []).filter(c => c.status === 'pending').length;
+  $('live-txt').textContent = total ? `fila: ${total}` : 'ao vivo';
+}
+
+// ── SEND ─────────────────────────────
+async function send() {
+  const ci = $('ci'), cmd = ci.value.trim();
+  if (!cmd || !sel) return;
+  ci.value = ''; $('sbtn').disabled = true;
+  addLine('› ' + cmd, 'cmd');
+  try {
+    await fetch(API + '/command', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paneId: sel.id, command: cmd, ts: new Date().toISOString() }) });
+    addLine('⏳ Enfileirado. Orquestrador executará em breve.', 'sys');
+  } catch { addLine('⚠️ API offline.', 'err'); }
+  $('sbtn').disabled = false;
+}
+
+function sq(cmd) { if (!sel) return; $('ci').value = cmd; send(); }
+
+async function reqRefresh() {
+  await fetch(API + '/command', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paneId: sel?.id, command: 'READ_OUTPUT', ts: new Date().toISOString() }) }).catch(() => {});
+  addLine('📡 Pedido de leitura enviado ao orquestrador.', 'sys');
+}
+
+async function clearPaneHistory() {
+  if (!sel) return;
+  await fetch(API + '/output/reset', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ paneId: sel.id, lines: [] }) }).catch(() => {});
+  out[sel.id] = { lines: [], ts: new Date().toISOString() };
+  renderTerm();
+}
+
+// ── PANE MANAGEMENT ──────────────────
+function showAddModal() { $('modal').classList.add('show'); $('mi-id').focus(); }
+function hideModal() { $('modal').classList.remove('show'); }
+
+async function addPane() {
+  const id = $('mi-id').value.trim(), desc = $('mi-desc').value.trim(), model = $('mi-model').value;
+  if (!id) return;
+  if (panes.find(p => p.id === id)) { alert('Já existe'); return; }
+  panes.push({ id, desc, model });
+  await fetch(API + '/panes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(panes) }).catch(() => {});
+  hideModal(); renderTabs();
+  $('mi-id').value = ''; $('mi-desc').value = '';
+  selPane(panes.length - 1);
+}
+
+async function removePane() {
+  if (!sel) return;
+  panes = panes.filter(p => p.id !== sel.id);
+  await fetch(API + '/panes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(panes) }).catch(() => {});
+  sel = null; renderTabs();
+  $('pv').style.display = 'none'; $('empty').style.display = 'flex';
+}
+
+// ── REFRESH ALL ──────────────────────
+async function reqRefreshAll() {
+  for (const p of panes) {
+    await fetch(API + '/command', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paneId: p.id, command: 'READ_OUTPUT', ts: new Date().toISOString() }) }).catch(() => {});
+  }
+  addLine(`📡 Pedido de leitura enviado para ${panes.length} agentes.`, 'sys');
+}
+
+// ── INIT ─────────────────────────────
+async function init() {
+  try { const r = await fetch(API + '/panes'); const srv = await r.json(); if (srv?.length) panes = srv; } catch {}
+  renderTabs();
+  // Auto-select first pane
+  if (panes.length) selPane(0);
+  connectSSE();
+}
+
+init();
+</script>
+</body>
+</html>
