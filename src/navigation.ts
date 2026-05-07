@@ -81,6 +81,7 @@ export function canNavigateAsync(callback: () => void): void {
 }
 
 export function toggleSidebar(): void {
+  if (window.matchMedia('(min-width:1024px)').matches) return;
   document.getElementById('sidebar')?.classList.toggle('active');
   document.getElementById('sidebar-overlay')?.classList.toggle('active');
 }

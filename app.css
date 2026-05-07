@@ -450,3 +450,13 @@ body.kb-open .title-big { font-size: 14px; }
 .ppc-btn-install:active{opacity:.85;}
 .ppc-btn-dismiss{height:42px;padding:0 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.85);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .ppc-btn-dismiss:active{background:rgba(255,255,255,.1);}
+
+/* Desktop layout (≥ 1024px): sidebar permanente à esquerda */
+@media(min-width:1024px){
+  #app{flex-direction:row;}
+  .sidebar{position:relative;transform:none !important;width:260px;flex-shrink:0;box-shadow:1px 0 0 var(--bdr);z-index:1;}
+  .sidebar-overlay{display:none !important;}
+  .sidebar-hdr > button{display:none;}
+  [onclick="toggleSidebar()"]{display:none !important;}
+  #pages{flex:1;position:relative;overflow:hidden;}
+}
