@@ -454,7 +454,7 @@ body.kb-open .title-big { font-size: 14px; }
 /* Desktop layout (≥ 1024px): sidebar permanente à esquerda */
 @media(min-width:1024px){
   #app{flex-direction:row;}
-  .sidebar{position:relative;transform:none !important;width:260px;flex-shrink:0;box-shadow:1px 0 0 var(--bdr);z-index:1;}
+  .sidebar{position:relative !important;top:auto !important;bottom:auto !important;left:auto !important;transform:none !important;width:260px;flex-shrink:0;order:-1;box-shadow:1px 0 0 var(--bdr);z-index:1;}
   .sidebar-overlay{display:none !important;}
   .sidebar-hdr > button{display:none;}
   [onclick="toggleSidebar()"]{display:none !important;}
