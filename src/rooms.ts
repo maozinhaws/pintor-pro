@@ -14,8 +14,9 @@ export function calcOrcTotal(orc: { rooms?: Room[]; preco?: number }): number {
   let totalM2 = 0;
   (orc.rooms || []).forEach(r => {
     const meds = getRoomMeds(r);
-    totalM2 += meds.m2;
-    if (r.preco) tot += r.precoPerM2 ? r.preco * meds.m2 : r.preco;
+    const measArea = meds.m2 + meds.ml;
+    totalM2 += measArea;
+    if (r.preco) tot += r.precoPerM2 ? r.preco * measArea : r.preco;
     (r.items || []).forEach(it => {
       if (it.price) {
         tot += it.perMeter
@@ -52,11 +53,13 @@ function _updatePrecoBaseDisplay(ri: number): void {
   if (!el) return;
   const r = S.rooms[ri];
   if (!r || !r.precoPerM2) { el.style.display = 'none'; return; }
-  const m2 = getRoomMeds(r).m2;
-  const total = (r.preco || 0) * m2;
+  const meds2 = getRoomMeds(r);
+  const area = meds2.m2 + meds2.ml;
+  const total = (r.preco || 0) * area;
+  const unit = meds2.m2 > 0 ? 'm²' : 'ml';
   el.style.display = 'block';
-  el.textContent = m2 > 0
-    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + m2.toFixed(2).replace('.', ',') + ' m²)'
+  el.textContent = area > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + area.toFixed(2).replace('.', ',') + ' ' + unit + ')'
     : 'Adicione itens com medidas para calcular o total';
 }
 
@@ -260,7 +263,7 @@ export function renderItemModal(): void {
 
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
     <div class="price-check-row" style="margin-bottom:8px;">
-      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v){this.value=v.toFixed(2).replace('.',',');S.tempItem.price=v;}else{this.value='';S.tempItem.price=0;}}else{S.tempItem.price=0;}" onfocus="this.select()">
       <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter ? 'checked' : ''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
     </div>
     <div id="item-preco-total-display" style="display:${it.perMeter && it.price ? 'block' : 'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
@@ -322,8 +325,7 @@ export function confirmItemObsPick(): void {
   ];
   const customParts = currentText.split(',').map(s => s.trim()).filter(s => !!s && !allKnown.includes(s));
   const selected: string[] = S.tempItem.services || [];
-  const merged = [...customParts, ...selected];
-  S.tempItem.obs = merged.join(', ');
+  S.tempItem.obs = customParts.join(', ');
   if (ta) ta.value = S.tempItem.obs;
   closeServicesModal();
 }
