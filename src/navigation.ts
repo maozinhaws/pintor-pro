@@ -27,6 +27,15 @@ export function go(n: number): void {
   S.curStep = n;
   showPage('pg-s' + n);
   buildSteps(n);
+  if (n === 4) {
+    const totalEl = document.getElementById('orc-total-display');
+    if (totalEl) {
+      const tot = (window as any).calcTotal?.() ?? 0;
+      totalEl.innerText = tot.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+    (window as any).refreshWAPreview?.();
+    (window as any).populateStatusSelect?.();
+  }
 }
 
 export function buildSteps(n: number): void {
