@@ -155,7 +155,7 @@ function renderRooms(): void {
 
     const itemsHtml = r.items.map((it: any, ii: number) => {
       const a = ptFloat(it.alt), c = ptFloat(it.comp);
-      const badge = (a && c) ? f1(a * c) + ' m²' : (a || c) ? f1(a || c) + ' ml' : 'Sem medidas';
+      const badge = (a && c) ? f1(a * c) + ' m²' : (a || c) ? f1(a || c) + ' m' : 'Sem medidas';
       return `<div class="item-summary" onclick="editItem(${ri}, ${ii})"><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(it.name || 'Item ' + (ii + 1))}</div><div style="font-size:12px; color:var(--ink3); margin-top:3px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${esc(badge)} • ${(it.services || []).length} serv.</div></div><button class="item-del" onclick="event.stopPropagation();removeItem(${ri},${ii})"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>`;
     }).join('');
 
@@ -511,7 +511,7 @@ function buildWAMsg(orc: any): string {
       detalhes += `\n📍 *${r.name}*\n`;
       (r.items || []).forEach((it: any) => {
         const a = parseFloat(it.alt) || 0, c = parseFloat(it.comp) || 0;
-        let med = (a && c) ? f1(a * c) + ' m²' : (a || c) ? f1(a || c) + ' ml' : '';
+        let med = (a && c) ? f1(a * c) + ' m²' : (a || c) ? f1(a || c) + ' m' : '';
         detalhes += ` - ${it.name}`;
         if (med) detalhes += ` (${med})`;
         if (it.services && it.services.length) detalhes += ` [${it.services.join(', ')}]`;
