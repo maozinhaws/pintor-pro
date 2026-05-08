@@ -96,8 +96,8 @@ export function getRoomMeds(r: { alt: number; comp: number; items: { alt: number
   if (rAlt > 0 && rComp > 0) m2 += rAlt * rComp;
   else if (rAlt > 0 || rComp > 0) ml += rAlt || rComp;
   for (const it of r.items || []) {
-    const iAlt = Number(it.alt) || 0;
-    const iComp = Number(it.comp) || 0;
+    const iAlt = ptFloat(String(it.alt));
+    const iComp = ptFloat(String(it.comp));
     if (iAlt > 0 && iComp > 0) m2 += iAlt * iComp;
     else if (iAlt > 0 || iComp > 0) ml += iAlt || iComp;
   }
