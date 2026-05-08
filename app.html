@@ -1615,7 +1615,7 @@ body.kb-open .title-big { font-size: 14px; }
     window.removeItem = removeItem;
     function escapeHtml(s){ return String(s||'').replace(/&amp;/g,'&amp;amp;').replace(/</g,'&amp;lt;').replace(/>/g,'&amp;gt;').replace(/&quot;/g,'&amp;quot;'); }
     function renderItems(){ if (!state.items.length) { els.itemsWrap.innerHTML = '<div class=&quot;empty-box&quot;>Nenhum item salvo ainda.<br>Toque em <strong>Adicionar Novo Item</strong>.</div>'; return; } els.itemsWrap.innerHTML = state.items.map((x,i) => `<div class=&quot;list-card&quot; onclick=&quot;openEditItemModal('${x.id}')&quot; style=&quot;cursor:pointer;&quot;><div class=&quot;list-head&quot;><div style=&quot;flex:1;&quot;><div class=&quot;list-title&quot;>${i+1}. ${escapeHtml(x.nome)}</div><div class=&quot;list-measure&quot;>${escapeHtml(x.medidaLabel)}</div></div><div style=&quot;display:flex;gap:6px;align-items:center;&quot;><span style=&quot;font-size:11px;color:#94a3b8;font-weight:600;&quot;>\u270F\uFE0F</span><button class=&quot;list-del&quot; onclick=&quot;event.stopPropagation();removeItem('${x.id}')&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.8&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><polyline points=&quot;3 6 5 6 21 6&quot;/><path d=&quot;M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2&quot;/></svg></button></div></div></div>`).join(''); }
-    function getTotalArea(){ return state.items.reduce((s,x) => s + Number(x.area||0), 0); }
+    function getTotalArea(){ return state.items.reduce((s,x) => { const lv=Number(x.largura||0),av=Number(x.altura||0); return s + (lv>0&&av>0 ? lv*av : (lv||av)); }, 0); }
     function updateSummary(){ const cli = els.cliente.value.trim()||'N\u00E3o informado'; const tel = els.telefone.value.trim()||'N\u00E3o informado'; const ta = getTotalArea(); els.areaTotal.textContent = `${formatNum(ta)} m\u00B2`; let t = `Cliente: ${cli}\nTelefone: ${tel}\n\u00C1rea total: ${formatNum(ta)} m\u00B2`; if (!state.items.length) t += '\n\nItens: nenhum item salvo ainda.'; else { t += '\n\nItens:'; state.items.forEach((x,i) => { t += `\n${i+1}. ${x.nome} | ${x.medidaLabel}`; }); } const vb = numFromInput(els.valorTexto.value); if (state.valueMode==='total'&amp;&amp;vb>0) t += `\n\nValor total: ${money(vb)}`; if (state.valueMode==='m2'&amp;&amp;vb>0) t += `\n\nValor por m\u00B2: ${money(vb)}\nEstimativa: ${money(ta*vb)}`; els.summaryText.textContent = t;  const tc = document.getElementById('flashTotalCalc'); if(tc){ if(state.valueMode==='m2'&amp;&amp;vb>0){ tc.style.display='block'; tc.textContent = ta>0 ? '= R$ '+money(ta*vb)+' ('+formatNum(ta)+' m²)' : 'Adicione itens com medidas para calcular'; }else{ tc.style.display='none'; } } }
     function saveDraft(){ const d = { cliente: els.cliente.value.trim(), apelido: els.apelido ? els.apelido.value.trim() : '', telefone: els.telefone.value.trim(), items: state.items, valueMode: state.valueMode, valorTexto: els.valorTexto.value, atualizadoEm: new Date().toISOString() }; localStorage.setItem('orcamento-pocket-draft', JSON.stringify(d)); showToast('\uD83D\uDCBE Rascunho salvo!'); setTimeout(() => { try { window.parent.postMessage({ type: 'flash-exit' }, '*'); } catch(e) {} }, 800); }
     function setValueMode(mode){ state.valueMode = state.valueMode===mode ? null : mode; const tA=state.valueMode==='total', m2A=state.valueMode==='m2'; els.optionValorTotal.classList.toggle('active',tA); els.optionValorTotal.setAttribute('aria-pressed',tA?'true':'false'); els.optionValorM2.classList.toggle('active',m2A); els.optionValorM2.setAttribute('aria-pressed',m2A?'true':'false'); updateSummary(); }
@@ -2665,8 +2665,8 @@ function setFmt(fmt,el){ S.fmt=fmt; document.querySelectorAll('.fmt-card').forEa
 function calcOrcTotal(orc) {
   let tot = 0; let totalM2 = 0;
   (orc.rooms||[]).forEach(r => {
-    const meds = getRoomMeds(r); totalM2 += meds.m2;
-    if(r.preco) tot += r.precoPerM2 ? (r.preco*meds.m2) : r.preco;
+    const meds = getRoomMeds(r); const measArea = meds.m2 + meds.ml; totalM2 += measArea;
+    if(r.preco) tot += r.precoPerM2 ? (r.preco*measArea) : r.preco;
     (r.items||[]).forEach(it => {
       if(it.price) tot += it.perMeter ? (it.price * ((ptFloat(it.alt)*ptFloat(it.comp)) || ptFloat(it.alt)||ptFloat(it.comp))) : it.price;
     });
@@ -2832,7 +2832,7 @@ function renderItemModal() {
 
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
     <div class="price-check-row" style="margin-bottom:8px;">
-      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price?String(it.price).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price?String(it.price).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v){this.value=v.toFixed(2).replace('.',',');S.tempItem.price=v;}else{this.value='';S.tempItem.price=0;}}else{S.tempItem.price=0;}" onfocus="this.select()">
       <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter?'checked':''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
     </div>
     <div id="item-preco-total-display" style="display:${it.perMeter&&it.price?'block':'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
@@ -2883,8 +2883,7 @@ function confirmItemObsPick() {
   const allKnown = [...(S.DEFAULT_SERVICES||[]), ...(S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean)];
   const customParts = currentText.split(',').map(s=>s.trim()).filter(s => s && !allKnown.includes(s));
   const selected = S.tempItem.services || [];
-  const merged = [...customParts, ...selected];
-  S.tempItem.obs = merged.join(', ');
+  S.tempItem.obs = customParts.join(', ');
   if (ta) ta.value = S.tempItem.obs;
   closeServicesModal();
 }
@@ -4342,7 +4341,7 @@ function showFaq() { document.getElementById('info-modal-title').textContent = '
         rooms,
         pgto: [],
         fmt: 'completo',
-        preco: isM2 ? valorBase : 0,
+        preco: 0,
         status: '<svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg> Rascunho Flash',
         valid: '15',
         tipoServico: 'Somente Mão de Obra (M.O)',
