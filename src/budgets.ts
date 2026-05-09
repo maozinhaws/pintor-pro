@@ -237,6 +237,53 @@ function _detailGetAreaLabel(comp: string | number, alt: string | number): strin
   return null;
 }
 
+function _updateItemPrecoDisplay(): void {
+  const el = document.getElementById('item-preco-total-display');
+  if (!el) return;
+  if (!S.tempItem || !S.tempItem.perMeter || !S.tempItem.price) { el.style.display = 'none'; return; }
+  const alt = ptFloat(S.tempItem.alt);
+  const comp = ptFloat(S.tempItem.comp);
+  const m2 = (alt && comp) ? alt * comp : (alt || comp);
+  const total = S.tempItem.price * m2;
+  el.style.display = 'block';
+  el.textContent = m2 > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + m2.toFixed(2).replace('.', ',') + ' m²)'
+    : 'Preencha as medidas do item para calcular o total';
+}
+
+function _updatePrecoBaseDisplay(ri: number): void {
+  const el = document.getElementById('preco-base-total-' + ri);
+  if (!el) return;
+  const r = S.rooms[ri];
+  if (!r || !r.precoPerM2) { el.style.display = 'none'; return; }
+  const meds2 = getRoomMeds(r);
+  const area = meds2.m2 + meds2.ml;
+  const total = (r.preco || 0) * area;
+  const unit = meds2.m2 > 0 ? 'm²' : 'ml';
+  el.style.display = 'block';
+  el.textContent = area > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + area.toFixed(2).replace('.', ',') + ' ' + unit + ')'
+    : 'Adicione itens com medidas para calcular o total';
+}
+
+function _detailUpdateArea(): void {
+  const el = document.getElementById('item-area-display');
+  if (el && S.tempItem) {
+    const lbl = _detailGetAreaLabel(S.tempItem.comp, S.tempItem.alt);
+    el.style.display = lbl ? 'block' : 'none';
+    if (lbl) el.textContent = lbl;
+  }
+  _updateItemPrecoDisplay();
+}
+
+function _detailNomeClick(): void {
+  if (_detailNomeFirst) { _detailNomeFirst = false; openDetailNamePick(); }
+}
+
+function _detailObsClick(): void {
+  if (_detailObsFirst) { _detailObsFirst = false; openServicesModal(); }
+}
+
 
 
 
@@ -796,6 +843,11 @@ function attachEnterNav(): void {
 (window as any).renderItemModal = renderItemModal;
 (window as any).saveItemModal = saveItemModal;
 (window as any).cancelItemModal = cancelItemModal;
+(window as any)._updateItemPrecoDisplay = _updateItemPrecoDisplay;
+(window as any)._updatePrecoBaseDisplay = _updatePrecoBaseDisplay;
+(window as any)._detailUpdateArea = _detailUpdateArea;
+(window as any)._detailNomeClick = _detailNomeClick;
+(window as any)._detailObsClick = _detailObsClick;
 (window as any).openPhotoChoice = openPhotoChoice;
 (window as any).triggerPhoto = triggerPhoto;
 (window as any).handlePhotoFile = handlePhotoFile;
