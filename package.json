@@ -14,7 +14,9 @@
     "vite": "^6.0.0"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.3",
     "@capacitor/core": "^8.3.1",
+    "@capacitor/keyboard": "^8.0.3",
     "@supabase/supabase-js": "^2.105.3"
   }
 }

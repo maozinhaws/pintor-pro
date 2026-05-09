@@ -143,7 +143,7 @@ function renderItemModal(): void {
     </div>
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
     <div class="price-check-row" style="margin-bottom:8px;">
-      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v){this.value=v.toFixed(2).replace('.',',');S.tempItem.price=v;}else{this.value='';S.tempItem.price=0;}}else{S.tempItem.price=0;}" onfocus="this.select()">
       <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter ? 'checked' : ''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
     </div>
     <div id="item-preco-total-display" style="display:${it.perMeter && it.price ? 'block' : 'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
@@ -218,13 +218,14 @@ function openDetailNamePick(): void {
   document.getElementById('detail-nome-pick-modal')!.style.display = 'flex';
 }
 function closeDetailNamePick(): void { document.getElementById('detail-nome-pick-modal')!.style.display = 'none'; }
-function selectDetailNome(n: string): void { S.tempItem.name = n; const inp = document.querySelector('#item-modal-body .item-title-inp') as HTMLInputElement; if (inp) inp.value = n; closeDetailNamePick(); }
+function selectDetailNome(n: string): void { S.tempItem.name = n; const inp = document.querySelector('#item-modal-body .item-title-inp') as HTMLInputElement; if (inp) inp.value = n; (window as any).Keyboard?.hide?.().catch(() => {}); closeDetailNamePick(); }
 
 function saveItemModal(): void {
   if (!S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome';
   if (isNewItem) { if (!S.rooms[curRi!].items) S.rooms[curRi!].items = []; S.rooms[curRi!].items.push(S.tempItem); }
   else { S.rooms[curRi!].items[curIi!] = S.tempItem; }
-  S.isDirty = true; document.getElementById('item-modal-form')!.style.display = 'none'; renderRooms();
+  S.isDirty = true; document.getElementById('item-modal-form')!.style.display = 'none';
+  (window as any).Keyboard?.hide?.().catch(() => {}); renderRooms();
 }
 function cancelItemModal(): void { document.getElementById('item-modal-form')!.style.display = 'none'; curRi = null; curIi = null; S.tempItem = null; }
 
@@ -337,11 +338,12 @@ function renderOrcamentosList(): void {
   wrap.innerHTML = filtered.map(({ o, i }) => {
     let tot = calcOrcTotal(o); const qtdLocais = (o.rooms || []).length;
     const infoTxt = qtdLocais === 1 ? `${o.rooms[0].items?.length || 0} item(ns)` : `${qtdLocais} local(is)`;
-    const isRascunho = (o.status || '') === 'Rascunho';
-    const badgeHtml = isRascunho ? `<span class="badge-rascunho">Rascunho</span>` : `<span class="hbadge ${getStatusBadgeClass(o.status)}">${esc(o.status || 'Pendente')}</span>`;
+    const isRascunho = (o.status || '').includes('Rascunho');
+    const isFlash = !!(o as any).isFlashDraft;
+    const badgeHtml = isRascunho ? `<span class="badge-rascunho">Rascunho</span>` : `<span class="hbadge ${getStatusBadgeClass(o.status)}">${esc(o.status || 'Pendente')}</span>${isFlash ? `<span class="hbadge hby" style="font-size:9px;">⚡ Flash</span>` : ''}`;
     const orcShortId = String(o.id || '').slice(-6);
     const menuId = `cm-l-${i}`;
-    return `<div class="hoc${isRascunho ? ' card-rascunho' : ''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(o.nome || '(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${(window as any)._buildCardMenu?.(menuId, i, o) || ''}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;">${ico('pin')}${esc(o.end || '—')} · ${infoTxt}</span><span class="hoov">${tot > 0 ? 'R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit || o.ts || Date.now())}</span></div>`;
+    return `<div class="hoc${isRascunho ? ' card-rascunho' : ''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(o.nome || '(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span><span style="flex-shrink:0;display:flex;gap:3px;">${badgeHtml}</span></div><div onclick="event.stopPropagation()">${(window as any)._buildCardMenu?.(menuId, i, o) || ''}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;">${ico('pin')}${esc(o.end || '—')} · ${infoTxt}</span><span class="hoov">${tot > 0 ? 'R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit || o.ts || Date.now())}</span></div>`;
   }).join('');
 }
 

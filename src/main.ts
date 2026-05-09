@@ -8,6 +8,7 @@ import './appConfig';
 import { initGAuth } from './gauth';
 import { S, saveOrcs } from './state';
 import { toast, formatNum, money, esc, formatPhone, validateFullName, validatePhone, getStatusBadgeClass, getRoomMeds, normalizeDecimalInput, normalizeMeasureInput, numFromInput, digitsOnly, setFieldError, f1, ptFloat, safeUrl, ico } from './utils';
+import { Keyboard } from '@capacitor/keyboard';
 
 // ── Keyboard detection ──
 (function () {

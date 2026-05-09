@@ -1,0 +1,10 @@
+{
+  "appId": "com.pintorplus.app",
+  "appName": "Pintor Plus",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}

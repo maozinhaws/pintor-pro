@@ -123,7 +123,9 @@ function saveOrc(silent = false): boolean {
   orc.isFlashDraft = false;
   if (S.editId) { const i = S.orcs.findIndex(o => o.id === S.editId); if (i >= 0) S.orcs[i] = orc; else S.orcs.unshift(orc); } else { S.orcs.unshift(orc); S.editId = orc.id; }
   S.isDirty = false; saveOrcs(); extractClient(orc);
-  if (!silent) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Orçamento salvo!'); homeTab('orcamentos'); }
+  (window as any).renderHomeMini?.();
+  if (!silent) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Orçamento salvo!'); homeTab('orcamentos'); setTimeout(() => { (window as any).renderOrcamentosList?.(); }, 100); }
+  else { (window as any).renderOrcamentosList?.(); }
   return true;
 }
 
@@ -235,41 +237,8 @@ function _detailGetAreaLabel(comp: string | number, alt: string | number): strin
   return null;
 }
 
-function _detailUpdateArea(): void {
-  const el = document.getElementById('item-area-display');
-  if (el) {
-    const lbl = _detailGetAreaLabel(S.tempItem.comp, S.tempItem.alt);
-    el.style.display = lbl ? 'block' : 'none';
-    if (lbl) el.textContent = lbl;
-  }
-  _updateItemPrecoDisplay();
-}
 
-function _updateItemPrecoDisplay(): void {
-  const el = document.getElementById('item-preco-total-display');
-  if (!el) return;
-  if (!S.tempItem.perMeter || !S.tempItem.price) { el.style.display = 'none'; return; }
-  const alt = ptFloat(S.tempItem.alt); const comp = ptFloat(S.tempItem.comp);
-  const m2 = (alt && comp) ? alt * comp : (alt || comp);
-  const total = S.tempItem.price * m2;
-  el.style.display = 'block';
-  el.textContent = m2 > 0
-    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + m2.toFixed(2).replace('.', ',') + ' m²)'
-    : 'Preencha as medidas do item para calcular o total';
-}
 
-function _updatePrecoBaseDisplay(ri: number): void {
-  const el = document.getElementById('preco-base-total-' + ri);
-  if (!el) return;
-  const r = S.rooms[ri];
-  if (!r || !(r as any).precoPerM2) { el.style.display = 'none'; return; }
-  const m2 = getRoomMeds(r).m2;
-  const total = ((r as any).preco || 0) * m2;
-  el.style.display = 'block';
-  el.textContent = m2 > 0
-    ? '= R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + ' (' + m2.toFixed(2).replace('.', ',') + ' m²)'
-    : 'Adicione itens com medidas para calcular o total';
-}
 
 function renderItemModal(): void {
   const it = S.tempItem;
@@ -365,9 +334,6 @@ function confirmItemObsPick(): void {
 }
 
 // ── Nome pick (detail) ──
-function _detailNomeClick(): void { if (_detailNomeFirst) { _detailNomeFirst = false; openDetailNamePick(); } }
-function _detailObsClick(): void { if (_detailObsFirst) { _detailObsFirst = false; openServicesModal(); } }
-
 function openDetailNamePick(): void {
   if (!S.tempItem) return;
   const nomes = ((S.config as Config).flashNomes || defCfg.flashNomes).split(',').map((s: string) => s.trim()).filter(Boolean);
@@ -386,14 +352,6 @@ function selectDetailNome(n: string): void {
   closeDetailNamePick();
 }
 
-function saveItemModal(): void {
-  if (!S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome';
-  if (isNewItem) { if (!S.rooms[curRi!].items) S.rooms[curRi!].items = []; S.rooms[curRi!].items.push(S.tempItem); }
-  else { S.rooms[curRi!].items[curIi!] = S.tempItem; }
-  S.isDirty = true;
-  document.getElementById('item-modal-form')!.style.display = 'none';
-  renderRooms();
-}
 
 function cancelItemModal(): void {
   document.getElementById('item-modal-form')!.style.display = 'none';
@@ -620,30 +578,9 @@ function _orcMatch(o: any, q: string): boolean {
   return parts.some(p => p && String(p).toLowerCase().includes(q));
 }
 
-function renderOrcamentosList(): void {
-  const q = ((document.getElementById('orc-search') as HTMLInputElement | null)?.value || '').toLowerCase().trim();
-  const wrap = document.getElementById('orcamentos-list-full');
-  if (!wrap) return;
-  if (!S.orcs.length) {
-    wrap.innerHTML = '<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="newOrc()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>';
-    return;
-  }
-  const indexed = S.orcs.map((o: any, i: number) => ({ o, i }));
-  const filtered = q ? indexed.filter(({ o }: any) => _orcMatch(o, q)) : indexed;
-  if (!filtered.length) { wrap.innerHTML = `<div class="srch-empty">Nenhum orçamento encontrado para "<strong>${esc(q)}</strong>".</div>`; return; }
-  wrap.innerHTML = filtered.map(({ o, i }: any) => {
-    let tot = calcOrcTotal(o); const qtdLocais = (o.rooms || []).length; const infoTxt = qtdLocais === 1 ? `${o.rooms[0]?.items?.length || 0} item(ns)` : `${qtdLocais} local(is)`;
-    const isRascunho = (o.status || '') === 'Rascunho';
-    const isFlash = !!(o as any).isFlashDraft;
-    const badgeHtml = isRascunho ? `<span class="badge-rascunho">Rascunho</span>` : `<span class="hbadge ${getStatusBadgeClass(o.status)}">${esc(o.status || 'Pendente')}</span>${isFlash ? `<span class="hbadge hby" style="font-size:9px;">⚡ Flash</span>` : ''}`;
-    const orcShortId = String(o.id || '').slice(-6);
-    const menuId = `cm-l-${i}`;
-    return `<div class="hoc${isRascunho ? ' card-rascunho' : ''}" style="margin-bottom:10px;cursor:pointer;${isFlash ? 'border-left:3px solid var(--am);' : ''}" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(o.nome || '(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId, i, o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${esc(o.end || '—')} · ${esc(infoTxt)}</span><span class="hoov">${tot > 0 ? 'R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit || o.ts || Date.now())}</span></div>`;
-  }).join('');
-}
 
 function delOrc(i: number): void {
-  S.orcs.splice(i, 1); saveOrcs(); renderOrcamentosList(); renderHomeMini();
+  S.orcs.splice(i, 1); saveOrcs(); (window as any).renderOrcamentosList?.(); (window as any).renderHomeMini?.();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Removido');
 }
 
@@ -666,7 +603,7 @@ function _showStatusPicker(i: number): void {
 function _applyStatus(i: number, newStatus: string): void {
   const o = S.orcs[i]; if (!o) return;
   o.status = newStatus; o.tsEdit = Date.now(); saveOrcs();
-  renderOrcamentosList(); renderHomeMini();
+  (window as any).renderOrcamentosList?.(); (window as any).renderHomeMini?.();
   _onStatusChange({ value: newStatus });
 }
 
@@ -685,23 +622,6 @@ function _onStatusChange(sel: { value: string }): void {
   else toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Status alterado. Não esqueça de salvar.');
 }
 
-// ── Home mini list ──
-function renderHomeMini(): void {
-  const sg = document.getElementById('home-saudacao');
-  if (sg) sg.textContent = S.config.empresa || 'Sua Empresa';
-  renderLogoPreview();
-
-  const wrap = document.getElementById('home-orcs-mini'); if (!wrap) return;
-  if (!S.orcs.length) { wrap.innerHTML = '<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
-  wrap.innerHTML = S.orcs.slice(0, 3).map((o: any, sliceIdx: number) => {
-    const realIdx = sliceIdx; let tot = calcOrcTotal(o);
-    const isR = (o.status || '').includes('Rascunho');
-    const isFlashCard = !!(o as any).isFlashDraft;
-    const badgeHtml = isR ? `<span class="badge-rascunho">Rascunho</span>` : `<span class="hbadge ${getStatusBadgeClass(o.status)}">${esc(o.status || 'Pendente')}</span>${isFlashCard ? `<span class="hbadge hby" style="font-size:9px;">⚡ Flash</span>` : ''}`;
-    const menuId = `cm-h-${realIdx}`; const orcShortId = String(o.id || '').slice(-6);
-    return `<div class="hoc${isR ? ' card-rascunho' : ''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(o.nome || '(sem nome)')}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId, realIdx, o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit || o.ts || Date.now())}</span><span class="hoov">${tot > 0 ? 'R$ ' + tot.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '—'}</span></div></div>`;
-  }).join('');
-}
 
 // ── Logo preview (stub — fully implemented in appConfig) ──
 function renderLogoPreview(): void {
@@ -855,12 +775,9 @@ function attachEnterNav(): void {
 (window as any).refreshWAPreview = refreshWAPreview;
 (window as any).viewOrc = viewOrc;
 (window as any).closeViewOrc = closeViewOrc;
-(window as any).renderOrcamentosList = renderOrcamentosList;
 (window as any).delOrc = delOrc;
-(window as any).renderHomeMini = renderHomeMini;
 (window as any).renderLogoPreview = renderLogoPreview;
 (window as any).renderItemModal = renderItemModal;
-(window as any).saveItemModal = saveItemModal;
 (window as any).cancelItemModal = cancelItemModal;
 (window as any).openPhotoChoice = openPhotoChoice;
 (window as any).triggerPhoto = triggerPhoto;
@@ -875,11 +792,6 @@ function attachEnterNav(): void {
 (window as any).openDetailNamePick = openDetailNamePick;
 (window as any).closeDetailNamePick = closeDetailNamePick;
 (window as any).selectDetailNome = selectDetailNome;
-(window as any)._detailNomeClick = _detailNomeClick;
-(window as any)._detailObsClick = _detailObsClick;
-(window as any)._detailUpdateArea = _detailUpdateArea;
-(window as any)._updateItemPrecoDisplay = _updateItemPrecoDisplay;
-(window as any)._updatePrecoBaseDisplay = _updatePrecoBaseDisplay;
 (window as any)._showSendOptions = _showSendOptions;
 (window as any)._setSendFmt = _setSendFmt;
 (window as any)._doSendWA = _doSendWA;

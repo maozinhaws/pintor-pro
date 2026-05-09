@@ -1285,7 +1285,7 @@ body.kb-open .title-big { font-size: 14px; }
     @keyframes flashSweep{0%{opacity:0}8%{opacity:1}70%{opacity:1}100%{opacity:0}}
     @keyframes boltFloat{0%{opacity:0;transform:translateX(44px) scale(.72) rotate(12deg)}20%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateX(-176px) scale(1.38) rotate(-14deg)}}
     .page{display:none;flex-direction:column;gap:8px;height:100%;min-height:0;position:relative}.page.active{display:flex}
-    .page-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}.page-scroll::-webkit-scrollbar,.modal-sheet::-webkit-scrollbar,.camera-thumbs::-webkit-scrollbar{display:none}
+    .page-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:calc(200px + env(safe-area-inset-bottom,0px))}.page-scroll::-webkit-scrollbar,.modal-sheet::-webkit-scrollbar,.camera-thumbs::-webkit-scrollbar{display:none}
     .card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:12px;box-shadow:var(--shadow)}
     .step1-shell{display:flex;flex-direction:column;gap:12px;min-height:100%}
     .step1-form-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
@@ -1299,11 +1299,11 @@ body.kb-open .title-big { font-size: 14px; }
     .finput:focus,.fta:focus{border-color:var(--accent-b);box-shadow:0 0 0 4px rgba(249,115,22,.14)}.finput.invalid{border-color:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.measure-note{margin-top:-2px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.35}
     .nav-row,.step1-actions{display:grid;grid-template-columns:1fr;gap:8px}
-    .step1-actions{position:absolute;left:0;right:0;bottom:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%)}
+    .step1-actions{position:fixed;left:0;right:0;bottom:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%);z-index:100}
     body.dark .step1-actions{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
     .act-danger{border:none;background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 10px 20px rgba(220,38,38,.22)}
     .act-cancel{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}
-    .footer-nav{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%)}
+    .footer-nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%);z-index:100}
     body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
     .footer-nav .act-btn{min-width:0}
     .footer-nav .act-btn{height:54px}
@@ -1637,7 +1637,6 @@ body.kb-open .title-big { font-size: 14px; }
     els.btnSalvarRascunho.addEventListener('click', saveDraft);
     els.btnFecharModal.addEventListener('click', closeItemModal);
     els.btnCancelarItem.addEventListener('click', closeItemModal);
-    els.btnSalvarItem.addEventListener('click', saveItem);
     els.modalLargura.addEventListener('input', () => { els.modalLargura.value = normalizeMeasureInput(els.modalLargura.value); updateModalArea(); });
     els.modalAltura.addEventListener('input', () => { els.modalAltura.value = normalizeMeasureInput(els.modalAltura.value); updateModalArea(); });
     els.btnAbrirCamera.addEventListener('click', openCameraModal);
