@@ -221,9 +221,11 @@ function closeDetailNamePick(): void { document.getElementById('detail-nome-pick
 function selectDetailNome(n: string): void { S.tempItem.name = n; const inp = document.querySelector('#item-modal-body .item-title-inp') as HTMLInputElement; if (inp) inp.value = n; (window as any).Keyboard?.hide?.().catch(() => {}); closeDetailNamePick(); }
 
 function saveItemModal(): void {
+  console.log('saveItemModal called', { curRi, curIi, isNewItem, tempItem: S.tempItem });
+  if (curRi === null || curRi === undefined) { console.error('curRi is null/undefined'); return; }
   if (!S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome';
-  if (isNewItem) { if (!S.rooms[curRi!].items) S.rooms[curRi!].items = []; S.rooms[curRi!].items.push(S.tempItem); }
-  else { S.rooms[curRi!].items[curIi!] = S.tempItem; }
+  if (isNewItem) { if (!S.rooms[curRi].items) S.rooms[curRi].items = []; S.rooms[curRi].items.push(S.tempItem); }
+  else { S.rooms[curRi].items[curIi!] = S.tempItem; }
   S.isDirty = true; document.getElementById('item-modal-form')!.style.display = 'none';
   (window as any).Keyboard?.hide?.().catch(() => {}); renderRooms();
 }
@@ -910,3 +912,11 @@ export function renderGoogleStatus(): void {
 }
 
 (window as any).renderGoogleStatus = renderGoogleStatus;
+
+// ── Setup event listeners after DOM is ready ──
+window.addEventListener('pp-ready', () => {
+  const btnSalvar = document.querySelector('button[onclick="saveItemModal()"]');
+  if (btnSalvar) {
+    btnSalvar.addEventListener('click', saveItemModal);
+  }
+});
