@@ -353,6 +353,22 @@ function selectDetailNome(n: string): void {
 }
 
 
+function saveItemModal(): void {
+  if (!S.tempItem) { console.error('saveItemModal: S.tempItem is null'); return; }
+  if (curRi === null || curRi === undefined) { console.error('saveItemModal: curRi is null'); return; }
+  if (!S.tempItem.name || !S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome';
+  if (isNewItem) {
+    if (!S.rooms[curRi].items) S.rooms[curRi].items = [];
+    S.rooms[curRi].items.push(S.tempItem);
+  } else {
+    if (curIi !== null && curIi !== undefined) S.rooms[curRi].items[curIi] = S.tempItem;
+  }
+  S.isDirty = true;
+  document.getElementById('item-modal-form')!.style.display = 'none';
+  (window as any).Keyboard?.hide?.().catch?.(() => {});
+  renderRooms();
+}
+
 function cancelItemModal(): void {
   document.getElementById('item-modal-form')!.style.display = 'none';
   curRi = null; curIi = null; S.tempItem = null;
@@ -778,6 +794,7 @@ function attachEnterNav(): void {
 (window as any).delOrc = delOrc;
 (window as any).renderLogoPreview = renderLogoPreview;
 (window as any).renderItemModal = renderItemModal;
+(window as any).saveItemModal = saveItemModal;
 (window as any).cancelItemModal = cancelItemModal;
 (window as any).openPhotoChoice = openPhotoChoice;
 (window as any).triggerPhoto = triggerPhoto;
