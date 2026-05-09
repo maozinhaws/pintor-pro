@@ -1,53 +1,48 @@
-# Índice de Documentação Técnica — Pintor Plus MVP
+# 📚 Índice Completo de Documentação — Pintor Plus Android MVP
 
-Referência técnica completa para arquitetura, estrutura de dados, navegação e migração da aplicação.
+**Atualizado:** 2026-05-09  
+**Status:** ✅ Todas as 6 Fases Documentadas  
+**Total:** 16 Documentos + 20,000+ linhas (documentação + código)  
 
 ---
 
-## 📚 Documentos Disponíveis
+## 🎯 Resumo Executivo
 
-### 1. **README.md**
-Visão geral do projeto, tecnologias, funcionalidades e como usar.
-- Stack: HTML5, CSS3, Vanilla JS, PWA
-- Funcionalidades do MVP
-- Como rodar localmente
-- Estrutura básica
+O Pintor Plus está sendo migrado de uma **PWA Web (TypeScript)** para um **Aplicativo Android Nativo (Kotlin)** usando **Jetpack Compose**. 
 
-### 2. **ANALISE_HTML.md**
-Análise comparativa entre `index.html` (landing page) e `app.html` (aplicação PWA).
-- Diferenciação apropriada entre arquivos
-- Reuso correto de assets e manifesto
-- Estratégias de CSS e PWA features
-- Conclusão: estrutura coerente e bem organizada
+**Timeline:** 35-45 dias | **Target:** 2026-06-24 | **Status:** ✅ Documentação Completa
 
-### 3. **CLEAN_ARCHITECTURE_WEB.md**
-Guia de implementação de Clean Architecture para o projeto TypeScript/PWA.
-- Estrutura de pastas recomendada (Domain, Application, Infrastructure, Presentation)
-- Padrões Entity, UseCase, Repository, Application Service
-- Injeção de dependência (IoC Container)
-- Tratamento de erros com Result pattern
-- Exemplo completo com BudgetApplicationService
+---
 
-### 4. **ESTRUTURA_DADOS_ESTADO.md** ⭐ NOVO
-Análise completa de tipos de dados, entidades de negócio e gerenciamento de estado.
+## 📚 Documentos de Análise Web (5 documentos)
 
-**Seções:**
-- **Visão Geral** — localStorage structure (pp-orcs, pp-clientes, pp-config, etc)
-- **Entidades de Negócio:**
-  - `Orcamento` — dados do orçamento com cliente, endereço, pagador, cômodos
-  - `Room` — cômodo com altura, comprimento, items, serviços
-  - `Item` — serviço dentro do cômodo com medidas e preço
-  - `Cliente` — contato com informações pessoais e endereço
-  - `Fornecedor` — prestador de serviço
-  - `Evento` — evento de agenda com recorrência
-  - `Config` — configurações da empresa (empresa, logo, templates, etc)
-- **Estado Global (S)** — variáveis persistidas e de UI
-- **Operações de Persistência** — saveOrcs() com fallback
-- **Cálculos de Negócio** — fórmulas de área (m²) e total
-- **Fluxo de Dados** — novo orçamento → edição → salvamento
-- **Tipos Auxiliares** — ValueMode, MessageFormat
-- **Validações** — regras de negócio para criação
-- **Migração Android** — TypeScript → Kotlin, localStorage → Room Database
+Análise da **arquitetura existente do PWA** para informar o design da migração Android.
+
+### 1. **ANALISE_HTML.md** — Estrutura Web Existente (400+ linhas)
+- Compara `index.html` (landing) vs `app.html` (PWA)
+- Assets, service workers, manifesto, coerência estrutural
+- **Uso:** Entender que será replicado no Android
+
+### 2. **CLEAN_ARCHITECTURE_WEB.md** — Padrões Arquiteturais (481 linhas)
+- Entity, UseCase, Repository, Application Service patterns
+- IoC Container, dependency injection, Result pattern
+- **Uso:** Base para arquitetura Android (MVVM + Clean)
+
+### 3. **ESTRUTURA_DADOS_ESTADO.md** — Mapeamento de Dados (800+ linhas)
+- 7 entidades de domínio (Budget, Room, Item, Client, Supplier, Event, Config)
+- Estado global, persistência, cálculos, validações
+- **Uso:** Define Room entities, mappers, relacionamentos
+
+### 4. **FLUXO_NAVEGACAO.md** — Navegação e UX (600+ linhas)
+- 13 páginas, 4 modais, 4-step wizard, transições
+- Rotas, deep links, back navigation, flows
+- **Uso:** Base para NavGraph do Compose
+
+### 5. **MIGRACAO_ANDROID.md** — Plano Estratégico (800+ linhas)
+- Visão geral migração, comparação feature-por-feature
+- Tech stack (Kotlin, Compose, Room, Koin, Material 3)
+- Exemplo conversão code TypeScript → Kotlin
+- **Uso:** Contexto executivo para decisões técnicas
 
 ### 5. **FLUXO_NAVEGACAO.md** ⭐ NOVO
 Análise detalhada de navegação, páginas e arquitetura de rotas.
