@@ -1636,6 +1636,7 @@ body.kb-open .title-big { font-size: 14px; }
     els.btnIrResumo.addEventListener('click', () => goStep(3));
     els.btnSalvarRascunho.addEventListener('click', saveDraft);
     els.btnFecharModal.addEventListener('click', closeItemModal);
+    els.btnSalvarItem.addEventListener('click', saveItem);
     els.btnCancelarItem.addEventListener('click', closeItemModal);
     els.modalLargura.addEventListener('input', () => { els.modalLargura.value = normalizeMeasureInput(els.modalLargura.value); updateModalArea(); });
     els.modalAltura.addEventListener('input', () => { els.modalAltura.value = normalizeMeasureInput(els.modalAltura.value); updateModalArea(); });
