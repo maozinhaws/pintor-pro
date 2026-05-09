@@ -915,8 +915,11 @@ export function renderGoogleStatus(): void {
 
 // ── Setup event listeners after DOM is ready ──
 window.addEventListener('pp-ready', () => {
-  const btnSalvar = document.querySelector('button[onclick="saveItemModal()"]');
+  const btnSalvar = document.getElementById('btn-salvar-item-modal');
   if (btnSalvar) {
-    btnSalvar.addEventListener('click', saveItemModal);
+    btnSalvar.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveItemModal();
+    });
   }
 });
