@@ -296,11 +296,11 @@ function renderItemModal(): void {
         <label class="flbl" style="margin-bottom:0;">NOME DO ITEM</label>
         <button type="button" onclick="openDetailNamePick()" style="background:#ede9fe;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#7c3aed;cursor:pointer;">☰ Sugestões</button>
       </div>
-      <input class="finput item-title-inp" value="${esc(it.name)}" placeholder="Ex: Parede Norte" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" oninput="S.tempItem.name=this.value" onclick="_detailNomeClick()" onfocus="this.select()">
+      <input id="modal-it-name" class="finput item-title-inp" value="${esc(it.name)}" placeholder="Ex: Parede Norte" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false">
     </div>
     <div class="dim2-grid">
-      <div class="mbox"><div class="mlbl">Largura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="0,00" value="${it.comp ? String(it.comp).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.comp=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.comp=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
-      <div class="mbox"><div class="mlbl">Altura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0,00" value="${it.alt ? String(it.alt).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.alt=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.alt=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
+      <div class="mbox"><div class="mlbl">Largura (m)</div><input id="modal-it-comp" class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="0,00" value="${it.comp ? String(it.comp).replace('.', ',') : ''}"></div>
+      <div class="mbox"><div class="mlbl">Altura (m)</div><input id="modal-it-alt" class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0,00" value="${it.alt ? String(it.alt).replace('.', ',') : ''}"></div>
     </div>
     <div id="item-area-display" style="display:${_areaLbl ? 'block' : 'none'};margin-bottom:14px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;">${_areaLbl || ''}</div>
 
@@ -320,8 +320,8 @@ function renderItemModal(): void {
 
     <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
     <div class="price-check-row" style="margin-bottom:8px;">
-      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v){this.value=v.toFixed(2).replace('.',',');S.tempItem.price=v;}else{this.value='';S.tempItem.price=0;}}else{S.tempItem.price=0;}" onfocus="this.select()">
-      <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter ? 'checked' : ''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
+      <input id="modal-it-price" type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price ? String(it.price).replace('.', ',') : ''}">
+      <label class="pcheck" style="white-space: nowrap;"><input id="modal-it-permeter" type="checkbox" ${it.perMeter ? 'checked' : ''}><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
     </div>
     <div id="item-preco-total-display" style="display:${it.perMeter && it.price ? 'block' : 'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
 
@@ -329,9 +329,53 @@ function renderItemModal(): void {
       <span style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;">Observações</span>
       <button type="button" onclick="openServicesModal()" style="background:#d1fae5;border:none;border-radius:8px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#059669;cursor:pointer;">☰ Serviços</button>
     </div>
-    <textarea class="item-obs-inp" autocomplete="off" data-form-type="other" autocorrect="off" spellcheck="false" placeholder="Detalhes, estado da parede, cor, serviços..." oninput="S.tempItem.obs=this.value" onclick="_detailObsClick()">${it.obs || ''}</textarea>
+    <textarea id="modal-it-obs" class="item-obs-inp" autocomplete="off" data-form-type="other" autocorrect="off" spellcheck="false" placeholder="Detalhes, estado da parede, cor, serviços...">${it.obs || ''}</textarea>
   `;
   document.getElementById('item-modal-body')!.scrollTop = 0;
+
+  // Bind direct event listeners (avoids inline onclick/oninput global function issues)
+  const nameInp = document.getElementById('modal-it-name') as HTMLInputElement | null;
+  const compInp = document.getElementById('modal-it-comp') as HTMLInputElement | null;
+  const altInp = document.getElementById('modal-it-alt') as HTMLInputElement | null;
+  const priceInp = document.getElementById('modal-it-price') as HTMLInputElement | null;
+  const perMeterInp = document.getElementById('modal-it-permeter') as HTMLInputElement | null;
+  const obsInp = document.getElementById('modal-it-obs') as HTMLTextAreaElement | null;
+
+  if (nameInp) {
+    nameInp.addEventListener('input', () => { if (S.tempItem) S.tempItem.name = nameInp.value; });
+    nameInp.addEventListener('click', () => _detailNomeClick());
+    nameInp.addEventListener('focus', () => nameInp.select());
+  }
+  if (compInp) {
+    compInp.addEventListener('input', () => { compInp.value = compInp.value.replace('.', ','); if (S.tempItem) S.tempItem.comp = compInp.value; _detailUpdateArea(); });
+    compInp.addEventListener('blur', () => { if (compInp.value) { const v = ptFloat(compInp.value); compInp.value = v ? v.toFixed(2).replace('.', ',') : ''; if (S.tempItem) S.tempItem.comp = compInp.value; _detailUpdateArea(); } });
+    compInp.addEventListener('focus', () => compInp.select());
+  }
+  if (altInp) {
+    altInp.addEventListener('input', () => { altInp.value = altInp.value.replace('.', ','); if (S.tempItem) S.tempItem.alt = altInp.value; _detailUpdateArea(); });
+    altInp.addEventListener('blur', () => { if (altInp.value) { const v = ptFloat(altInp.value); altInp.value = v ? v.toFixed(2).replace('.', ',') : ''; if (S.tempItem) S.tempItem.alt = altInp.value; _detailUpdateArea(); } });
+    altInp.addEventListener('focus', () => altInp.select());
+  }
+  if (priceInp) {
+    priceInp.addEventListener('input', () => { priceInp.value = priceInp.value.replace('.', ','); if (S.tempItem) S.tempItem.price = ptFloat(priceInp.value); _updateItemPrecoDisplay(); });
+    priceInp.addEventListener('blur', () => {
+      if (!S.tempItem) return;
+      if (priceInp.value) {
+        const v = ptFloat(priceInp.value);
+        if (v) { priceInp.value = v.toFixed(2).replace('.', ','); S.tempItem.price = v; }
+        else { priceInp.value = ''; S.tempItem.price = 0; }
+      } else { S.tempItem.price = 0; }
+    });
+    priceInp.addEventListener('focus', () => priceInp.select());
+  }
+  if (perMeterInp) {
+    perMeterInp.addEventListener('change', () => { if (S.tempItem) S.tempItem.perMeter = perMeterInp.checked; _updateItemPrecoDisplay(); });
+  }
+  if (obsInp) {
+    obsInp.addEventListener('input', () => { if (S.tempItem) S.tempItem.obs = obsInp.value; });
+    obsInp.addEventListener('click', () => _detailObsClick());
+  }
+
   setTimeout(() => { const inp = document.querySelector('#item-modal-body .item-title-inp') as HTMLInputElement | null; if (inp) inp.focus(); }, 50);
 }
 
