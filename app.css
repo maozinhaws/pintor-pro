@@ -269,6 +269,15 @@ body.kb-open .wbtn-back, body.kb-open .wbtn-next { height: 38px; font-size: 13px
 body.kb-open .topnav { padding-top: 8px; padding-bottom: 6px; }
 body.kb-open .steps, body.kb-open .step-label { display: none; }
 body.kb-open .title-big { font-size: 14px; }
+
+/* ── Keyboard avoidance ── */
+:root { --kb-h: 0px; }
+body.kb-open { padding-bottom: var(--kb-h); }
+body.kb-open .glass-overlay { align-items: flex-start; padding-top: 8px; padding-bottom: calc(8px + var(--kb-h)); }
+body.kb-open #item-modal-form > div { max-height: calc(100vh - var(--kb-h) - 16px); }
+body.kb-open .fab-add { bottom: calc(20px + var(--kb-h)); }
+body.kb-open #img-modal { padding-bottom: calc(20px + var(--kb-h)); }
+input:focus, textarea:focus, select:focus { scroll-margin-bottom: calc(var(--kb-h) + 24px); scroll-margin-top: 24px; }
 .btn-disabled { opacity: 0.5; cursor: not-allowed !important; pointer-events: none; }
 .orc-total-display { font-size: 28px; font-weight: 800; color: var(--gn); text-align: center; margin-bottom: 16px; font-family: 'DM Mono', monospace; letter-spacing: -1px; background: var(--gnl); padding: 12px; border-radius: 16px; border: 2px dashed #6EE7B7; }
 

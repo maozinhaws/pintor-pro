@@ -10,19 +10,57 @@ import { S, saveOrcs } from './state';
 import { toast, formatNum, money, esc, formatPhone, validateFullName, validatePhone, getStatusBadgeClass, getRoomMeds, normalizeDecimalInput, normalizeMeasureInput, numFromInput, digitsOnly, setFieldError, f1, ptFloat, safeUrl, ico } from './utils';
 import { Keyboard } from '@capacitor/keyboard';
 
-// ── Keyboard detection ──
+// ── Keyboard avoidance ──
 (function () {
+  const root = document.documentElement;
+
+  function setKbHeight(h: number): void {
+    root.style.setProperty('--kb-h', h + 'px');
+    document.body.classList.toggle('kb-open', h > 0);
+  }
+
+  function scrollFocusedIntoView(): void {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el) return;
+    const tag = el.tagName;
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
+    setTimeout(() => {
+      try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
+    }, 50);
+  }
+
+  // 1) Native (Capacitor Keyboard plugin) — mais preciso no Android
+  Keyboard.addListener('keyboardWillShow', info => {
+    setKbHeight(info.keyboardHeight || 0);
+    scrollFocusedIntoView();
+  }).catch(() => {});
+  Keyboard.addListener('keyboardDidShow', info => {
+    setKbHeight(info.keyboardHeight || 0);
+    scrollFocusedIntoView();
+  }).catch(() => {});
+  Keyboard.addListener('keyboardWillHide', () => setKbHeight(0)).catch(() => {});
+  Keyboard.addListener('keyboardDidHide', () => setKbHeight(0)).catch(() => {});
+
+  // 2) Browser fallback — VisualViewport (DevTools / PWA / Chrome)
   const THRESHOLD = 0.75;
   let baseH = window.innerHeight;
-  function onResize() {
+  function onResize(): void {
     const vv = window.visualViewport;
     const curH = vv ? vv.height : window.innerHeight;
-    const ratio = curH / baseH;
-    document.body.classList.toggle('kb-open', ratio < THRESHOLD);
+    const diff = baseH - curH;
+    if (diff / baseH > 1 - THRESHOLD) setKbHeight(diff);
+    else setKbHeight(0);
   }
-  if (window.visualViewport) { window.visualViewport.addEventListener('resize', onResize); }
-  else { window.addEventListener('resize', onResize); }
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', onResize);
+  else window.addEventListener('resize', onResize);
   window.addEventListener('load', () => { baseH = window.visualViewport ? window.visualViewport.height : window.innerHeight; });
+
+  // 3) Foco em qualquer campo → scroll into view (cobre casos sem evento de teclado)
+  document.addEventListener('focusin', e => {
+    const t = e.target as HTMLElement;
+    if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT')) return;
+    setTimeout(() => { try { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }, 250);
+  });
 })();
 
 // ── Service Worker ──
