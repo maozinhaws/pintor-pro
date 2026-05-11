@@ -3,7 +3,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'com.pintorplus.app',
   appName: 'Pintor Plus',
-  webDir: 'dist'
+  webDir: 'dist',
+  plugins: {
+    Keyboard: {
+      resize: 'resize',
+      resizeOnFullScreen: true
+    }
+  }
 };
 
 export default config;
