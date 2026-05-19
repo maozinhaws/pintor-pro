@@ -1,4 +1,5 @@
 // Pintor Plus MVP — TypeScript Entry Point
+import './styles-lovable';
 import './navigation';
 import './budgets';
 import './clients';
