@@ -1,6 +1,7 @@
 import { S, saveOrcs } from './state';
 import { toast, esc, f1, ptFloat, money, formatNum, getRoomMeds } from './utils';
 import { canNavigateAsync, go, homeTab } from './navigation';
+import { buildHistoricoEntries } from './services/orcamentos';
 import type { Config } from './types';
 
 const defCfg = S.config;
@@ -9,8 +10,10 @@ const defCfg = S.config;
 function calcOrcTotal(orc: any): number {
   let tot = 0; let totalM2 = 0;
   (orc.rooms || []).forEach((r: any) => {
-    const meds = getRoomMeds(r); totalM2 += meds.m2;
-    if (r.preco) tot += r.precoPerM2 ? (r.preco * meds.m2) : r.preco;
+    const meds = getRoomMeds(r);
+    const measArea = meds.m2 + meds.ml;
+    totalM2 += measArea;
+    if (r.preco) tot += r.precoPerM2 ? (r.preco * measArea) : r.preco;
     (r.items || []).forEach((it: any) => {
       if (it.price) tot += it.perMeter
         ? (it.price * ((ptFloat(it.alt) * ptFloat(it.comp)) || ptFloat(it.alt) || ptFloat(it.comp)))
@@ -25,36 +28,142 @@ function calcTotal(): number {
   return calcOrcTotal({ rooms: S.rooms, preco: parseFloat((document.getElementById('preco-m2') as HTMLInputElement)?.value) || 0 });
 }
 
-// ── Novo orçamento ──
-function newOrc(): void {
+function setRoomBasePrice(ri: number, rawValue: string): void {
+  const r = S.rooms[ri];
+  if (!r) return;
+  r.preco = ptFloat(rawValue);
+  S.isDirty = true;
+  calcTotal();
+  _updatePrecoBaseDisplay(ri);
+  refreshWAPreview();
+}
+
+function setRoomBasePriceMode(ri: number, precoPerM2: boolean): void {
+  const r = S.rooms[ri];
+  if (!r) return;
+  r.precoPerM2 = precoPerM2;
+  S.isDirty = true;
+  calcTotal();
+  _updatePrecoBaseDisplay(ri);
+  refreshWAPreview();
+}
+
+function _hasDraftContent(orc: any): boolean {
+  return !!(
+    String(orc.nome || '').trim() ||
+    String(orc.tel || '').trim() ||
+    String(orc.obs || '').trim() ||
+    (orc.rooms || []).some((r: any) => (r.preco || 0) > 0 || (r.items || []).length > 0)
+  );
+}
+
+function saveDraft(): boolean {
+  const orc = collectOrc();
+  if (!_hasDraftContent(orc)) { S.isDirty = false; return false; }
+  orc.status = 'Rascunho';
+  orc.isFlashDraft = false;
+  if (S.editId) {
+    const i = S.orcs.findIndex(o => o.id === S.editId);
+    if (i >= 0) S.orcs[i] = orc; else S.orcs.unshift(orc);
+  } else {
+    S.orcs.unshift(orc);
+    S.editId = orc.id;
+  }
+  S.isDirty = false;
+  saveOrcs();
+  extractClient(orc);
+  (window as any).renderHomeMini?.();
+  (window as any).renderOrcamentosList?.();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Rascunho salvo');
+  return true;
+}
+
+// ── Seletro de Modo (3 modos: flash, foto, detalhado) ──
+let selectedMode: 'flash' | 'foto' | 'detalhado' = 'detalhado';
+
+function showModeSelector(): void {
+  canNavigateAsync(() => {
+    const modal = document.getElementById('mode-selector-modal');
+    if (modal) modal.style.display = 'flex';
+  });
+}
+
+function selectMode(mode: 'flash' | 'foto' | 'detalhado'): void {
+  selectedMode = mode;
+  const modal = document.getElementById('mode-selector-modal');
+  if (modal) modal.style.display = 'none';
+
+  if (mode === 'flash') newOrcFlash();
+  else if (mode === 'foto') newOrcFoto();
+  else newOrcDetalhado();
+}
+
+// ── Novo orçamento - Modo Flash (simples, 3 passos) ──
+function newOrcFlash(): void {
   canNavigateAsync(() => {
     S.isDirty = true;
+    selectedMode = 'flash';
+    S.rooms = [{ id: Date.now().toString(), name: 'Geral', alt: 0, comp: 0, items: [], services: S.DEFAULT_SERVICES.slice(), collapsed: false, preco: 0, precoPerM2: false }];
+    S.pgto = new Set(); S.fmt = 'simples'; S.pagador = false; S.editId = null;
+    initializeOrcForm();
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg> Modo Flash: rápido e simples');
+    go(1);
+  });
+}
+
+// ── Novo orçamento - Modo Foto (com câmera) ──
+function newOrcFoto(): void {
+  canNavigateAsync(() => {
+    S.isDirty = true;
+    selectedMode = 'foto';
+    S.rooms = [{ id: Date.now().toString(), name: 'Geral', alt: 0, comp: 0, items: [], services: S.DEFAULT_SERVICES.slice(), collapsed: false, preco: 0, precoPerM2: false }];
+    S.pgto = new Set(); S.fmt = 'area'; S.pagador = false; S.editId = null;
+    initializeOrcForm();
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Modo Foto: capture e organize');
+    go(1);
+  });
+}
+
+// ── Novo orçamento - Modo Detalhado (completo) ──
+function newOrcDetalhado(): void {
+  canNavigateAsync(() => {
+    S.isDirty = true;
+    selectedMode = 'detalhado';
     S.rooms = [{ id: Date.now().toString(), name: 'Geral', alt: 0, comp: 0, items: [], services: S.DEFAULT_SERVICES.slice(), collapsed: false, preco: 0, precoPerM2: false }];
     S.pgto = new Set(); S.fmt = 'completo'; S.pagador = false; S.editId = null;
-    ['cli-nome','cli-apelido','cli-tel','cli-email','cli-cpf','cli-cep','cli-logradouro','cli-bairro','cli-cidade','cli-numero','cli-comp'].forEach(id => {
-      const el = document.getElementById(id) as HTMLInputElement | null;
-      if (el) el.value = '';
-    });
-    document.getElementById('end-fields')!.style.display = 'none';
-    document.getElementById('end-manual-toggle')!.style.display = 'block';
-    document.getElementById('cep-msg')!.style.display = 'none';
-    renderPgtoList();
-    document.querySelectorAll('.chk-item').forEach(el => el.classList.remove('on'));
-    ['orc-obs','orc-inicio'].forEach(id => {
-      const el = document.getElementById(id) as HTMLInputElement | null;
-      if (el) el.value = '';
-    });
-    const tipoServ = document.getElementById('orc-tipo-serv') as HTMLSelectElement | null;
-    if (tipoServ) tipoServ.selectedIndex = 2;
-    document.querySelectorAll('.fmt-card').forEach((c, i) => c.classList.toggle('on', i === 0));
-    document.getElementById('pag-sw')?.classList.remove('on');
-    document.getElementById('pag-fields')?.classList.remove('show');
-    renderRooms(); go(1);
-    setTimeout(() => {
-      const sel = document.getElementById('orc-status') as HTMLSelectElement | null;
-      if (sel) sel.value = S.statusArr[0] || 'Pendente';
-    }, 50);
+    initializeOrcForm();
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-list"/></svg> Modo Detalhado: todas as informações');
+    go(1);
   });
+}
+
+// ── Inicializar formulário comum ──
+function initializeOrcForm(): void {
+  ['cli-nome','cli-apelido','cli-tel','cli-email','cli-cpf','cli-cep','cli-logradouro','cli-bairro','cli-cidade','cli-numero','cli-comp'].forEach(id => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = '';
+  });
+  document.getElementById('end-fields')!.style.display = 'none';
+  document.getElementById('end-manual-toggle')!.style.display = 'block';
+  document.getElementById('cep-msg')!.style.display = 'none';
+  renderPgtoList();
+  document.querySelectorAll('.chk-item').forEach(el => el.classList.remove('on'));
+  ['orc-obs','orc-inicio'].forEach(id => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    if (el) el.value = '';
+  });
+  const tipoServ = document.getElementById('orc-tipo-serv') as HTMLSelectElement | null;
+  if (tipoServ) tipoServ.selectedIndex = 2;
+  const fmtCards = document.querySelectorAll('.fmt-card');
+  const expectedIndex = S.fmt === 'simples' ? 0 : (S.fmt === 'area' ? 1 : 2);
+  fmtCards.forEach((c, i) => c.classList.toggle('on', i === expectedIndex));
+  document.getElementById('pag-sw')?.classList.remove('on');
+  document.getElementById('pag-fields')?.classList.remove('show');
+  renderRooms();
+  setTimeout(() => {
+    const sel = document.getElementById('orc-status') as HTMLSelectElement | null;
+    if (sel) sel.value = S.statusArr[0] || 'Pendente';
+  }, 50);
 }
 
 // ── Editar orçamento ──
@@ -65,6 +174,7 @@ function editOrc(i: number): void {
     S.isDirty = true; S.editId = o.id;
     S.rooms = JSON.parse(JSON.stringify(o.rooms || []));
     S.pgto = new Set(o.pgto || []); S.fmt = o.fmt || 'completo'; S.pagador = o.pagador || false;
+    selectedMode = (o as any).mode || 'detalhado';
     renderPgtoList(); go(1);
     setTimeout(() => {
       const v = (id: string, val: any) => { const el = document.getElementById(id) as HTMLInputElement | null; if (el) el.value = val || ''; };
@@ -95,6 +205,7 @@ function collectOrc(): any {
     pgto: Array.from(S.pgto), fmt: S.fmt, preco: parseFloat(v('preco-m2')) || 0, status: v('orc-status') || S.statusArr[0], valid: v('orc-valid') || '15',
     tipoServico: v('orc-tipo-serv'),
     inicio: v('orc-inicio'), obs: v('orc-obs'), date: new Date().toLocaleDateString('pt-BR'),
+    mode: selectedMode,
     ts: S.editId ? S.orcs.find(o => o.id === S.editId)?.ts : Date.now(), tsEdit: Date.now()
   };
 }
@@ -121,7 +232,24 @@ function saveOrc(silent = false): boolean {
   if (!orc.nome.trim()) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Informe o nome do cliente'); return false; }
   if ((orc.status || '').toLowerCase().includes('flash')) { orc.status = S.statusArr[0] || 'Pendente'; }
   orc.isFlashDraft = false;
-  if (S.editId) { const i = S.orcs.findIndex(o => o.id === S.editId); if (i >= 0) S.orcs[i] = orc; else S.orcs.unshift(orc); } else { S.orcs.unshift(orc); S.editId = orc.id; }
+
+  // Build history entries for this save
+  if (S.editId) {
+    const idx = S.orcs.findIndex(o => o.id === S.editId);
+    const anterior = idx >= 0 ? S.orcs[idx] : null;
+    const novasEntradas = buildHistoricoEntries(anterior, orc);
+    if (!orc.historico) orc.historico = [];
+    if (anterior?.historico) orc.historico = [...anterior.historico, ...novasEntradas];
+    else orc.historico = novasEntradas;
+    if (idx >= 0) S.orcs[idx] = orc;
+    else S.orcs.unshift(orc);
+  } else {
+    const novasEntradas = buildHistoricoEntries(null, orc);
+    orc.historico = novasEntradas;
+    S.orcs.unshift(orc);
+    S.editId = orc.id;
+  }
+
   S.isDirty = false; saveOrcs(); extractClient(orc);
   (window as any).renderHomeMini?.();
   if (!silent) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Orçamento salvo!'); homeTab('orcamentos'); setTimeout(() => { (window as any).renderOrcamentosList?.(); }, 100); }
@@ -172,10 +300,10 @@ function renderRooms(): void {
         <div style="margin-bottom:16px;">
           <div style="font-size:13px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;"><svg class="ico" aria-hidden="true"><use href="#ico-banknote"/></svg> ${hasMult ? 'Preço base do local' : 'Preço Total Base'}</div>
           <div style="display:flex;gap:10px;align-items:center;">
-            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="text" inputmode="decimal" placeholder="0,00" value="${r.preco ? String(r.preco).replace('.', ',') : ''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'Calibri',sans-serif;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="if(this.value){const v=ptFloat(this.value);this.value=v?v.toFixed(2).replace('.',','):'';S.rooms[${ri}].preco=v;}; this.style.borderColor='var(--bdr-input)';" oninput="this.value=this.value.replace('.',',');S.rooms[${ri}].preco=ptFloat(this.value);calcTotal();_updatePrecoBaseDisplay(${ri});"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2 ? 'block' : 'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
+            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="text" inputmode="decimal" placeholder="0,00" value="${r.preco ? String(r.preco).replace('.', ',') : ''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'Calibri',sans-serif;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="const v=ptFloat(this.value);this.value=v?v.toFixed(2).replace('.',','):'';setRoomBasePrice(${ri},this.value);this.style.borderColor='var(--bdr-input)';" oninput="this.value=this.value.replace('.',',');setRoomBasePrice(${ri},this.value);"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2 ? 'block' : 'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
             <div style="display:flex;flex-direction:column;gap:4px;">
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="fixo" ${!r.precoPerM2 ? 'checked' : ''} onchange="S.rooms[${ri}].precoPerM2=false;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Fixo</label>
-              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="m2" ${r.precoPerM2 ? 'checked' : ''} onchange="S.rooms[${ri}].precoPerM2=true;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Por m²</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="fixo" ${!r.precoPerM2 ? 'checked' : ''} onchange="setRoomBasePriceMode(${ri},false);" style="accent-color:var(--bl);width:16px;height:16px;"> Fixo</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="m2" ${r.precoPerM2 ? 'checked' : ''} onchange="setRoomBasePriceMode(${ri},true);" style="accent-color:var(--bl);width:16px;height:16px;"> Por m²</label>
             </div>
           </div>
         </div>
@@ -304,16 +432,17 @@ function renderItemModal(): void {
     </div>
     <div id="item-area-display" style="display:${_areaLbl ? 'block' : 'none'};margin-bottom:14px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;">${_areaLbl || ''}</div>
 
-    <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">Fotos do Item</div>
+    <div id="item-photos-section" style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">Fotos do Item</div>
     <div style="display:flex;justify-content:center;gap:16px;margin:4px 0 12px;">
       <button type="button" onclick="openDetailedCamera()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f97316,#fb923c);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 20px rgba(249,115,22,0.3);"><svg class="ico" aria-hidden="true" style="color:#fff;width:28px;height:28px;"><use href="#ico-camera"/></svg></button>
       <label style="width:60px;height:60px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--bdr-input);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:6px;" title="Galeria"><svg class="ico" aria-hidden="true" style="width:24px;height:24px;color:var(--ink3);"><use href="#ico-image"/></svg><input type="file" accept="image/*" style="display:none;" onchange="handlePhotoFile(this,false)"></label>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
       ${(it.photos || []).map((p: any, idx: number) => `
-        <div style="background:var(--bg2);border:1.5px solid var(--bdr);border-radius:12px;padding:4px;position:relative;">
-          <button onclick="delItemPhotoModalIdx(${idx})" type="button" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:6px;background:rgba(239,68,68,0.9);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">✕</button>
-          <img src="${esc(p.url)}" onclick="openImg('${esc(p.url)}')" style="width:100%;height:58px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" alt="Foto ${idx + 1}">
+        <div onclick="openPhotoViewer(${idx},'item')"
+             style="background:var(--bg2);border:2px solid ${p.annotated ? '#EF4444' : 'var(--bdr)'};border-radius:12px;padding:3px;position:relative;cursor:pointer;">
+          <img src="${esc(p.url)}" style="width:100%;height:62px;object-fit:cover;border-radius:9px;display:block;" alt="Foto ${idx + 1}">
+          ${p.annotated ? '<span style="position:absolute;bottom:5px;left:3px;right:3px;background:rgba(239,68,68,.85);color:#fff;font-size:7px;font-weight:800;text-align:center;padding:1px 0;border-radius:0 0 6px 6px;letter-spacing:.04em;">ANOTADA</span>' : ''}
         </div>
       `).join('')}
     </div>
@@ -334,6 +463,7 @@ function renderItemModal(): void {
   document.getElementById('item-modal-body')!.scrollTop = 0;
 
   // Bind direct event listeners (avoids inline onclick/oninput global function issues)
+  // Note: no auto-focus here — focusing while camera is open triggers Android keyboard unexpectedly
   const nameInp = document.getElementById('modal-it-name') as HTMLInputElement | null;
   const compInp = document.getElementById('modal-it-comp') as HTMLInputElement | null;
   const altInp = document.getElementById('modal-it-alt') as HTMLInputElement | null;
@@ -341,20 +471,25 @@ function renderItemModal(): void {
   const perMeterInp = document.getElementById('modal-it-permeter') as HTMLInputElement | null;
   const obsInp = document.getElementById('modal-it-obs') as HTMLTextAreaElement | null;
 
+  const _next = (el: HTMLElement | null) => { if (el) { el.focus(); el instanceof HTMLInputElement && el.select(); } };
+
   if (nameInp) {
     nameInp.addEventListener('input', () => { if (S.tempItem) S.tempItem.name = nameInp.value; });
     nameInp.addEventListener('click', () => _detailNomeClick());
     nameInp.addEventListener('focus', () => nameInp.select());
+    nameInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _next(compInp); } });
   }
   if (compInp) {
     compInp.addEventListener('input', () => { compInp.value = compInp.value.replace('.', ','); if (S.tempItem) S.tempItem.comp = compInp.value; _detailUpdateArea(); });
     compInp.addEventListener('blur', () => { if (compInp.value) { const v = ptFloat(compInp.value); compInp.value = v ? v.toFixed(2).replace('.', ',') : ''; if (S.tempItem) S.tempItem.comp = compInp.value; _detailUpdateArea(); } });
     compInp.addEventListener('focus', () => compInp.select());
+    compInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _next(altInp); } });
   }
   if (altInp) {
     altInp.addEventListener('input', () => { altInp.value = altInp.value.replace('.', ','); if (S.tempItem) S.tempItem.alt = altInp.value; _detailUpdateArea(); });
     altInp.addEventListener('blur', () => { if (altInp.value) { const v = ptFloat(altInp.value); altInp.value = v ? v.toFixed(2).replace('.', ',') : ''; if (S.tempItem) S.tempItem.alt = altInp.value; _detailUpdateArea(); } });
     altInp.addEventListener('focus', () => altInp.select());
+    altInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _next(priceInp); } });
   }
   if (priceInp) {
     priceInp.addEventListener('input', () => { priceInp.value = priceInp.value.replace('.', ','); if (S.tempItem) S.tempItem.price = ptFloat(priceInp.value); _updateItemPrecoDisplay(); });
@@ -367,6 +502,7 @@ function renderItemModal(): void {
       } else { S.tempItem.price = 0; }
     });
     priceInp.addEventListener('focus', () => priceInp.select());
+    priceInp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); _next(obsInp); } });
   }
   if (perMeterInp) {
     perMeterInp.addEventListener('change', () => { if (S.tempItem) S.tempItem.perMeter = perMeterInp.checked; _updateItemPrecoDisplay(); });
@@ -376,7 +512,6 @@ function renderItemModal(): void {
     obsInp.addEventListener('click', () => _detailObsClick());
   }
 
-  setTimeout(() => { const inp = document.querySelector('#item-modal-body .item-title-inp') as HTMLInputElement | null; if (inp) inp.focus(); }, 50);
 }
 
 // ── Services modal ──
@@ -466,6 +601,29 @@ function cancelItemModal(): void {
 }
 
 // ── Photos ──
+function openDetailedCamera(): void {
+  const openCameraFn = (window as any).openCamera;
+  if (typeof openCameraFn !== 'function') {
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Câmera não disponível');
+    return;
+  }
+  openCameraFn((photos: Blob[]) => {
+    if (!S.tempItem.photos) S.tempItem.photos = [];
+    photos.forEach((blob, idx) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target?.result as string;
+        S.tempItem.photos.push({ url, filename: `Foto_${Date.now()}_${idx}.jpg` });
+        if (idx === photos.length - 1) {
+          renderItemModal();
+          toast(`<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> ${photos.length} foto(s) adicionada(s)!`);
+        }
+      };
+      reader.readAsDataURL(blob);
+    });
+  });
+}
+
 function openPhotoChoice(): void { document.getElementById('photo-choice-modal')!.style.display = 'flex'; }
 
 function triggerPhoto(source: string): void {
@@ -474,7 +632,7 @@ function triggerPhoto(source: string): void {
   if (el) el.click();
 }
 
-function handlePhotoFile(input: HTMLInputElement, isCamera: boolean): void {
+function handlePhotoFile(input: HTMLInputElement, _isCamera?: boolean): void {
   const file = input.files?.[0]; if (!file) return;
   compressImage(file, (dataUrl: string) => {
     if (!S.tempItem.photos) S.tempItem.photos = [];
@@ -482,10 +640,6 @@ function handlePhotoFile(input: HTMLInputElement, isCamera: boolean): void {
     S.tempItem.photos.push({ url: dataUrl, filename: fName });
     renderItemModal();
     toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
-    if (isCamera) {
-      const a = document.createElement('a'); a.href = dataUrl; a.download = fName; a.click();
-      toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Salvando na Galeria...');
-    }
   });
   input.value = '';
 }
@@ -495,12 +649,28 @@ function compressImage(file: File, callback: (url: string) => void): void {
   reader.onload = event => {
     const img = new Image(); img.src = event.target!.result as string;
     img.onload = () => {
-      const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 1024;
-      if (w > h && w > MAX) { h *= MAX / w; w = MAX; } else if (h > MAX) { w *= MAX / h; h = MAX; }
+      const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 1280;
+      if (w > h && w > MAX) { h = Math.round(h * MAX / w); w = MAX; } else if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
       canvas.width = w; canvas.height = h; canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
-      callback(canvas.toDataURL('image/jpeg', 0.6));
+      callback(canvas.toDataURL('image/jpeg', 0.75));
     };
   };
+}
+
+function compressDataUrl(dataUrl: string, maxPx: number, quality: number): Promise<string> {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > h && w > maxPx) { h = Math.round(h * maxPx / w); w = maxPx; }
+      else if (h > maxPx) { w = Math.round(w * maxPx / h); h = maxPx; }
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
 }
 
 function delItemPhotoModalIdx(idx: number): void {
@@ -556,7 +726,7 @@ function refreshWAPreview(): void {
 }
 
 function buildWAMsg(orc: any): string {
-  let m2 = 0; (orc.rooms || []).forEach((r: any) => { m2 += getRoomMeds(r).m2; });
+  let m2 = 0; (orc.rooms || []).forEach((r: any) => { const meds = getRoomMeds(r); m2 += meds.m2 + meds.ml; });
   const totalValue = calcOrcTotal(orc);
   let detalhes = '';
 
@@ -633,7 +803,9 @@ function viewOrc(i: number): void {
       const price = it.price ? (it.perMeter ? `R$ ${it.price}/m` : `R$ ${it.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`) : '';
       return `<div style="font-size:12px;padding:5px 8px;background:var(--bg2);border-radius:7px;margin-bottom:4px;display:flex;justify-content:space-between;gap:8px;"><span style="color:var(--ink2);">${esc(it.name || it.serv || '—')}${m2 ? ' · ' + m2 : ''}</span><span style="color:var(--bl);font-weight:700;flex-shrink:0;">${price}</span></div>`;
     }).join('');
-    const rPrice = r.preco ? (r.precoPerM2 ? `R$ ${r.preco}/m² · ${meds.m2.toFixed(2)}m² = ${fmtVal(r.preco * meds.m2)}` : fmtVal(r.preco)) : '';
+    const measArea = meds.m2 + meds.ml;
+    const unit = meds.m2 > 0 ? 'm²' : 'ml';
+    const rPrice = r.preco ? (r.precoPerM2 ? `R$ ${r.preco}/m² · ${measArea.toFixed(2)}${unit} = ${fmtVal(r.preco * measArea)}` : fmtVal(r.preco)) : '';
     roomsHtml += `<div style="margin-bottom:12px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden;"><div style="padding:8px 12px;background:var(--bg-card);font-size:13px;font-weight:700;color:var(--ink);display:flex;justify-content:space-between;"><span>${esc(r.name || 'Ambiente ' + (ri + 1))}</span>${rPrice ? `<span style="color:var(--bl);">${esc(rPrice)}</span>` : ''}</div>${itemsHtml ? `<div style="padding:8px;">${itemsHtml}</div>` : ''}</div>`;
   });
 
@@ -861,10 +1033,16 @@ function attachEnterNav(): void {
 // ── Expose globals ──
 (window as any).calcOrcTotal = calcOrcTotal;
 (window as any).calcTotal = calcTotal;
-(window as any).newOrc = newOrc;
+(window as any).showModeSelector = showModeSelector;
+(window as any).selectMode = selectMode;
+(window as any).newOrcFlash = newOrcFlash;
+(window as any).newOrcFoto = newOrcFoto;
+(window as any).newOrcDetalhado = newOrcDetalhado;
+(window as any).newOrc = newOrcDetalhado;
 (window as any).editOrc = editOrc;
 (window as any).collectOrc = collectOrc;
 (window as any).saveOrc = saveOrc;
+(window as any).saveDraft = saveDraft;
 (window as any).triggerAction = triggerAction;
 (window as any).renderRooms = renderRooms;
 (window as any).tCard = tCard;
@@ -889,13 +1067,17 @@ function attachEnterNav(): void {
 (window as any).cancelItemModal = cancelItemModal;
 (window as any)._updateItemPrecoDisplay = _updateItemPrecoDisplay;
 (window as any)._updatePrecoBaseDisplay = _updatePrecoBaseDisplay;
+(window as any).setRoomBasePrice = setRoomBasePrice;
+(window as any).setRoomBasePriceMode = setRoomBasePriceMode;
 (window as any)._detailUpdateArea = _detailUpdateArea;
 (window as any)._detailNomeClick = _detailNomeClick;
 (window as any)._detailObsClick = _detailObsClick;
+(window as any).openDetailedCamera = openDetailedCamera;
 (window as any).openPhotoChoice = openPhotoChoice;
 (window as any).triggerPhoto = triggerPhoto;
 (window as any).handlePhotoFile = handlePhotoFile;
 (window as any).compressImage = compressImage;
+(window as any).compressDataUrl = compressDataUrl;
 (window as any).delItemPhotoModalIdx = delItemPhotoModalIdx;
 (window as any).openImg = openImg;
 (window as any).openServicesModal = openServicesModal;
@@ -921,7 +1103,7 @@ function attachEnterNav(): void {
 (window as any).defCfg = defCfg;
 
 // ── PDF Generation ──
-function _buildOrcPDFHtml(orc: any): string {
+function _buildOrcPDFHtml(orc: any, compressedPhotos: Record<string, string> = {}): string {
   const cfg = S.config || defCfg;
   const total = calcOrcTotal(orc);
   const totalFmt = total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -936,16 +1118,19 @@ function _buildOrcPDFHtml(orc: any): string {
   let totalM2 = 0;
   (orc.rooms || []).forEach((r: any, ri: number) => {
     const meds = getRoomMeds(r);
-    totalM2 += meds.m2;
-    const rTotal = r.precoPerM2 ? r.preco * meds.m2 : (r.preco || 0);
+    const measArea = meds.m2 + meds.ml;
+    totalM2 += measArea;
+    const rTotal = r.precoPerM2 ? r.preco * measArea : (r.preco || 0);
     const rTotalFmt = rTotal > 0 ? rTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
     let itemsHtml = '';
-    (r.items || []).forEach((it: any) => {
+    (r.items || []).forEach((it: any, ii: number) => {
       const a = ptFloat(String(it.alt)), c = ptFloat(String(it.comp));
       const m2str = a && c ? `${f1(a * c)} m²` : (a || c) ? `${f1(a || c)} ml` : '';
       const svcStr = it.services?.length ? ` — ${it.services.join(', ')}` : '';
       const priceStr = it.price ? (it.perMeter ? `R$&nbsp;${it.price}/m` : it.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })) : '';
-      itemsHtml += `<tr><td style="padding:6px 10px;font-size:12px;color:#334155;">${esc(it.name || '—')}${svcStr ? `<span style="color:#64748B;">${esc(svcStr)}</span>` : ''}${it.obs ? `<br><span style="font-size:11px;color:#94A3B8;font-style:italic;">Obs: ${esc(it.obs)}</span>` : ''}</td><td style="padding:6px 10px;font-size:12px;color:#64748B;white-space:nowrap;">${m2str}</td><td style="padding:6px 10px;font-size:12px;color:#7C3AED;font-weight:700;text-align:right;white-space:nowrap;">${priceStr}</td></tr>`;
+      const itemPhotos = (it.photos || []).filter((p: any) => p?.url).slice(0, 6);
+      const photosHtml = itemPhotos.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${itemPhotos.map((p: any, pi: number) => { const src = compressedPhotos[`${ri}_${ii}_${pi}`] || p.url; return `<img src="${src}" style="height:90px;max-width:140px;border-radius:5px;object-fit:cover;"${p.annotated ? ' title="Foto anotada"' : ''}>`;}).join('')}</div>` : '';
+      itemsHtml += `<tr><td style="padding:6px 10px;font-size:12px;color:#334155;">${esc(it.name || '—')}${svcStr ? `<span style="color:#64748B;">${esc(svcStr)}</span>` : ''}${it.obs ? `<br><span style="font-size:11px;color:#94A3B8;font-style:italic;">Obs: ${esc(it.obs)}</span>` : ''}${photosHtml}</td><td style="padding:6px 10px;font-size:12px;color:#64748B;white-space:nowrap;">${m2str}</td><td style="padding:6px 10px;font-size:12px;color:#7C3AED;font-weight:700;text-align:right;white-space:nowrap;">${priceStr}</td></tr>`;
     });
     roomsHtml += `<div style="margin-bottom:14px;border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;">
       <div style="background:#F8FAFC;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #E2E8F0;">
@@ -1060,20 +1245,39 @@ function _doPDF(): void {
   _doPDFFromOrc(o);
 }
 
-function _doPDFFromOrc(orc: any): void {
+async function _doPDFFromOrc(orc: any): Promise<void> {
   (window as any).showSpinner?.('Gerando PDF…');
-  const html = _buildOrcPDFHtml(orc);
+  const compressedPhotos: Record<string, string> = {};
+  for (let ri = 0; ri < (orc.rooms || []).length; ri++) {
+    for (let ii = 0; ii < (orc.rooms[ri].items || []).length; ii++) {
+      const photos = orc.rooms[ri].items[ii].photos || [];
+      for (let pi = 0; pi < Math.min(photos.length, 6); pi++) {
+        if (photos[pi]?.url) {
+          compressedPhotos[`${ri}_${ii}_${pi}`] = await compressDataUrl(photos[pi].url, 800, 0.60).catch(() => photos[pi].url);
+        }
+      }
+    }
+  }
+  const html = _buildOrcPDFHtml(orc, compressedPhotos);
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const w = window.open(url, '_blank');
   if (!w) { (window as any).hideSpinner?.(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Pop-up bloqueado. Permita pop-ups para gerar PDF.'); return; }
   setTimeout(() => { URL.revokeObjectURL(url); (window as any).hideSpinner?.(); }, 1500);
-  if ((window as any).isGSignedIn?.()) {
-    const date = new Date().toISOString().slice(0,10);
-    const fname = `orcamento-${orc.id || date}.pdf`;
-    (window as any).uploadToDrive?.(fname, blob, 'application/pdf', 'PDFs');
-  }
+}
+
+// ── Histórico (funções implementadas em app.html) ──
+function openHistorico(orcId: string): void {
+  // Implementado em app.html via window.openHistorico
+  (window as any).openHistorico?.(orcId);
+}
+
+function closeHistorico(): void {
+  // Implementado em app.html via window.closeHistorico
+  (window as any).closeHistorico?.();
 }
 
 (window as any)._doPDF = _doPDF;
 (window as any)._doPDFFromOrc = _doPDFFromOrc;
+(window as any).openHistorico = openHistorico;
+(window as any).closeHistorico = closeHistorico;

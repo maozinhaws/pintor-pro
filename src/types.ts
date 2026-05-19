@@ -6,7 +6,8 @@ export interface Item {
   price: number;
   perMeter: boolean;
   obs: string;
-  photos: string[];
+  photos: string[]; // IDs de fotos no Dexie
+  id?: string; // ID único do item
 }
 
 export interface Room {
@@ -19,6 +20,14 @@ export interface Room {
   collapsed: boolean;
   preco: number;
   precoPerM2: boolean;
+}
+
+export interface HistoricoOrcamentoEntry {
+  timestamp: number;
+  campo: string; // 'status', 'total', 'cliente', 'ambiente', etc
+  valorAnterior: any;
+  valorNovo: any;
+  usuario?: string; // para futura multi-user
 }
 
 export interface Orcamento {
@@ -43,6 +52,7 @@ export interface Orcamento {
   pgto: string[];
   fmt: 'completo' | 'area' | 'simples';
   preco: number;
+  precoAdicionalM2?: number; // preço global por m² (novo Lovable)
   status: string;
   valid: string;
   tipoServico: string;
@@ -53,6 +63,9 @@ export interface Orcamento {
   tsEdit: number;
   rascunho?: boolean;
   isFlashDraft?: boolean;
+  mode?: 'flash' | 'foto' | 'detalhado'; // modo de criação (novo)
+  historico?: HistoricoOrcamentoEntry[]; // histórico de alterações (novo)
+  clienteSnapshot?: Cliente; // cópia do cliente no momento (novo)
 }
 
 export interface Cliente {
@@ -118,3 +131,25 @@ export interface Config {
 
 export type ValueMode = 'total' | 'm2' | null;
 export type MessageFormat = 'completo' | 'area' | 'simples';
+
+// Novo: Foto como Blob (não path string)
+export interface Foto {
+  id: string; // UUID
+  blob: Blob; // real blob, not path
+  thumbnail?: Blob; // JPEG comprimido 100x100px
+  orcamentoId: string; // referência ao orçamento
+  itemId?: string; // referência ao item (opcional)
+  criadoEm: number;
+}
+
+// Novo: Recibo de pagamento
+export interface Recibo {
+  id: string; // gerado ao persistir
+  orcamentoId: string; // referência ao orçamento
+  valor: number; // valor recebido
+  data: string; // ISO date
+  formaPagamento: string;
+  observacao?: string;
+  pago: boolean;
+  criadoEm: number;
+}
