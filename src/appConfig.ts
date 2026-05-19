@@ -839,7 +839,31 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
 
 // ── CÂMERA DETALHADO — getUserMedia + torch + zoom ──
 (function () {
-  let _dcStream: MediaStream | null = null, _dcTorchOn = false;
+  let _dcStream: MediaStream | null = null, _dcTorchOn = false, _dcTorchSupported = false;
+
+  function _openNativeCameraInput(): void {
+    const choiceModal = document.getElementById('photo-choice-modal');
+    if (choiceModal) choiceModal.style.display = 'none';
+    const cameraInput = document.getElementById('file-camera') as HTMLInputElement | null;
+    if (!cameraInput) {
+      toast('Camera indisponivel');
+      return;
+    }
+    cameraInput.click();
+  }
+
+  async function _setTorchState(enabled: boolean): Promise<boolean> {
+    const track = _dcStream?.getVideoTracks?.()[0] as any;
+    if (!track || !_dcTorchSupported) return false;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: enabled }] });
+      _dcTorchOn = enabled;
+      return true;
+    } catch {
+      _dcTorchOn = false;
+      return false;
+    }
+  }
 
   function _renderDCThumbs(): void {
     const el = document.getElementById('detail-cam-thumbs');
@@ -853,6 +877,7 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
     if (m) m.style.display = 'none';
     if (_dcStream) { _dcStream.getTracks().forEach(t => t.stop()); _dcStream = null; }
     _dcTorchOn = false;
+    _dcTorchSupported = false;
     const bt = document.getElementById('detail-cam-torch');
     if (bt) { bt.style.display = 'none'; bt.style.background = 'rgba(255,255,255,0.15)'; }
     const zc = document.getElementById('detail-cam-zoom');
@@ -860,28 +885,35 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
   }
 
   (window as any).openDetailedCamera = async function (): Promise<void> {
+    _openNativeCameraInput();
+    return;
     document.getElementById('photo-choice-modal')!.style.display = 'none';
     const m = document.getElementById('detail-cam-modal');
     if (!m) return;
     if (!navigator.mediaDevices?.getUserMedia) { (document.getElementById('file-camera') as HTMLInputElement).click(); return; }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } as any }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } as any }, audio: false })
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } as any }, audio: false }));
       _dcStream = stream; _dcTorchOn = false;
       (document.getElementById('detail-cam-video') as HTMLVideoElement).srcObject = stream;
-      m.style.display = 'flex';
+      (m as HTMLElement).style.display = 'flex';
       _renderDCThumbs();
       const track = stream.getVideoTracks()[0];
       const caps = (track as any).getCapabilities ? (track as any).getCapabilities() : {};
       const bt = document.getElementById('detail-cam-torch');
-      if (bt && caps.torch) { bt.style.display = 'flex'; }
+      _dcTorchSupported = !!caps.torch;
+      if (bt) {
+        (bt as HTMLElement).style.display = _dcTorchSupported ? 'flex' : 'none';
+        (bt as HTMLElement).style.background = 'rgba(255,255,255,0.15)';
+      }
       const zc = document.getElementById('detail-cam-zoom');
       const zs = document.getElementById('detail-cam-zoom-slider') as HTMLInputElement | null;
       if (zc && zs && caps.zoom) {
-        zs.min = caps.zoom.min; zs.max = caps.zoom.max;
-        zs.step = ((caps.zoom.max - caps.zoom.min) / 20).toString();
-        zs.value = caps.zoom.min;
-        zc.style.display = 'block';
-        zs.oninput = function () { track.applyConstraints({ advanced: [{ zoom: parseFloat(zs!.value) }] } as any); };
+        (zs as HTMLInputElement).min = caps.zoom.min; (zs as HTMLInputElement).max = caps.zoom.max;
+        (zs as HTMLInputElement).step = ((caps.zoom.max - caps.zoom.min) / 20).toString();
+        (zs as HTMLInputElement).value = caps.zoom.min;
+        (zc as HTMLElement).style.display = 'block';
+        (zs as HTMLInputElement).oninput = function () { track.applyConstraints({ advanced: [{ zoom: parseFloat(zs!.value) }] } as any); };
       }
     } catch (e: any) {
       toast('⚠️ ' + (e?.name === 'NotAllowedError' ? 'Permissão negada' : 'Câmera indisponível'));
@@ -891,11 +923,11 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
 
   document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('detail-cam-close')?.addEventListener('click', _closeDC);
-    document.getElementById('detail-cam-torch')?.addEventListener('click', function () {
-      const track = _dcStream?.getVideoTracks()[0];
-      if (!track) return;
-      _dcTorchOn = !_dcTorchOn;
-      (track as any).applyConstraints({ advanced: [{ torch: _dcTorchOn }] });
+    document.getElementById('detail-cam-torch')?.addEventListener('click', async function () {
+      if (!_dcStream || !_dcTorchSupported) return;
+      const nextState = !_dcTorchOn;
+      const ok = await _setTorchState(nextState);
+      if (!ok) { toast('⚠️ Flash indisponível neste modo'); }
       (this as HTMLElement).style.background = _dcTorchOn ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.15)';
     });
     document.getElementById('detail-cam-capture')?.addEventListener('click', function () {
@@ -908,12 +940,7 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
       (S as any).tempItem.photos.push({ url: c.toDataURL('image/jpeg', 0.75), filename: 'Foto_' + Date.now() + '.jpg' });
       _renderDCThumbs();
       toast('📸 Foto capturada!');
-    });
-    document.getElementById('detail-cam-confirm')?.addEventListener('click', function () {
-      if (!(S as any).tempItem?.photos?.length) { toast('⚠️ Capture ao menos uma foto'); return; }
-      _closeDC();
       (window as any).renderItemModal();
-      toast('✅ Fotos adicionadas!');
     });
     document.getElementById('detail-cam-gallery')?.addEventListener('change', function (e: any) {
       Array.from(e.target.files || []).forEach((f: any) => {
@@ -922,6 +949,7 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
           (S as any).tempItem.photos.push({ url, filename: f.name || 'foto.jpg' });
           _renderDCThumbs();
           toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
+          (window as any).renderItemModal();
         });
       });
       e.target.value = '';
@@ -999,8 +1027,8 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
           obs: it.observacao || it.obs || '',
           photos: (it.fotos || []).map((url: string, i: number) => ({ url, filename: 'Flash_' + (i + 1) + '.jpg' }))
         })),
-        preco: isTotal ? valorBase : 0,
-        precoPerM2: false,
+        preco: isM2 || isTotal ? valorBase : 0,
+        precoPerM2: isM2,
         services: (S.DEFAULT_SERVICES || []).slice(),
         collapsed: false
       }];
@@ -1016,7 +1044,7 @@ if (PWA.isIOS() && !PWA.isStandalone() && !PWA.wasPremiumDismissed()) { setTimeo
         rooms,
         pgto: [],
         fmt: 'completo' as const,
-        preco: isM2 ? valorBase : 0,
+        preco: 0,
         status: 'Rascunho Flash',
         valid: '15',
         tipoServico: 'Somente Mão de Obra (M.O)',

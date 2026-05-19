@@ -3,13 +3,13 @@ import type { Orcamento, Cliente, Fornecedor, Evento, Config, Room, ValueMode } 
 const DEFAULT_CONFIG: Config = {
   empresa: '', tel: '', doc: '', emailEmpresa: '', endEmpresa: '',
   msg: 'Olá {cliente}!\nSegue o resumo do seu orçamento:\n\n{detalhes}\n*Valor Total: {total}*\n\nQualquer dúvida estou à disposição.',
-  servicos: 'Lixamento, Pintura, Massa corrida, Selador, Textura, Verniz',
+  servicos: 'Lixar, Massa corrida, Massa acrílica, Selador, Primer, 1ª demão, 2ª demão, 3ª demão, Textura, Verniz, Esmalte, Grafiato, Massa de vidro, Reboco, Chapisco',
   pgto: 'PIX, Dinheiro, Cartão de Crédito, Cartão de Débito, Boleto, Parcelado',
   statusList: 'Pendente, Enviado, Aprovado, Concluído, Recusado',
   logo: '', acessibilidade: false,
-  flashNomes: 'Quarto, Sala, Cozinha, Banheiro, Varanda, Fachada, Muro, Teto, Porta, Janela, Corredor, Escada, Garagem, Área de Serviço, Escritório, Quintal',
-  flashServicos: 'Lixar, Massa corrida, Selador/Primer, 2 demãos, 3 demãos, Textura, Grafiato, Corrigir trinca, Remover ferragem, Pintura externa, Pintura interna, Fundo preparador, Rejunte',
-  flashMateriais: 'Tinta látex, Tinta acrílica, Tinta esmalte, Lixa, Massa corrida, Primer/Selador, Fita crepe, Rolo de lã, Rolo textura, Pincel, Espátula, Solvente',
+  flashNomes: 'Outros, Sala, Quarto, Cozinha, Banheiro, Fachada, Muro, Teto, Área externa, Garagem, Escada, Varanda, Lavanderia, Despensa, Hall, Closet',
+  flashServicos: 'Lixar, Massa corrida, Selador/Primer, 1ª demão, 2ª demão, 3ª demão, Textura, Grafiato, Corrigir trinca, Remover ferragem, Pintura externa, Pintura interna, Fundo preparador, Impermeabilização',
+  flashMateriais: 'Tinta látex, Tinta acrílica, Tinta esmalte, Massa corrida, Primer/Selador, Lixa, Fita crepe, Rolo de lã, Rolo textura, Pincel, Espátula, Solvente, Verniz, Imunizante',
 };
 
 function ppRead<T>(key: string, fallback: T): T {
@@ -60,4 +60,7 @@ export function saveOrcs() {
     if (typeof toast === 'function') toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio!');
   }
   try { sessionStorage.setItem('pp-orcs-mirror', json); } catch {}
+  // Persist to IndexedDB/SQLite for iOS safety (async, fire-and-forget)
+  const storage = (window as any).Storage;
+  if (storage?.isReady) storage.saveOrcs(S.orcs).catch(() => {});
 }

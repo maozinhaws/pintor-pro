@@ -2,6 +2,35 @@ import { S, saveOrcs } from './state';
 import { toast, esc, formatNum, money, f1, ptFloat, safeUrl, formatPhone, validateFullName, validatePhone, getStatusBadgeClass, getRoomMeds, normalizeDecimalInput, normalizeMeasureInput, numFromInput, digitsOnly, setFieldError, ico } from './utils';
 import type { Cliente, Fornecedor, Evento } from './types';
 
+// ── Constantes Expandidas (Lovable) ──
+const SERVICOS_PADRAO = [
+  'Lixar', 'Massa corrida', 'Massa acrílica', 'Selador', 'Primer',
+  '1ª demão', '2ª demão', '3ª demão', 'Textura', 'Verniz', 'Esmalte', 'Grafiato',
+  'Massa de vidro', 'Reboco', 'Chapisco', 'Reparo estrutural', 'Impermeabilização',
+  'Furação', 'Instalação', 'Remoção de papel de parede', 'Limpeza de superfície'
+];
+
+const AMBIENTES_PADRAO = [
+  'Outros', 'Sala', 'Quarto', 'Cozinha', 'Banheiro', 'Fachada',
+  'Muro', 'Teto', 'Área externa', 'Garagem', 'Escada', 'Varanda',
+  'Lavanderia', 'Despensa', 'Hall', 'Closet', 'Spa', 'Home theater',
+  'Piscina', 'Sauna', 'Adega', 'Biblioteca'
+];
+
+const MATERIAIS_PADRAO = [
+  'Tinta látex', 'Tinta acrílica', 'Tinta esmalte', 'Massa corrida',
+  'Selador/Primer', 'Lixa', 'Fita crepe', 'Rolo de lã', 'Pincel', 'Textura',
+  'Verniz', 'Tinta óleo', 'Tinta polimérica', 'Adesivo', 'Espuma expansiva',
+  'Massa epóxi', 'Resina', 'Fibra de vidro', 'Imunizante', 'Hidrofugante',
+  'Grafiato', 'Massa acrílica elastomérica', 'Primer epóxi'
+];
+
+const NOMES_ITEM_PADRAO = [
+  'Parede', 'Teto', 'Porta', 'Janela', 'Rodapé', 'Sanca', 'Pilar', 'Muro',
+  'Viga', 'Coluna', 'Escada', 'Guarda-corpo', 'Fachada', 'Telha', 'Estrutura',
+  'Divisória', 'Veneziana', 'Basculante', 'Persiana', 'Moldura'
+];
+
 // ── Defaults ──
 const defCfg = { ...S.config };
 

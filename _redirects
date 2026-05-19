@@ -1,8 +1,0 @@
-# Páginas estáticas — servem o arquivo diretamente (prioridade sobre catch-all)
-/landing.html           /landing.html           200
-/privacy-policy.html    /privacy-policy.html    200
-/privacy-policy         /privacy-policy.html    200
-/googlefbb780287c68754c.html  /googlefbb780287c68754c.html  200
-
-# App principal — catch-all para SPA (se necessário)
-# /index.html já é a raiz, não precisa de redirect

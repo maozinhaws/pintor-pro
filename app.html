@@ -32,11 +32,23 @@
 <link rel="apple-touch-startup-image" media="screen and (device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/public/apple-touch-icon.png">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/public/apple-touch-icon.png">
 <link rel="apple-touch-startup-image" media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="/public/apple-touch-icon.png">
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script type="module" src="/src/main.ts"></script>
 <link rel="stylesheet" href="/app.css">
 <style>
-:root{
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  /* OKLCH palette (Lovable) */
+  --midnight: oklch(0.14 0.05 275);
+  --surface: oklch(0.96 0.02 280);
+  --brand: oklch(0.74 0.20 50);
+  --violet: oklch(0.63 0.22 290);
+  --success: oklch(0.65 0.19 130);
+  --warning: oklch(0.72 0.18 70);
+  --info: oklch(0.68 0.20 260);
+
+  /* MVP existing colors (preserved for compatibility) */
   --bl: #7C3AED; --bld: #6D28D9; --bll: #F5F3FF;
   --gn: #10B981; --gnl: #ECFDF5;
   --rd: #EF4444; --rdl: #FEF2F2;
@@ -47,6 +59,48 @@
   --bg-card: #F1F5F9; --bg-card-alt: #ffffff;
   --bg-yellow: #F5F3FF; --bg-modal: #ffffff;
   --sh: 0 4px 12px rgba(15,23,42,.05);
+}
+
+/* Tema moderno (default) */
+:root[data-theme="moderno"] {
+  --midnight: oklch(0.14 0.05 275);
+  --surface: oklch(0.96 0.02 280);
+  --brand: oklch(0.74 0.20 50);
+  --violet: oklch(0.63 0.22 290);
+  --success: oklch(0.65 0.19 130);
+}
+
+/* Tema brutalista */
+:root[data-theme="brutalista"] {
+  --midnight: oklch(0.10 0.02 280);
+  --brand: oklch(0.72 0.24 50);
+  --violet: oklch(0.58 0.26 290);
+}
+
+/* Tema minimalista */
+:root[data-theme="minimalista"] {
+  --midnight: oklch(0.20 0.03 280);
+  --surface: oklch(0.98 0.01 0);
+  --brand: oklch(0.72 0.18 50);
+}
+
+/* Dark mode overrides */
+:root.dark {
+  --midnight: oklch(0.95 0.02 280);
+  --surface: oklch(0.15 0.05 280);
+  --brand: oklch(0.78 0.18 50);
+  --violet: oklch(0.72 0.20 290);
+
+  --bl: #8B5CF6; --bld: #A78BFA; --bll: #4C1D95;
+  --gn: #10B981; --gnl: #064E3B;
+  --rd: #EF4444; --rdl: #7F1D1D;
+  --am: #FBBF24; --aml: #78350F;
+  --ink: #F8FAFC; --ink2: #E2E8F0; --ink3: #94A3B8;
+  --bg: #0F172A; --bg2: #1E293B; --bdr: #334155;
+  --bg-input: #1E293B; --bdr-input: #475569;
+  --bg-card: #1E293B; --bg-card-alt: #0F172A;
+  --bg-yellow: #1E293B; --bg-modal: #1E293B;
+  --sh: 0 4px 12px rgba(0,0,0,.4);
 }
 :root.dark {
   --bl: #8B5CF6; --bld: #A78BFA; --bll: #4C1D95;
@@ -60,9 +114,115 @@
   --bg-yellow: #1E293B; --bg-modal: #1E293B;
   --sh: 0 4px 12px rgba(0,0,0,.4);
 }
+
+/* Glass morphism utilities (Lovable) */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-brand {
+  background: linear-gradient(135deg, rgba(188, 98, 10, 0.6), rgba(146, 51, 234, 0.4));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-press:active {
+  transform: translate(2px, 2px);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+/* Brutal design utilities (Lovable) */
+.brutal-border {
+  border: 3px solid var(--ink);
+  border-radius: 0;
+}
+
+.brutal-shadow {
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+}
+
+.brutal-shadow-sm {
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+.brutal-press:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.1);
+}
+
+/* Brutalista theme overrides */
+:root[data-theme="brutalista"] .sec,
+:root[data-theme="brutalista"] .rcard,
+:root[data-theme="brutalista"] .item-card {
+  border-radius: 0;
+  border-width: 2px;
+  border-color: var(--ink);
+}
+
+:root[data-theme="brutalista"] .finput,
+:root[data-theme="brutalista"] .fsel,
+:root[data-theme="brutalista"] .fta {
+  border-radius: 0;
+  border-width: 2px;
+  border-color: var(--ink);
+}
+
+/* Accessibility: font size */
+html[data-fonte="pequeno"] {
+  font-size: 14px;
+}
+
+html[data-fonte="normal"] {
+  font-size: 16px;
+}
+
+html[data-fonte="grande"] {
+  font-size: 18px;
+}
+
+/* Accessibility: high contrast mode */
+html[data-contraste="alto"] {
+  --ink: #000000;
+  --ink2: #000000;
+  --ink3: #000000;
+  --bg: #FFFFFF;
+  --bdr: #000000;
+  --bdr-input: #000000;
+  --bg-input: #FFFFFF;
+}
+
+html[data-contraste="alto"] .finput,
+html[data-contraste="alto"] .fsel,
+html[data-contraste="alto"] .fta {
+  color: #000000;
+  background: #FFFFFF;
+  border-color: #000000;
+}
+
+html[data-contraste="alto"] .ink {
+  color: #000000 !important;
+}
+
 html, body, #app, .page, .sec, .finput, .fta, .fsel, .chk-item, .chk-box, .rcard, .rcard-head, .item-card, .item-summary, .tbox, .mic-panel, .sum-card, .fmt-card, .sidebar, .sidebar-hdr, .hm-hdr, .hoc, .topnav { transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, box-shadow 0.35s ease; }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#F3F4F6;display:flex;align-items:center;justify-content:center;font-family:'Sora',sans-serif;color:var(--ink);}
+html,body{width:100%;height:100%;overflow:hidden;background:linear-gradient(to bottom right, var(--brand) 0%, 10%, var(--violet) 100%);background-attachment:fixed;display:flex;align-items:center;justify-content:center;font-family:'Inter','Sora',sans-serif;color:var(--ink);}
+html[data-theme="brutalista"] body {
+  background: #FFFFFF;
+}
+html[data-theme="minimalista"] body {
+  background: #F5F5F5;
+}
 /* iOS Safari: -webkit-fill-available exclui a barra de endereço corretamente */
 html{height:-webkit-fill-available;}
 body{min-height:-webkit-fill-available;}
@@ -76,7 +236,7 @@ body{min-height:-webkit-fill-available;}
 @supports (height:100dvh){html,body,#app{height:100dvh;min-height:unset;}}
 .topnav{flex-shrink:0;background:var(--bg-modal);padding:max(16px,env(safe-area-inset-top,16px)) 20px 16px;border-bottom:1px solid var(--bdr);z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.03);}
 .topnav-row{display:flex;align-items:center;justify-content:center;position:relative;margin-bottom:12px; min-height: 24px;}
-.title-big{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.2px; text-transform:uppercase;}
+.title-big{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.2px; text-transform:uppercase;font-family:'Syne',sans-serif;}
 .steps{display:flex;gap:6px;align-items:center;}
 .step-pill{flex:1;height:4px;border-radius:4px;background:var(--bdr);transition:background .3s;}
 .step-pill.done{background:var(--bl);}.step-pill.active{background:var(--bl);opacity:0.4;}
@@ -118,7 +278,7 @@ body{min-height:-webkit-fill-available;}
 .rcard-body{padding:13px 14px;}.rcard.collapsed .rcard-body{display:none;}
 .mbox{background:#fff;border:1.5px solid #D1D5DB;border-radius:9px;padding:7px 9px;box-shadow:inset 0 1px 2px rgba(0,0,0,0.02);}
 .mlbl{font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
-.minp{font-family:'Calibri',sans-serif;font-size:16px;font-weight:600;color:var(--ink);width:100%;border:none;outline:none;background:transparent;}
+.minp{font-family:'JetBrains Mono','Calibri',monospace;font-size:16px;font-weight:600;color:var(--ink);width:100%;border:none;outline:none;background:transparent;}
 .add-room-btn{width:100%;height:46px;border:2px dashed var(--bdr);border-radius:12px;background:transparent;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .18s;margin-top:4px;}
 .add-room-btn:hover{border-color:var(--bl);color:var(--bl);background:var(--bll);}
 .item-summary{background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.02);}
@@ -145,7 +305,7 @@ body{min-height:-webkit-fill-available;}
 #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .hm-hdr{padding:max(32px,env(safe-area-inset-top,32px)) 20px 24px;background:#fff;border-bottom:1px solid var(--bdr);flex-shrink:0;}
-.hm-name{font-size:24px;font-weight:800;letter-spacing:-.8px;color:var(--ink);}
+.hm-name{font-size:24px;font-weight:800;letter-spacing:-.8px;color:var(--ink);font-family:'Syne',sans-serif;}
 .hoc{background:#fff;border-radius:16px;border:1px solid var(--bdr);padding:16px;margin-bottom:12px;box-shadow:var(--sh);transition:transform .2s;}
 .hoc:active{transform:scale(.98);}
 .hot{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
@@ -154,7 +314,7 @@ body{min-height:-webkit-fill-available;}
 .hbadge{display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;}
 .hbadge.hby{background:var(--aml);color:#92400E;}.hbadge.hbg{background:var(--gnl);color:#065F46;}.hbadge.hbb{background:var(--bll);color:var(--bld);}.hbadge.hbr{background:var(--rdl);color:var(--rd);}
 .hob{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.hood{font-size:11px;color:var(--ink3);}.hoov{font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--bl);}
+.hood{font-size:11px;color:var(--ink3);}.hoov{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--bl);}
 .hoas{display:flex;gap:6px;}
 .hoa{flex:1;height:36px;border-radius:9px;border:none;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
 .hoa.wa{background:#E5DDD5;color:#111;}.hoa.ok{background:var(--bll);color:var(--bl);}.hoa:active{opacity:.7;}
@@ -187,7 +347,7 @@ body{min-height:-webkit-fill-available;}
 .item-del{width:26px;height:26px;border-radius:7px;background:var(--rdl);border:none;color:var(--rd);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .dim2-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;}
 .price-check-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;flex-wrap:wrap;}
-.price-check-row input[type=number]{flex:1;min-width:120px;height:42px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:11px;padding:0 12px;font-family:'DM Mono',monospace;font-size:16px;color:var(--gn);outline:none;}
+.price-check-row input[type=number]{flex:1;min-width:120px;height:42px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:11px;padding:0 12px;font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--gn);outline:none;}
 .pcheck{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink3);white-space:normal;line-height:1.2;cursor:pointer;flex-shrink:1;}
 .pcheck input{width:16px;height:16px;accent-color:var(--bl);cursor:pointer;flex-shrink:0;}
 .item-obs-inp{width:100%;min-height:100px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:10px;padding:9px 11px;font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);outline:none;resize:none;margin-bottom:5px;}
@@ -392,7 +552,7 @@ body.kb-open .title-big { font-size: 14px; }
 }
 .btn-home-global:active { transform: scale(.9); opacity: .8; }
 
-/* ── Google Drive Backup ── */
+/* ── Backup Local ── */
 .gd-card{background:var(--bg-modal);border:1.5px solid var(--bdr);border-radius:16px;padding:20px;margin-bottom:16px;}
 .gd-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
 .gd-sub{font-size:12px;color:var(--ink3);margin-bottom:16px;line-height:1.5;}
@@ -493,7 +653,42 @@ body.kb-open .title-big { font-size: 14px; }
 .ppc-btn-dismiss{height:42px;padding:0 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.85);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .ppc-btn-dismiss:active{background:rgba(255,255,255,.1);}
 
+/* Liquid ring border effect (Lovable) */
+@keyframes liquidRing {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+
+.liquid-ring {
+  position: relative;
+  overflow: visible;
+}
+
+.liquid-ring::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--gradient-start, 0deg), var(--brand) 0%, var(--violet) 50%, var(--brand) 100%);
+  -webkit-mask-image: radial-gradient(circle, transparent 30%, black 70%);
+  mask-image: radial-gradient(circle, transparent 30%, black 70%);
+  opacity: 0.6;
+  z-index: -1;
+}
+
+/* Radial gradient background (Lovable) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 10% 0%, var(--brand) 0%, transparent 50%),
+              radial-gradient(circle at 100% 100%, var(--violet) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.3;
+}
 </style>
+<link rel="stylesheet" href="/photo-annotator.css">
 </head>
 <body>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
@@ -553,7 +748,7 @@ body.kb-open .title-big { font-size: 14px; }
 <div id="toast"></div>
 
 <!-- ARQUIVOS OCULTOS DE CÂMERA/GALERIA -->
-<input type="file" id="file-camera" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;left:-9999px;" onchange="handlePhotoFile(this, true)">
+<input type="file" id="file-camera" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;left:-9999px;" onchange="handlePhotoFile(this, true)">
 <input type="file" id="file-gallery" accept="image/*" style="position:absolute;width:1px;height:1px;opacity:0;left:-9999px;" onchange="handlePhotoFile(this, false)">
 
 <div id="app">
@@ -640,7 +835,7 @@ body.kb-open .title-big { font-size: 14px; }
 
         <div style="display:flex;gap:10px;margin-bottom:24px;align-items:center;">
           <button onclick="homeTab('flash')" title="Orçamento Rápido Flash" style="width:88px;height:88px;border-radius:27px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:4px solid #fed7aa;font-size:38px;cursor:pointer;box-shadow:0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.07)';this.style.boxShadow='0 16px 36px rgba(249,115,22,.6),0 6px 12px rgba(249,115,22,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28)'"><svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg><span style="font-size:10px;font-weight:800;letter-spacing:1px;line-height:1;">FLASH</span></button>
-          <button onclick="newOrc()" style="flex:1;height:64px;border-radius:16px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 16px rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;gap:8px;">
+          <button onclick="showModeSelector()" style="flex:1;height:64px;border-radius:16px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 16px rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;gap:8px;">
             Orçamento detalhado
           </button>
         </div>
@@ -1042,7 +1237,7 @@ body.kb-open .title-big { font-size: 14px; }
             <span><svg class="ico" aria-hidden="true"><use href="#ico-eye"/></svg></span><span>Acessibilidade</span><span class="cfg-chev">›</span>
           </button>
           <div class="cfg-card-body" id="cc-acessibilidade">
-            <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Ativa fontes maiores, botões e espaçamentos aumentados para facilitar leitura e toque.</div>
+            <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Ativa fontes maiores, botões e espaçamentos aumentados para facilitar leitura e toque. Também ajusta o contraste para melhor visibilidade.</div>
             <div class="toggle-row" style="margin-bottom:0;" onclick="var sw=document.getElementById('cfg-acessibilidade-sw');sw.classList.toggle('on');S.config.acessibilidade=sw.classList.contains('on');document.body.classList.toggle('acessivel',S.config.acessibilidade);_cfgDirty=true;">
               <div>
                 <div class="toggle-lbl">Modo Acessibilidade</div>
@@ -1053,10 +1248,10 @@ body.kb-open .title-big { font-size: 14px; }
           </div>
         </div>
 
-        <!-- CARD: Google Drive -->
+        <!-- CARD: Backup Local -->
         <div class="cfg-card">
           <button class="cfg-card-hdr" onclick="toggleCfgCard('cc-gdrive')">
-            <span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="color:#4285F4;"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg></span><span>Google Drive</span><span class="cfg-chev">›</span>
+            <span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="color:#4285F4;"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg></span><span>Backup Local</span><span class="cfg-chev">›</span>
           </button>
           <div class="cfg-card-body" id="cc-gdrive">
             <div id="gdrive-cfg-status"></div>
@@ -1093,10 +1288,10 @@ body.kb-open .title-big { font-size: 14px; }
           </button>
         </div>
 
-        <!-- Google Drive Backup -->
+        <!-- Backup Local -->
         <div class="sec">
-          <div class="sec-title" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Google Drive</div>
-          <div id="gdrive-backup-info" style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Salve backups, orçamentos (PDF) e fotos diretamente no seu Google Drive.</div>
+          <div class="sec-title" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Backup Local</div>
+          <div id="gdrive-backup-info" style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Exporte um arquivo com seus dados e importe quando precisar restaurar o aplicativo.</div>
           <div id="gdrive-backup-btns"></div>
         </div>
 
@@ -1130,7 +1325,7 @@ body.kb-open .title-big { font-size: 14px; }
             Sobre o Aplicativo
           </div>
           <div style="font-size:13px;line-height:1.7;color:var(--ink2);background:var(--bg-card);border-radius:12px;padding:14px;border:1px solid var(--bdr);">
-            O Pintor Plus é uma ferramenta de gestão de orçamentos voltada para profissionais da área de pintura. O aplicativo permite criar orçamentos, gerenciar clientes, fornecedores, agenda e realizar backup dos dados via Google Drive. O serviço é oferecido no estado em que se encontra, sem garantia de disponibilidade contínua.
+            O Pintor Plus é uma ferramenta de gestão de orçamentos voltada para profissionais da área de pintura. O aplicativo permite criar orçamentos, gerenciar clientes, fornecedores, agenda e exportar backups locais dos dados. O serviço é oferecido no estado em que se encontra, sem garantia de disponibilidade contínua.
           </div>
         </div>
 
@@ -1141,7 +1336,7 @@ body.kb-open .title-big { font-size: 14px; }
             Armazenamento de Dados
           </div>
           <div style="font-size:13px;line-height:1.7;color:var(--ink2);background:var(--bg-card);border-radius:12px;padding:14px;border:1px solid var(--bdr);">
-            Todos os seus dados (orçamentos, clientes, fornecedores e eventos) são armazenados <strong style="color:var(--ink);">localmente no seu dispositivo</strong>, via <code style="background:var(--bg2);padding:2px 5px;border-radius:4px;font-size:12px;">localStorage</code>. O backup opcional para o Google Drive é realizado com sua autorização expressa e utiliza a sua própria conta Google. O Pintor Plus não possui servidores próprios e não acessa ou armazena seus dados em nuvem própria.
+            Todos os seus dados (orçamentos, clientes, fornecedores e eventos) são armazenados <strong style="color:var(--ink);">localmente no seu dispositivo</strong>, via <code style="background:var(--bg2);padding:2px 5px;border-radius:4px;font-size:12px;">localStorage</code>. O backup é feito por exportação manual de arquivo pelo próprio usuário. O Pintor Plus não possui servidores próprios e não acessa ou armazena seus dados em nuvem própria.
           </div>
         </div>
 
@@ -1152,7 +1347,7 @@ body.kb-open .title-big { font-size: 14px; }
             Uso da Conta Google
           </div>
           <div style="font-size:13px;line-height:1.7;color:var(--ink2);background:var(--bg-card);border-radius:12px;padding:14px;border:1px solid var(--bdr);">
-            O login via Google é utilizado exclusivamente para identificar o usuário e permitir o backup dos dados no Google Drive. As permissões solicitadas são limitadas ao escopo necessário para o funcionamento do backup. O aplicativo não acessa e-mails, contatos, calendário ou quaisquer outros dados da conta Google além do que for explicitamente autorizado.
+            O aplicativo não exige login para uso do MVP atual. Os dados permanecem no dispositivo, e o usuário pode exportar backups manualmente quando desejar.
           </div>
         </div>
 
@@ -1179,7 +1374,7 @@ body.kb-open .title-big { font-size: 14px; }
             Limitação de Responsabilidade
           </div>
           <div style="font-size:13px;line-height:1.7;color:var(--ink2);background:var(--bg-card);border-radius:12px;padding:14px;border:1px solid var(--bdr);">
-            O Pintor Plus não se responsabiliza por perdas de dados decorrentes de limpeza do navegador, formatação de dispositivo, falhas de sincronização com o Google Drive ou qualquer outro evento fora do controle do aplicativo. Recomendamos exportar o backup regularmente pela tela de Backup do app.
+            O Pintor Plus não se responsabiliza por perdas de dados decorrentes de limpeza do navegador, formatação de dispositivo ou qualquer outro evento fora do controle do aplicativo. Recomendamos exportar o backup regularmente pela tela de Backup do app.
           </div>
         </div>
 
@@ -1285,7 +1480,7 @@ body.kb-open .title-big { font-size: 14px; }
     @keyframes flashSweep{0%{opacity:0}8%{opacity:1}70%{opacity:1}100%{opacity:0}}
     @keyframes boltFloat{0%{opacity:0;transform:translateX(44px) scale(.72) rotate(12deg)}20%{opacity:1}70%{opacity:1}100%{opacity:0;transform:translateX(-176px) scale(1.38) rotate(-14deg)}}
     .page{display:none;flex-direction:column;gap:8px;height:100%;min-height:0;position:relative}.page.active{display:flex}
-    .page-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:calc(200px + env(safe-area-inset-bottom,0px))}.page-scroll::-webkit-scrollbar,.modal-sheet::-webkit-scrollbar,.camera-thumbs::-webkit-scrollbar{display:none}
+    .page-scroll{flex:1;min-height:0;overflow:auto;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}.page-scroll::-webkit-scrollbar,.modal-sheet::-webkit-scrollbar,.camera-thumbs::-webkit-scrollbar{display:none}
     .card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:12px;box-shadow:var(--shadow)}
     .step1-shell{display:flex;flex-direction:column;gap:12px;min-height:100%}
     .step1-form-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:16px;box-shadow:var(--shadow)}
@@ -1299,12 +1494,12 @@ body.kb-open .title-big { font-size: 14px; }
     .finput:focus,.fta:focus{border-color:var(--accent-b);box-shadow:0 0 0 4px rgba(249,115,22,.14)}.finput.invalid{border-color:var(--danger);box-shadow:0 0 0 4px var(--danger-soft)}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.measure-note{margin-top:-2px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.35}
     .nav-row,.step1-actions{display:grid;grid-template-columns:1fr;gap:8px}
-    .step1-actions{position:fixed;left:0;right:0;bottom:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%);z-index:100}
-    body.dark .step1-actions{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
+    .step1-actions{position:fixed;bottom:0;left:0;right:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 30%);z-index:10}
+    body.dark .step1-actions{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 30%)}
     .act-danger{border:none;background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 10px 20px rgba(220,38,38,.22)}
     .act-cancel{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}
-    .footer-nav{position:fixed;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 0 0;background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 22%);z-index:100}
-    body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 22%)}
+    .footer-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 30%);z-index:10}
+    body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 30%)}
     .footer-nav .act-btn{min-width:0}
     .footer-nav .act-btn{height:54px}
     .act-btn,.add-item-btn{width:100%;height:48px;border-radius:16px;font-family:&quot;Sora&quot;,sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;transition:transform .12s ease, box-shadow .18s ease, background .25s ease, border-color .25s ease, color .25s ease}.step1-actions .act-btn{height:48px;font-size:14px;border-radius:14px}
@@ -1480,7 +1675,7 @@ body.kb-open .title-big { font-size: 14px; }
             <input id=&quot;modalFotosGaleriaBtn&quot; class=&quot;hidden-file&quot; type=&quot;file&quot; accept=&quot;image/*&quot; multiple />
           </label>
         </div>
-        <div class=&quot;camera-error&quot; id=&quot;cameraErro&quot;>Não foi possível abrir a câmera neste ambiente. Abra a página em uma aba normal do Chrome e permita o acesso à câmera.</div>
+        <div class=&quot;camera-error&quot; id=&quot;cameraErro&quot;>Câmera indisponível. Permita o acesso à câmera nas configurações do app.</div>
         <div class=&quot;photo-cards&quot; id=&quot;modalPhotoCards&quot;></div>
       </div>
       <div class=&quot;fld&quot;>
@@ -1601,11 +1796,12 @@ body.kb-open .title-big { font-size: 14px; }
     window.openEditItemModal=openEditItemModal;
     function closeItemModal(){ els.itemModal.classList.remove('open'); closeCameraModal(); }
     function updateModalArea(){ els.modalArea.textContent = getItemMeasureLabel(els.modalLargura.value, els.modalAltura.value); }
-    function renderModalPhotos(){ if (!state.modalPhotos.length) { els.modalPhotoCards.innerHTML = ''; els.cameraThumbs.innerHTML = ''; return; } els.modalPhotoCards.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;photo-card&quot;><button class=&quot;photo-remove&quot; type=&quot;button&quot; onclick=&quot;removeModalPhoto(${i})&quot;>\u2715</button><img src=&quot;${src}&quot; alt=&quot;Foto ${i+1}&quot;></div>`).join(''); els.cameraThumbs.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;camera-thumb&quot;><img src=&quot;${src}&quot; alt=&quot;Min ${i+1}&quot;></div>`).join(''); }
+    function renderModalPhotos(){ if (!state.modalPhotos.length) { els.modalPhotoCards.innerHTML = ''; els.cameraThumbs.innerHTML = ''; return; } els.modalPhotoCards.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;photo-card&quot;><button class=&quot;photo-remove&quot; type=&quot;button&quot; onclick=&quot;removeModalPhoto(${i})&quot;>\u2715</button><img src=&quot;${src}&quot; alt=&quot;Foto ${i+1}&quot; onclick=&quot;_viewFlashPhoto(${i})&quot; style=&quot;cursor:pointer;&quot;></div>`).join(''); els.cameraThumbs.innerHTML = state.modalPhotos.map((src, i) => `<div class=&quot;camera-thumb&quot; onclick=&quot;_viewFlashPhoto(${i})&quot; style=&quot;cursor:pointer;&quot;><img src=&quot;${src}&quot; alt=&quot;Min ${i+1}&quot;></div>`).join(''); }
+    function _viewFlashPhoto(i){ if(window.parent&&window.parent.openPhotoViewerExternal){ window.parent.openPhotoViewerExternal(state.modalPhotos[i],i,function(){ removeModalPhoto(i); }); } }
     function removeModalPhoto(i){ state.modalPhotos.splice(i, 1); renderModalPhotos(); }
     window.removeModalPhoto = removeModalPhoto;
     function handleModalPhotos(files){ Array.from(files||[]).forEach(f => { const r = new FileReader(); r.onload = e => { state.modalPhotos.push(e.target.result); renderModalPhotos(); }; r.readAsDataURL(f); }); els.modalFotosGaleria.value = ''; }
-    async function openCameraModal(){ els.cameraErro.classList.remove('show'); try { if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { els.cameraErro.classList.add('show'); return; } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }); state.cameraStream = stream; state.torchOn = false; els.cameraVideo.srcObject = stream; els.cameraModal.classList.add('open'); renderModalPhotos(); const _track = stream.getVideoTracks()[0]; const _caps = _track.getCapabilities ? _track.getCapabilities() : {}; const _bt = document.getElementById('btnTorch'); const _zc = document.getElementById('zoomControl'); const _zs = document.getElementById('zoomSlider'); if(_bt &amp;&amp; _caps.torch){ _bt.style.display='flex'; _bt.onclick=function(){ state.torchOn=!state.torchOn; _track.applyConstraints({advanced:[{torch:state.torchOn}]}); _bt.style.background=state.torchOn?'rgba(251,191,36,0.8)':'rgba(255,255,255,0.15)'; }; } if(_zc &amp;&amp; _zs &amp;&amp; _caps.zoom){ _zs.min=_caps.zoom.min; _zs.max=_caps.zoom.max; _zs.step=(_caps.zoom.max-_caps.zoom.min)/20; _zs.value=_caps.zoom.min; _zc.style.display='block'; _zs.oninput=function(){ _track.applyConstraints({advanced:[{zoom:parseFloat(_zs.value)}]}); }; } } catch(err) { els.cameraErro.classList.add('show'); showToast(err&amp;&amp;err.name==='NotAllowedError' ? '\u26A0\uFE0F Permiss\u00E3o negada' : '\u26A0\uFE0F C\u00E2mera indispon\u00EDvel'); } }
+    async function openCameraModal(){ try { if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { showToast('\u26A0\uFE0F C\u00E2mera indispon\u00EDvel. Use a galeria.'); if(els.modalFotosGaleria)els.modalFotosGaleria.click(); return; } const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } }, audio: false }).catch(()=>navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })); state.cameraStream = stream; state.torchOn = false; els.cameraVideo.srcObject = stream; els.cameraModal.classList.add('open'); renderModalPhotos(); const _track = stream.getVideoTracks()[0]; const _caps = _track.getCapabilities ? _track.getCapabilities() : {}; const _bt = document.getElementById('btnTorch'); const _zc = document.getElementById('zoomControl'); const _zs = document.getElementById('zoomSlider'); if(_bt &amp;&amp; _caps.torch){ _bt.style.display='flex'; _bt.onclick=function(){ state.torchOn=!state.torchOn; _track.applyConstraints({advanced:[{torch:state.torchOn}]}); _bt.style.background=state.torchOn?'rgba(251,191,36,0.8)':'rgba(255,255,255,0.15)'; }; } if(_zc &amp;&amp; _zs &amp;&amp; _caps.zoom){ _zs.min=_caps.zoom.min; _zs.max=_caps.zoom.max; _zs.step=(_caps.zoom.max-_caps.zoom.min)/20; _zs.value=_caps.zoom.min; _zc.style.display='block'; _zs.oninput=function(){ _track.applyConstraints({advanced:[{zoom:parseFloat(_zs.value)}]}); }; } } catch(err) { if(err&amp;&amp;err.name==='NotAllowedError'){ showToast('\u26A0\uFE0F Permiss\u00E3o de c\u00E2mera negada. Libere nas configura\u00E7\u00F5es do app.'); }else{ showToast('\u26A0\uFE0F C\u00E2mera indispon\u00EDvel. Use a galeria.'); if(els.modalFotosGaleria)els.modalFotosGaleria.click(); } } }
     function stopCameraStream(){ if (state.cameraStream) { state.cameraStream.getTracks().forEach(t => t.stop()); state.cameraStream = null; } els.cameraVideo.srcObject = null; state.torchOn = false; const _bt=document.getElementById('btnTorch'); if(_bt)_bt.style.display='none'; const _zc=document.getElementById('zoomControl'); if(_zc)_zc.style.display='none'; }
     function closeCameraModal(){ els.cameraModal.classList.remove('open'); stopCameraStream(); }
     function captureCameraPhoto(){ const v = els.cameraVideo; if (!v.videoWidth) { showToast('\u26A0\uFE0F Aguarde a c\u00E2mera'); return; } const c = els.cameraCanvas; c.width = v.videoWidth; c.height = v.videoHeight; c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); state.modalPhotos.push(c.toDataURL('image/jpeg', 0.75)); renderModalPhotos(); showToast('\uD83D\uDCF8 Foto capturada'); }
@@ -1640,7 +1836,7 @@ body.kb-open .title-big { font-size: 14px; }
     els.btnCancelarItem.addEventListener('click', closeItemModal);
     els.modalLargura.addEventListener('input', () => { els.modalLargura.value = normalizeMeasureInput(els.modalLargura.value); updateModalArea(); });
     els.modalAltura.addEventListener('input', () => { els.modalAltura.value = normalizeMeasureInput(els.modalAltura.value); updateModalArea(); });
-    els.btnAbrirCamera.addEventListener('click', openCameraModal);
+    els.btnAbrirCamera.addEventListener('click', function(){ if(window.parent&&window.parent.openDetailedCameraForFlash){ window.parent.openDetailedCameraForFlash(function(photos){ photos.forEach(function(url){ state.modalPhotos.push(url); }); renderModalPhotos(); if(photos.length) showToast('✅ '+photos.length+' foto(s) adicionada(s)'); }); } else { openCameraModal(); } });
     els.modalFotosGaleria.addEventListener('change', e => handleModalPhotos(e.target.files));
     document.getElementById('modalFotosGaleriaBtn').addEventListener('change', e => handleModalPhotos(e.target.files));
     els.btnFecharCamera.addEventListener('click', closeCameraModal);
@@ -1656,18 +1852,19 @@ body.kb-open .title-big { font-size: 14px; }
     els.telefone.addEventListener('keydown', e => { if(e.key==='Enter'||e.key==='Go'||e.key==='Done'){e.preventDefault();if(!validateStep1(true)){if(!validateFullName(els.cliente.value))els.cliente.focus();else els.telefone.focus();return;}goStep(2);} });
     els.itemModal.addEventListener('click', e => { if(e.target===els.itemModal)closeItemModal(); });
     els.cameraModal.addEventListener('click', e => { if(e.target===els.cameraModal)closeCameraModal(); });
+    document.addEventListener('focusin', function(e){ var t=e.target; if(!t||!['INPUT','TEXTAREA','SELECT'].includes(t.tagName))return; setTimeout(function(){ try{ t.scrollIntoView({behavior:'smooth',block:'center'}); }catch(_){} },350); });
     window.addEventListener('message', function(ev){ if(!ev.data)return; if(ev.data.type==='flash-clear'){ els.cliente.value=''; if(els.apelido)els.apelido.value=''; els.telefone.value=''; state.items=[]; state.valueMode=null; els.valorTexto.value=''; setFieldError(els.cliente,els.clienteErro,false); setFieldError(els.telefone,els.telefoneErro,false); renderItems(); updateSummary(); goStep(1); showToast('\u21BA Formulário limpo'); } if(ev.data.type==='stop-camera'){ closeCameraModal(); } });
     var _nomePickFirst=true, _obsPickFirst=true;
     function _onNomeFieldClick(){ if(_nomePickFirst){_nomePickFirst=false;openNomePick();} }
     function _onObsFieldClick(){ if(_obsPickFirst){_obsPickFirst=false;openObsPick();} }
     var NOME_SUGESTOES=%%NOME_SUGESTOES%%;
-    function openNomePick(){ var g=document.getElementById('nomePickGrid'); g.innerHTML=NOME_SUGESTOES.map(function(n){ return '<button type=\'button\' onclick=\'selectNome(this.dataset.v)\' data-v=\''+n+'\' style=\'padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:#0f172a;cursor:pointer;text-align:center;\'>'+n+'</button>'; }).join(''); document.getElementById('nomePickModal').style.display='flex'; }
+    function openNomePick(){ document.activeElement&&document.activeElement.blur(); var g=document.getElementById('nomePickGrid'); g.innerHTML=NOME_SUGESTOES.map(function(n){ return '<button type=\'button\' onclick=\'selectNome(this.dataset.v)\' data-v=\''+n+'\' style=\'padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:#0f172a;cursor:pointer;text-align:center;\'>'+n+'</button>'; }).join(''); document.getElementById('nomePickModal').style.display='flex'; }
     function closeNomePick(){ document.getElementById('nomePickModal').style.display='none'; }
     function selectNome(n){ document.getElementById('modalNome').value=n; closeNomePick(); }
     var OBS_SERVICOS=%%OBS_SERVICOS%%;
     var OBS_MATERIAIS=%%OBS_MATERIAIS%%;
     function _renderObsChips(items,cId,type){ var svcs=state.modalSelectedServices||[]; var c=document.getElementById(cId); c.innerHTML=items.map(function(s){ var sel=svcs.indexOf(s)>=0; var bg=sel?(type==='srv'?'#7c3aed':'#059669'):'#f1f5f9'; var col=sel?'#fff':(type==='srv'?'#7c3aed':'#059669'); var bdr=sel?'transparent':(type==='srv'?'#ddd6fe':'#d1fae5'); return '<button type=\'button\' onclick=\'toggleService(this.dataset.v)\' data-v=\''+s+'\' style=\'padding:7px 12px;border-radius:20px;border:1.5px solid '+bdr+';background:'+bg+';font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:'+col+';cursor:pointer;\'>'+s+'</button>'; }).join(''); }
-    function openObsPick(){ _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); document.getElementById('obsPickModal').style.display='flex'; }
+    function openObsPick(){ document.activeElement&&document.activeElement.blur(); _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); document.getElementById('obsPickModal').style.display='flex'; }
     function closeObsPick(){ document.getElementById('obsPickModal').style.display='none'; }
     function toggleService(s){ var svcs=state.modalSelectedServices||[]; var i=svcs.indexOf(s); if(i>=0) svcs.splice(i,1); else svcs.push(s); state.modalSelectedServices=svcs; _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); }
     function confirmObsPick(){ var allKnown=OBS_SERVICOS.concat(OBS_MATERIAIS); var current=els.modalObs.value; var customParts=current.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&allKnown.indexOf(s)<0;}); var selected=state.modalSelectedServices||[]; els.modalObs.value=customParts.concat(selected).join(', '); closeObsPick(); }
@@ -1840,28 +2037,84 @@ body.kb-open .title-big { font-size: 14px; }
     </div>
   </div>
 
-  <!-- Câmera Detalhado — getUserMedia + torch + zoom -->
+  <!-- Câmera Personalizada — getUserMedia + torch + zoom -->
   <div id="detail-cam-modal" style="position:fixed;inset:0;z-index:9999999;background:#000;display:none;flex-direction:column;">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:max(16px,env(safe-area-inset-top,16px)) 16px 10px;background:rgba(0,0,0,0.75);flex-shrink:0;">
-      <button id="detail-cam-close" type="button" style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;">✕</button>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <button id="detail-cam-torch" type="button" title="Flash LED" style="display:none;background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:40px;height:40px;color:#fff;font-size:18px;cursor:pointer;align-items:center;justify-content:center;touch-action:manipulation;">⚡</button>
-        <span style="color:#fff;font-weight:700;font-size:14px;">Foto do Item</span>
-      </div>
-      <label style="background:rgba(255,255,255,0.15);border:none;border-radius:50%;width:40px;height:40px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Galeria"><svg class="ico" aria-hidden="true"><use href="#ico-image"/></svg><input id="detail-cam-gallery" type="file" accept="image/*" multiple style="display:none;"></label>
+
+    <!-- Overlay top: fechar + contador de fotos -->
+    <div style="position:absolute;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;
+                padding:max(14px,env(safe-area-inset-top,14px)) 14px 10px;
+                background:linear-gradient(to bottom,rgba(0,0,0,0.65) 0%,transparent 100%);pointer-events:none;">
+      <button id="detail-cam-close" type="button" pointer-events="all"
+              style="pointer-events:all;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.25);
+                     color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;backdrop-filter:blur(4px);">✕</button>
+      <div id="detail-cam-counter"
+           style="pointer-events:none;background:rgba(0,0,0,0.5);border:1.5px solid rgba(255,255,255,0.2);
+                  border-radius:20px;padding:5px 14px;color:#fff;font-size:13px;font-weight:700;
+                  backdrop-filter:blur(4px);display:none;">0 fotos</div>
+      <div style="width:42px;"></div>
     </div>
-    <div style="flex:1;position:relative;overflow:hidden;">
-      <video id="detail-cam-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-      <div id="detail-cam-zoom" style="display:none;position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:60%;background:rgba(0,0,0,0.55);border-radius:20px;padding:8px 16px;z-index:10;">
-        <input type="range" id="detail-cam-zoom-slider" style="width:100%;accent-color:#7c3aed;">
-      </div>
-      <div id="detail-cam-thumbs" style="position:absolute;top:8px;left:8px;right:8px;display:flex;gap:6px;overflow-x:auto;z-index:5;"></div>
+
+    <!-- Viewfinder (flex:1 = ocupa tudo) -->
+    <div style="flex:1;position:relative;overflow:hidden;background:#111;">
+      <video id="detail-cam-video" autoplay playsinline muted
+             style="width:100%;height:100%;object-fit:cover;display:block;"></video>
     </div>
+
+    <!-- Canvas oculto para captura -->
     <canvas id="detail-cam-canvas" style="display:none;"></canvas>
-    <div style="padding:16px max(16px,env(safe-area-inset-bottom,16px));background:rgba(0,0,0,0.75);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
-      <div style="width:56px;"></div>
-      <button id="detail-cam-capture" type="button" aria-label="Capturar foto" style="width:72px;height:72px;border-radius:50%;background:#fff;border:5px solid rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;"><span style="width:56px;height:56px;border-radius:50%;background:#fff;border:3px solid #222;display:block;"></span></button>
-      <button id="detail-cam-confirm" type="button" aria-label="Usar fotos" style="width:56px;height:56px;border-radius:14px;background:var(--bl);border:none;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h12"/><path d="m11 5 7 7-7 7"/></svg></button>
+
+    <!-- Painel inferior: thumbnails + zoom + botões -->
+    <div style="flex-shrink:0;background:rgba(0,0,0,0.88);padding-bottom:max(16px,env(safe-area-inset-bottom,16px));">
+
+      <!-- Thumbnails das fotos capturadas -->
+      <div id="detail-cam-thumbs"
+           style="display:flex;gap:8px;overflow-x:auto;padding:10px 12px 6px;min-height:0;
+                  -webkit-overflow-scrolling:touch;scrollbar-width:none;"></div>
+
+      <!-- Barra de zoom (oculta até zoom disponível) -->
+      <div id="detail-cam-zoom" style="display:none;padding:4px 20px 2px;align-items:center;gap:8px;">
+        <span style="color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;white-space:nowrap;">🔍 Zoom</span>
+        <input type="range" id="detail-cam-zoom-slider"
+               style="flex:1;accent-color:#7c3aed;height:3px;cursor:pointer;">
+      </div>
+
+      <!-- Linha de controles: Flash | Captura | Galeria -->
+      <div style="display:flex;justify-content:space-around;align-items:center;padding:10px 24px 6px;">
+
+        <!-- Flash toggle -->
+        <button id="detail-cam-torch" type="button" title="Flash"
+                style="display:none;flex-direction:column;align-items:center;gap:4px;background:none;border:none;
+                       cursor:pointer;touch-action:manipulation;padding:4px;">
+          <span id="detail-cam-torch-icon"
+                style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.12);
+                       border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;
+                       justify-content:center;font-size:22px;">⚡</span>
+          <span style="color:rgba(255,255,255,0.6);font-size:10px;font-weight:700;">Flash</span>
+        </button>
+        <!-- Placeholder quando flash indisponível -->
+        <div id="detail-cam-torch-placeholder" style="width:50px;"></div>
+
+        <!-- Botão de captura -->
+        <button id="detail-cam-capture" type="button" aria-label="Capturar foto"
+                style="width:76px;height:76px;border-radius:50%;background:transparent;
+                       border:4px solid #fff;cursor:pointer;display:flex;align-items:center;
+                       justify-content:center;touch-action:manipulation;flex-shrink:0;
+                       box-shadow:0 0 0 2px rgba(255,255,255,0.2);">
+          <span style="width:62px;height:62px;border-radius:50%;background:#fff;display:block;
+                       box-shadow:inset 0 2px 6px rgba(0,0,0,0.2);"></span>
+        </button>
+
+        <!-- Galeria -->
+        <label title="Galeria"
+               style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px;">
+          <span style="width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.12);
+                       border:1.5px solid rgba(255,255,255,0.25);display:flex;align-items:center;
+                       justify-content:center;font-size:22px;">🖼️</span>
+          <span style="color:rgba(255,255,255,0.6);font-size:10px;font-weight:700;">Galeria</span>
+          <input id="detail-cam-gallery" type="file" accept="image/*" multiple style="display:none;">
+        </label>
+
+      </div>
     </div>
   </div>
 
@@ -1947,6 +2200,87 @@ body.kb-open .title-big { font-size: 14px; }
         <button onclick="closeCfgSaveModal(false)" style="flex:1;height:46px;border-radius:12px;background:var(--bg-input);border:1.5px solid var(--bdr-input);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;">Descartar</button>
         <button onclick="closeCfgSaveModal(true)" style="flex:1;height:46px;border-radius:12px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:#fff;cursor:pointer;">Salvar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal de Câmera Nativa -->
+  <div id="camera-modal" style="position:fixed;inset:0;z-index:9999;background:#000;display:none;flex-direction:column;overflow:hidden;">
+    <!-- Viewfinder -->
+    <div style="flex:1;position:relative;display:flex;align-items:center;justify-content:center;background:#000;overflow:hidden;">
+      <video id="camera-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;opacity:1;transition:opacity 0.3s;"></video>
+
+      <!-- Flash overlay -->
+      <div id="camera-flash-overlay" style="position:absolute;inset:0;background:#fff;opacity:0;transition:opacity 0.15s;pointer-events:none;"></div>
+
+      <!-- Review pane -->
+      <div id="camera-review-pane" style="position:absolute;inset:0;background:#000;display:none;flex-direction:column;align-items:center;justify-content:center;">
+        <img id="camera-review-preview" style="max-width:100%;max-height:80%;object-fit:contain;" />
+        <div id="camera-review-counter" style="color:#fff;font-size:14px;margin-top:12px;font-weight:700;"></div>
+      </div>
+
+      <!-- Top controls -->
+      <div style="position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;gap:8px;z-index:10;">
+        <button onclick="closeCamera()" style="width:48px;height:48px;border-radius:12px;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:24px;font-weight:bold;">✕</button>
+        <button id="camera-flash-btn" onclick="toggleFlash()" style="width:48px;height:48px;border-radius:12px;background:#fff;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;">⚡</button>
+      </div>
+    </div>
+
+    <!-- Controls bar -->
+    <div id="camera-controls" style="background:#1a1a1a;padding:16px;display:flex;flex-direction:column;gap:12px;border-top:1px solid #333;">
+      <!-- Zoom slider -->
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="color:#fff;font-size:12px;min-width:30px;">−</span>
+        <input id="camera-zoom-slider" type="range" min="1" max="1" value="1" style="flex:1;" onchange="setZoom(this.value)" />
+        <span style="color:#fff;font-size:12px;min-width:30px;">+</span>
+        <span id="camera-zoom-label" style="color:#fff;font-size:12px;min-width:40px;text-align:right;">1.0x</span>
+      </div>
+
+      <!-- Lens selector -->
+      <div id="camera-lens-buttons" style="display:flex;gap:6px;"></div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:8px;">
+        <button onclick="capture()" style="flex:1;height:56px;border-radius:12px;background:var(--bl);color:#fff;border:none;font-weight:700;font-size:14px;cursor:pointer;">📷 Capturar</button>
+      </div>
+    </div>
+
+    <!-- Review controls -->
+    <div id="camera-review-controls" style="background:#1a1a1a;padding:16px;display:none;flex-direction:row;gap:8px;border-top:1px solid #333;">
+      <button onclick="prevPhoto()" style="width:48px;height:48px;border-radius:12px;background:var(--bg-input);border:none;font-size:20px;cursor:pointer;">←</button>
+      <button onclick="removePhoto(reviewIndex)" style="flex:1;height:48px;border-radius:12px;background:var(--rd);color:#fff;border:none;font-weight:700;cursor:pointer;">🗑️ Remover</button>
+      <button onclick="nextPhoto()" style="width:48px;height:48px;border-radius:12px;background:var(--bg-input);border:none;font-size:20px;cursor:pointer;">→</button>
+    </div>
+
+    <!-- Final button -->
+    <div style="background:#1a1a1a;padding:12px;border-top:1px solid #333;">
+      <button onclick="finishCapture()" style="width:100%;height:48px;border-radius:12px;background:var(--gn);color:#fff;border:none;font-weight:700;font-size:14px;cursor:pointer;">✓ Concluir</button>
+    </div>
+  </div>
+
+  <!-- Modal de Seleção de Modo (Flash/Foto/Detalhado) -->
+  <div id="mode-selector-modal" class="glass-overlay">
+    <div class="modal-box" style="max-width: 380px;">
+      <div style="font-size: 18px; font-weight: 800; margin-bottom: 20px; font-family: 'Syne', sans-serif;">Novo Orçamento</div>
+
+      <div onclick="selectMode('flash')" style="padding: 16px; background: var(--bll); border: 2px solid var(--bl); border-radius: 14px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;">
+        <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--bl);">Flash</div>
+        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">3 passos rápidos, ideal para consultas rápidas</div>
+      </div>
+
+      <div onclick="selectMode('foto')" style="padding: 16px; background: rgba(88, 185, 255, 0.1); border: 2px solid rgb(88, 185, 255); border-radius: 14px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;">
+        <div style="font-size: 24px; margin-bottom: 8px;">📷</div>
+        <div style="font-size: 14px; font-weight: 700; color: rgb(88, 185, 255);">Foto</div>
+        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">Capture fotos e organize por ambiente</div>
+      </div>
+
+      <div onclick="selectMode('detalhado')" style="padding: 16px; background: rgba(124, 58, 237, 0.1); border: 2px solid var(--bl); border-radius: 14px; cursor: pointer; margin-bottom: 14px; transition: all 0.2s;">
+        <div style="font-size: 24px; margin-bottom: 8px;">📋</div>
+        <div style="font-size: 14px; font-weight: 700; color: var(--bl);">Detalhado</div>
+        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">Informações completas com todos os detalhes</div>
+      </div>
+
+      <button onclick="document.getElementById('mode-selector-modal').style.display='none'" style="width: 100%; height: 44px; border-radius: 12px; background: var(--bg-input); border: 1.5px solid var(--bdr-input); color: var(--ink2); font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer;">Cancelar</button>
     </div>
   </div>
 
@@ -2099,7 +2433,7 @@ body.kb-open .title-big { font-size: 14px; }
             Sobre o Aplicativo
           </div>
           <div style="background:var(--bg-card);border-radius:10px;padding:12px;border:1px solid var(--bdr);">
-            O Pintor Plus é uma ferramenta de gestão de orçamentos para profissionais de pintura. Permite criar orçamentos, gerenciar clientes, fornecedores, agenda e realizar backup via Google Drive. O serviço é oferecido no estado em que se encontra, sem garantia de disponibilidade contínua.
+            O Pintor Plus é uma ferramenta de gestão de orçamentos para profissionais de pintura. Permite criar orçamentos, gerenciar clientes, fornecedores, agenda e exportar backups locais. O serviço é oferecido no estado em que se encontra, sem garantia de disponibilidade contínua.
           </div>
         </div>
 
@@ -2110,7 +2444,7 @@ body.kb-open .title-big { font-size: 14px; }
             Armazenamento de Dados
           </div>
           <div style="background:var(--bg-card);border-radius:10px;padding:12px;border:1px solid var(--bdr);">
-            Seus dados (orçamentos, clientes, fornecedores e eventos) ficam armazenados <strong style="color:var(--ink);">localmente no seu dispositivo</strong> via <code style="background:var(--bg2);padding:1px 4px;border-radius:4px;font-size:11px;">localStorage</code>. O backup para o Google Drive é opcional, realizado sob sua autorização e usando sua própria conta Google. O Pintor Plus não possui servidores próprios e não armazena seus dados em nuvem própria.
+            Seus dados (orçamentos, clientes, fornecedores e eventos) ficam armazenados <strong style="color:var(--ink);">localmente no seu dispositivo</strong> via <code style="background:var(--bg2);padding:1px 4px;border-radius:4px;font-size:11px;">localStorage</code>. O backup é feito por exportação manual de arquivo pelo próprio usuário. O Pintor Plus não possui servidores próprios e não armazena seus dados em nuvem própria.
           </div>
         </div>
 
@@ -2121,7 +2455,7 @@ body.kb-open .title-big { font-size: 14px; }
             Uso da Conta Google
           </div>
           <div style="background:var(--bg-card);border-radius:10px;padding:12px;border:1px solid var(--bdr);">
-            O login via Google é utilizado exclusivamente para identificar o usuário e possibilitar o backup no Google Drive. As permissões são limitadas ao escopo estritamente necessário. O Pintor Plus não acessa e-mails, contatos, calendário ou outros dados da conta Google além do explicitamente autorizado.
+            O aplicativo não exige login para uso do MVP atual. Os dados permanecem no dispositivo, e o usuário pode exportar backups manualmente quando desejar.
           </div>
         </div>
 
@@ -2148,7 +2482,7 @@ body.kb-open .title-big { font-size: 14px; }
             Limitação de Responsabilidade
           </div>
           <div style="background:var(--bg-card);border-radius:10px;padding:12px;border:1px solid var(--bdr);">
-            O Pintor Plus não se responsabiliza por perda de dados decorrente de limpeza do navegador, formatação do dispositivo, falhas de sincronização com o Google Drive ou eventos fora do seu controle. Recomendamos exportar backups regularmente.
+            O Pintor Plus não se responsabiliza por perda de dados decorrente de limpeza do navegador, formatação do dispositivo ou eventos fora do seu controle. Recomendamos exportar backups regularmente.
           </div>
         </div>
 
@@ -2190,7 +2524,7 @@ body.kb-open .title-big { font-size: 14px; }
 
             <div>
               <div style="font-size:11px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Finalidade</div>
-              <div style="font-size:13px;color:var(--ink2);">Autenticação no aplicativo e, opcionalmente, realização de backup dos dados no Google Drive do próprio usuário. Nenhum dado é compartilhado com terceiros ou utilizado para fins comerciais.</div>
+              <div style="font-size:13px;color:var(--ink2);">Uso local do aplicativo e exportação manual de backup pelo próprio usuário. Nenhum dado é compartilhado com terceiros ou utilizado para fins comerciais.</div>
             </div>
             <div style="height:1px;background:var(--bdr);"></div>
 
@@ -2326,12 +2660,12 @@ function _saveOrcs() {
     localStorage.setItem('pp-orcs', json);
   } catch(e) {
     console.error('_saveOrcs: localStorage cheio', e);
-    // Fallback 1: sessionStorage como cópia de emergência
     try { sessionStorage.setItem('pp-orcs-emergency', json); } catch(_) {}
     toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Armazenamento local cheio! Sincronize com o Drive urgentemente.');
   }
-  // Espelho no sessionStorage para recovery em caso de crash
   try { sessionStorage.setItem('pp-orcs-mirror', json); } catch(_) {}
+  // Persiste no IndexedDB/SQLite também (iOS: localStorage pode ser limpo pelo SO)
+  if (window.Storage?.isReady) window.Storage.saveOrcs(S.orcs).catch(() => {});
 }
 
 // ENGENHARIA: GOOGLE MAPS PLACES AUTOCOMPLETE
@@ -3511,7 +3845,7 @@ function _orcMatch(o, q) {
 function renderOrcamentosList() {
   const q=(document.getElementById('orc-search')?.value||'').toLowerCase().trim();
   const wrap=document.getElementById('orcamentos-list-full');if(!wrap)return;
-  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="newOrc()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>'; return; }
+  if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="showModeSelector()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>'; return; }
   const indexed = S.orcs.map((o,i)=>({o,i}));
   const filtered = q ? indexed.filter(({o})=>_orcMatch(o,q)) : indexed;
   if(!filtered.length){ wrap.innerHTML=`<div class="srch-empty">Nenhum orçamento encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
@@ -3909,83 +4243,158 @@ function showFaq() { document.getElementById('info-modal-title').textContent = '
 //  CÂMERA DETALHADO — getUserMedia + torch + zoom
 // ══════════════════════════════════════════════════════════
 (function() {
-  let _dcStream = null, _dcTorchOn = false;
+  let _dcStream = null, _dcTorchOn = false, _dcTorchSupported = false;
+
+  async function _setTorchState(enabled) {
+    const track = _dcStream?.getVideoTracks?.()[0];
+    if (!track || !_dcTorchSupported) return false;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: enabled }] });
+      _dcTorchOn = enabled;
+      return true;
+    } catch {
+      _dcTorchOn = false;
+      return false;
+    }
+  }
 
   function _renderDCThumbs() {
     const el = document.getElementById('detail-cam-thumbs');
     if (!el) return;
     const photos = S.tempItem?.photos || [];
-    el.innerHTML = photos.map(p => `<div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;border:2px solid #fff;"><img src="${p.url}" style="width:100%;height:100%;object-fit:cover;"></div>`).join('');
+    el.innerHTML = photos.map((p, i) => `
+      <div onclick="openPhotoViewer(${i},'camera')"
+           style="position:relative;width:54px;height:54px;border-radius:8px;overflow:hidden;flex-shrink:0;
+                  border:2.5px solid ${p.annotated ? '#EF4444' : 'rgba(255,255,255,0.85)'};cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+        <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;">
+        ${p.annotated ? '<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(239,68,68,.9);color:#fff;font-size:7px;font-weight:800;text-align:center;padding:1px 0;letter-spacing:.05em;">ANOTADA</span>' : '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.18);font-size:16px;opacity:0.85;">🔍</span>'}
+      </div>`).join('');
   }
 
   function _closeDC() {
     const m = document.getElementById('detail-cam-modal');
     if (m) m.style.display = 'none';
     if (_dcStream) { _dcStream.getTracks().forEach(t => t.stop()); _dcStream = null; }
-    _dcTorchOn = false;
+    _dcTorchOn = false; _dcTorchSupported = false;
     const bt = document.getElementById('detail-cam-torch');
-    if (bt) { bt.style.display = 'none'; bt.style.background = 'rgba(255,255,255,0.15)'; }
+    if (bt) { bt.style.display = 'none'; }
+    const icon = document.getElementById('detail-cam-torch-icon');
+    if (icon) icon.style.background = 'rgba(255,255,255,0.12)';
     const zc = document.getElementById('detail-cam-zoom');
     if (zc) zc.style.display = 'none';
+    const ph = document.getElementById('detail-cam-torch-placeholder');
+    if (ph) ph.style.display = '';
+    // Flash camera bridge: return captured photos and restore state
+    if (window._flashCamCallback) {
+      const urls = (S.tempItem?.photos || []).map(p => p.url);
+      const cb = window._flashCamCallback;
+      window._flashCamCallback = null;
+      S.tempItem = window._flashTempItem || null;
+      window._flashTempItem = null;
+      cb(urls);
+    } else {
+      // Non-Flash: refresh item modal so newly captured photos appear
+      if (S.tempItem && typeof renderItemModal === 'function') {
+        renderItemModal();
+        setTimeout(() => {
+          const body = document.getElementById('item-modal-body');
+          const sec = document.getElementById('item-photos-section');
+          if (body && sec) body.scrollTop = sec.offsetTop - 8;
+        }, 60);
+      }
+    }
+  }
+
+  function _updateCamCounter() {
+    const n = S.tempItem?.photos?.length || 0;
+    const el = document.getElementById('detail-cam-counter');
+    if (!el) return;
+    if (n > 0) { el.textContent = n + (n === 1 ? ' foto' : ' fotos'); el.style.display = 'block'; }
+    else { el.style.display = 'none'; }
   }
 
   window.openDetailedCamera = async function() {
-    document.getElementById('photo-choice-modal').style.display = 'none';
+    const choiceModal = document.getElementById('photo-choice-modal');
+    if (choiceModal) choiceModal.style.display = 'none';
     const m = document.getElementById('detail-cam-modal');
     if (!m) return;
     if (!navigator.mediaDevices?.getUserMedia) {
-      document.getElementById('file-camera').click(); return;
+      toast('\u26A0\uFE0F C\u00E2mera n\u00E3o dispon\u00EDvel neste dispositivo/navegador.');
+      return;
     }
+    // Solicita permiss\u00E3o de c\u00E2mera via Capacitor antes do getUserMedia (Android)
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      const Cam = window.Capacitor?.Plugins?.Camera;
+      if (Cam?.requestPermissions) await Cam.requestPermissions({ permissions: ['camera'] });
+    } catch(_) {}
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: 'environment' } }, audio: false })
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false }))
+        .catch(() => navigator.mediaDevices.getUserMedia({ video: true, audio: false }));
       _dcStream = stream; _dcTorchOn = false;
-      document.getElementById('detail-cam-video').srcObject = stream;
+      // Mostra modal antes de definir srcObject (evita tela preta em Android WebView)
       m.style.display = 'flex';
       _renderDCThumbs();
+      _updateCamCounter();
+      const vid = document.getElementById('detail-cam-video');
+      vid.srcObject = stream;
+      vid.play().catch(() => {});
       const track = stream.getVideoTracks()[0];
       const caps = track.getCapabilities ? track.getCapabilities() : {};
+      // Flash/torch
+      _dcTorchSupported = !!caps.torch;
       const bt = document.getElementById('detail-cam-torch');
-      if (bt && caps.torch) { bt.style.display = 'flex'; }
+      const ph = document.getElementById('detail-cam-torch-placeholder');
+      if (bt && ph) {
+        if (_dcTorchSupported) { bt.style.display = 'flex'; ph.style.display = 'none'; }
+        else { bt.style.display = 'none'; ph.style.display = 'block'; }
+      }
+      // Zoom
       const zc = document.getElementById('detail-cam-zoom');
       const zs = document.getElementById('detail-cam-zoom-slider');
       if (zc && zs && caps.zoom) {
         zs.min = caps.zoom.min; zs.max = caps.zoom.max;
         zs.step = (caps.zoom.max - caps.zoom.min) / 20;
         zs.value = caps.zoom.min;
-        zc.style.display = 'block';
+        zc.style.display = 'flex';
         zs.oninput = function() { track.applyConstraints({ advanced: [{ zoom: parseFloat(zs.value) }] }); };
       }
     } catch(e) {
-      toast('\u26A0\uFE0F ' + (e?.name === 'NotAllowedError' ? 'Permiss\u00E3o negada' : 'C\u00E2mera indispon\u00EDvel'));
-      document.getElementById('file-camera').click();
+      if (e?.name === 'NotAllowedError') {
+        toast('\u26A0\uFE0F Permiss\u00E3o de c\u00E2mera negada. V\u00E1 em Configura\u00E7\u00F5es > Aplicativos > Pintor Plus > Permiss\u00F5es e libere a C\u00E2mera.');
+      } else {
+        toast('\u26A0\uFE0F Falha ao abrir c\u00E2mera: ' + (e?.name || e?.message || 'erro desconhecido'));
+      }
     }
   };
 
   document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('detail-cam-close')?.addEventListener('click', _closeDC);
-    document.getElementById('detail-cam-torch')?.addEventListener('click', function() {
-      const track = _dcStream?.getVideoTracks()[0];
-      if (!track) return;
-      _dcTorchOn = !_dcTorchOn;
-      track.applyConstraints({ advanced: [{ torch: _dcTorchOn }] });
-      this.style.background = _dcTorchOn ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.15)';
+    document.getElementById('detail-cam-torch')?.addEventListener('click', async function() {
+      if (!_dcStream || !_dcTorchSupported) return;
+      const nextState = !_dcTorchOn;
+      const ok = await _setTorchState(nextState);
+      if (!ok) { toast('⚠️ Flash indisponível neste modo'); return; }
+      const icon = document.getElementById('detail-cam-torch-icon');
+      if (icon) icon.style.background = _dcTorchOn ? 'rgba(251,191,36,0.85)' : 'rgba(255,255,255,0.12)';
     });
     document.getElementById('detail-cam-capture')?.addEventListener('click', function() {
       const v = document.getElementById('detail-cam-video');
       if (!v.videoWidth) { toast('\u26A0\uFE0F Aguarde a c\u00E2mera'); return; }
       const c = document.getElementById('detail-cam-canvas');
-      c.width = v.videoWidth; c.height = v.videoHeight;
-      c.getContext('2d').drawImage(v, 0, 0);
+      const MAX_CAM = 1280;
+      let cw = v.videoWidth, ch = v.videoHeight;
+      if (cw > MAX_CAM || ch > MAX_CAM) { const r = Math.min(MAX_CAM/cw, MAX_CAM/ch); cw = Math.round(cw*r); ch = Math.round(ch*r); }
+      c.width = cw; c.height = ch;
+      c.getContext('2d').drawImage(v, 0, 0, cw, ch);
       if (!S.tempItem.photos) S.tempItem.photos = [];
       S.tempItem.photos.push({ url: c.toDataURL('image/jpeg', 0.75), filename: 'Foto_' + Date.now() + '.jpg' });
       _renderDCThumbs();
+      _updateCamCounter();
+      const _modal = document.getElementById('detail-cam-modal');
+      if (_modal) { _modal.style.background = '#fff'; setTimeout(() => { _modal.style.background = '#000'; }, 80); }
       toast('\uD83D\uDCF8 Foto capturada!');
-    });
-    document.getElementById('detail-cam-confirm')?.addEventListener('click', function() {
-      if (!S.tempItem?.photos?.length) { toast('\u26A0\uFE0F Capture ao menos uma foto'); return; }
-      _closeDC();
       renderItemModal();
-      toast('\u2705 Fotos adicionadas!');
     });
     document.getElementById('detail-cam-gallery')?.addEventListener('change', function(e) {
       Array.from(e.target.files || []).forEach(f => {
@@ -3993,7 +4402,9 @@ function showFaq() { document.getElementById('info-modal-title').textContent = '
           if (!S.tempItem.photos) S.tempItem.photos = [];
           S.tempItem.photos.push({ url, filename: f.name || 'foto.jpg' });
           _renderDCThumbs();
-          toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
+          _updateCamCounter();
+          toast('🖼️ Foto adicionada da galeria!');
+          renderItemModal();
         });
       });
       e.target.value = '';
@@ -4562,5 +4973,133 @@ async function gDriveSyncClientes() {
 <footer style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">
   <a href="/privacy-policy.html">Política de Privacidade e Termos de Uso — Pintor Plus</a>
 </footer>
+
+<!-- Photo Viewer overlay -->
+<div id="pv-overlay" onclick="if(event.target===this)pvClose()" style="position:fixed;inset:0;z-index:9999997;background:rgba(0,0,0,0.93);display:none;flex-direction:column;align-items:center;justify-content:space-between;touch-action:none;">
+  <div style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:max(16px,env(safe-area-inset-top,16px)) 16px 0;flex-shrink:0;">
+    <div id="pv-annotated-badge" style="display:none;background:#EF4444;color:#fff;font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:.04em;">ANOTADA</div>
+    <div style="flex:1;"></div>
+    <button onclick="pvClose()" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+  </div>
+  <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px;width:100%;">
+    <img id="pv-img" style="max-width:100%;max-height:100%;border-radius:12px;object-fit:contain;user-select:none;-webkit-user-drag:none;">
+  </div>
+  <div style="width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:16px 12px max(24px,env(safe-area-inset-bottom,24px));background:rgba(15,23,42,0.9);border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
+    <button id="pv-btn-annotate" onclick="pvAnnotate()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:#fff;cursor:pointer;padding:6px 12px;">
+      <span style="width:48px;height:48px;border-radius:50%;background:rgba(124,58,237,0.85);display:flex;align-items:center;justify-content:center;font-size:22px;">✏️</span>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);">Anotar</span>
+    </button>
+    <button onclick="pvDelete()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:#fff;cursor:pointer;padding:6px 12px;">
+      <span style="width:48px;height:48px;border-radius:50%;background:rgba(239,68,68,0.85);display:flex;align-items:center;justify-content:center;font-size:22px;">🗑️</span>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);">Excluir</span>
+    </button>
+    <button onclick="pvDownload()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:#fff;cursor:pointer;padding:6px 12px;">
+      <span style="width:48px;height:48px;border-radius:50%;background:rgba(15,118,110,0.85);display:flex;align-items:center;justify-content:center;font-size:22px;">⬇️</span>
+      <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);">Baixar</span>
+    </button>
+  </div>
+</div>
+
+<!-- Photo Annotator module -->
+<script src="/photo-annotator.js"></script>
+<script>
+// ── Photo Viewer + PhotoAnnotator + Flash Camera Bridge ──
+(function() {
+  'use strict';
+
+  // ── Estado do viewer ──
+  var _pvIdx = -1;
+  var _pvContext = 'item'; // 'item' | 'camera' | 'external'
+  var _pvExtRemove = null; // callback de remoção para fotos externas (Flash)
+
+  // ── Abre o visualizador para foto de S.tempItem ──
+  window.openPhotoViewer = function(idx, context) {
+    var photos = S.tempItem && S.tempItem.photos;
+    if (!photos || !photos[idx]) return;
+    _pvIdx = idx; _pvContext = context || 'item'; _pvExtRemove = null;
+    var p = photos[idx];
+    var img = document.getElementById('pv-img');
+    var badge = document.getElementById('pv-annotated-badge');
+    var btnAnnotate = document.getElementById('pv-btn-annotate');
+    if (img) img.src = p.url;
+    if (badge) badge.style.display = p.annotated ? 'block' : 'none';
+    if (btnAnnotate) btnAnnotate.style.display = '';
+    document.getElementById('pv-overlay').style.display = 'flex';
+  };
+
+  // ── Abre o visualizador para foto externa (Flash iframe) ──
+  window.openPhotoViewerExternal = function(url, idx, removeCallback) {
+    _pvIdx = idx; _pvContext = 'external'; _pvExtRemove = removeCallback;
+    var img = document.getElementById('pv-img');
+    var badge = document.getElementById('pv-annotated-badge');
+    var btnAnnotate = document.getElementById('pv-btn-annotate');
+    if (img) img.src = url;
+    if (badge) badge.style.display = 'none';
+    if (btnAnnotate) btnAnnotate.style.display = 'none'; // fotos Flash não são anotáveis aqui
+    document.getElementById('pv-overlay').style.display = 'flex';
+  };
+
+  window.pvClose = function() {
+    document.getElementById('pv-overlay').style.display = 'none';
+    _pvExtRemove = null;
+  };
+
+  window.pvAnnotate = function() {
+    var photos = S.tempItem && S.tempItem.photos;
+    if (_pvContext === 'external' || !photos || !photos[_pvIdx]) return;
+    var idx = _pvIdx;
+    window.pvClose();
+    PhotoAnnotator.open(photos[idx].url, {
+      onSave: function(annotatedUrl) {
+        photos[idx].url = annotatedUrl;
+        photos[idx].annotated = true;
+        _renderDCThumbs();
+        if (typeof renderItemModal === 'function') renderItemModal();
+        toast('✅ Anotação salva!');
+      },
+      onCancel: function() {}
+    });
+  };
+
+  window.pvDelete = function() {
+    if (_pvContext === 'external') {
+      var cb = _pvExtRemove;
+      window.pvClose();
+      if (cb) cb();
+      return;
+    }
+    var photos = S.tempItem && S.tempItem.photos;
+    if (!photos || _pvIdx < 0) return;
+    var idx = _pvIdx;
+    window.pvClose();
+    photos.splice(idx, 1);
+    _renderDCThumbs();
+    if (typeof renderItemModal === 'function') renderItemModal();
+  };
+
+  window.pvDownload = function() {
+    var img = document.getElementById('pv-img');
+    if (!img || !img.src) return;
+    var a = document.createElement('a');
+    a.href = img.src;
+    a.download = 'foto_' + Date.now() + '.jpg';
+    a.click();
+  };
+
+  // ── openPhotoAnnotator mantido por compatibilidade ──
+  window.openPhotoAnnotator = function(photoIdx) {
+    window.openPhotoViewer(photoIdx, 'item');
+  };
+
+  // ── Bridge: câmera do app principal para o Flash ──
+  window.openDetailedCameraForFlash = function(callback) {
+    window._flashCamCallback = callback;
+    window._flashTempItem = S.tempItem;
+    S.tempItem = { photos: [] };
+    if (typeof openDetailedCamera === 'function') openDetailedCamera();
+  };
+})();
+</script>
+
 </body>
 </html>

@@ -5,10 +5,13 @@ import './clients';
 import './agenda';
 import './receipts';
 import './appConfig';
-import { initGAuth } from './gauth';
+import './camera';
+import './photo-editor';
 import { S, saveOrcs } from './state';
 import { toast, formatNum, money, esc, formatPhone, validateFullName, validatePhone, getStatusBadgeClass, getRoomMeds, normalizeDecimalInput, normalizeMeasureInput, numFromInput, digitsOnly, setFieldError, f1, ptFloat, safeUrl, ico } from './utils';
 import { Keyboard } from '@capacitor/keyboard';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Storage } from './storage/storage';
 
 // ── Keyboard avoidance ──
 (function () {
@@ -19,24 +22,23 @@ import { Keyboard } from '@capacitor/keyboard';
     document.body.classList.toggle('kb-open', h > 0);
   }
 
-  function scrollFocusedIntoView(): void {
+  function scrollFocusedIntoView(delay = 120): void {
     const el = document.activeElement as HTMLElement | null;
     if (!el) return;
     const tag = el.tagName;
     if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return;
     setTimeout(() => {
       try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {}
-    }, 50);
+    }, delay);
   }
 
   // 1) Native (Capacitor Keyboard plugin) — mais preciso no Android
   Keyboard.addListener('keyboardWillShow', info => {
     setKbHeight(info.keyboardHeight || 0);
-    scrollFocusedIntoView();
   }).catch(() => {});
   Keyboard.addListener('keyboardDidShow', info => {
     setKbHeight(info.keyboardHeight || 0);
-    scrollFocusedIntoView();
+    scrollFocusedIntoView(150);
   }).catch(() => {});
   Keyboard.addListener('keyboardWillHide', () => setKbHeight(0)).catch(() => {});
   Keyboard.addListener('keyboardDidHide', () => setKbHeight(0)).catch(() => {});
@@ -59,7 +61,7 @@ import { Keyboard } from '@capacitor/keyboard';
   document.addEventListener('focusin', e => {
     const t = e.target as HTMLElement;
     if (!t || (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA' && t.tagName !== 'SELECT')) return;
-    setTimeout(() => { try { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }, 250);
+    setTimeout(() => { try { t.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch {} }, 400);
   });
 })();
 
@@ -75,14 +77,21 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── Theme ──
+function applyStatusBarStyle(isDark: boolean): void {
+  StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light }).catch(() => {});
+}
+
 function toggleThemeAnim(): void {
   const root = document.documentElement;
   const isDark = root.classList.toggle('dark');
   localStorage.setItem('pp-theme', isDark ? 'dark' : 'light');
+  applyStatusBarStyle(isDark);
 }
 
 function setTheme(theme: string): void {
-  document.documentElement.classList.toggle('dark', theme === 'dark');
+  const isDark = theme === 'dark';
+  document.documentElement.classList.toggle('dark', isDark);
+  applyStatusBarStyle(isDark);
 }
 
 (function () {
@@ -148,10 +157,29 @@ function closeDelConfirm(proceed: boolean): void {
 // ── App init ──
 window.addEventListener('load', () => {
   try { history.replaceState({ page: 'pg-home' }, '', location.href); } catch {}
-  initGAuth();
+  (window as any).renderGoogleStatus?.();
+
+  // Inicializa storage offline (Dexie/IndexedDB ou SQLite nativo)
+  Storage.init().then(async () => {
+    console.log('[main] Storage pronto:', Storage.backendName);
+    (window as any).Storage = Storage;
+    // iOS recovery: se localStorage foi limpo pelo SO, restaura do IndexedDB
+    if (!S.orcs.length) {
+      try {
+        const fromStorage = await Storage.getOrcs();
+        if (fromStorage?.length) {
+          S.orcs = fromStorage;
+          localStorage.setItem('pp-orcs', JSON.stringify(S.orcs));
+          console.log('[main] Orçamentos restaurados do', Storage.backendName, ':', fromStorage.length, 'registros');
+          (window as any).renderOrcamentosList?.();
+          (window as any).renderHomeMini?.();
+        }
+      } catch (e) { console.warn('[main] Falha ao restaurar do storage:', e); }
+    }
+  }).catch(e => console.warn('[main] Storage init falhou:', e));
 
   // OAuth callback — após redirect Google/Supabase, o hash contém #access_token
-  if (location.hash.includes('access_token')) {
+  if (false && location.hash.includes('access_token')) {
     (async () => {
       const client = (window as any).supabaseClient;
       if (client) {
@@ -162,7 +190,6 @@ window.addEventListener('load', () => {
           (window as any).renderGoogleStatus?.();
         }
       }
-      // limpa o hash da URL sem recarregar
       history.replaceState(null, '', location.pathname + location.search);
     })();
   }

@@ -1129,7 +1129,7 @@ function _buildOrcPDFHtml(orc: any, compressedPhotos: Record<string, string> = {
       const svcStr = it.services?.length ? ` — ${it.services.join(', ')}` : '';
       const priceStr = it.price ? (it.perMeter ? `R$&nbsp;${it.price}/m` : it.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })) : '';
       const itemPhotos = (it.photos || []).filter((p: any) => p?.url).slice(0, 6);
-      const photosHtml = itemPhotos.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">${itemPhotos.map((p: any, pi: number) => { const src = compressedPhotos[`${ri}_${ii}_${pi}`] || p.url; return `<img src="${src}" style="height:90px;max-width:140px;border-radius:5px;object-fit:cover;"${p.annotated ? ' title="Foto anotada"' : ''}>`;}).join('')}</div>` : '';
+      const photosHtml = itemPhotos.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:10px;">${itemPhotos.map((p: any, pi: number) => { const src = compressedPhotos[`${ri}_${ii}_${pi}`] || p.url; return `<div style="position:relative;border-radius:6px;overflow:hidden;border:1px solid #E2E8F0;"><img src="${src}" style="height:100px;width:100%;object-fit:cover;display:block;">${p.annotated ? '<div style="position:absolute;top:4px;right:4px;background:#EF4444;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;">✏️ ANOTADA</div>' : ''}</div>`;}).join('')}</div>` : '';
       itemsHtml += `<tr><td style="padding:6px 10px;font-size:12px;color:#334155;">${esc(it.name || '—')}${svcStr ? `<span style="color:#64748B;">${esc(svcStr)}</span>` : ''}${it.obs ? `<br><span style="font-size:11px;color:#94A3B8;font-style:italic;">Obs: ${esc(it.obs)}</span>` : ''}${photosHtml}</td><td style="padding:6px 10px;font-size:12px;color:#64748B;white-space:nowrap;">${m2str}</td><td style="padding:6px 10px;font-size:12px;color:#7C3AED;font-weight:700;text-align:right;white-space:nowrap;">${priceStr}</td></tr>`;
     });
     roomsHtml += `<div style="margin-bottom:14px;border:1px solid #E2E8F0;border-radius:10px;overflow:hidden;">
@@ -1161,7 +1161,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0F172A;paddi
 <body onload="setTimeout(()=>window.print(),400)">
 <button class="no-print" onclick="window.print()" style="position:fixed;top:16px;right:16px;padding:10px 20px;background:#7C3AED;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;z-index:999;">🖨️ Imprimir / Salvar PDF</button>
 
-<div style="max-width:740px;margin:0 auto;">
+<!-- Watermark -->
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:120px;font-weight:900;color:rgba(124,58,237,0.08);z-index:0;white-space:nowrap;pointer-events:none;width:200%;text-align:center;">${esc(cfg.empresa || 'ORÇAMENTO')}</div>
+
+<div style="max-width:740px;margin:0 auto;position:relative;z-index:1;">
   <!-- Cabeçalho empresa -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #0F172A;margin-bottom:20px;">
     <div style="display:flex;gap:14px;align-items:flex-start;">

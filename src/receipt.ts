@@ -142,11 +142,6 @@ export function gerarReciboPDF(): void {
   const w = window.open(url, '_blank');
   if (!w) toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Pop-up bloqueado. Permita pop-ups para abrir o recibo.');
   else setTimeout(() => URL.revokeObjectURL(url), 30000);
-  if ((window as any).isGSignedIn?.()) {
-    const date = new Date().toISOString().slice(0,10);
-    const fname = `recibo-${o.id || date}.pdf`;
-    (window as any).uploadToDrive?.(fname, blob, 'application/pdf', 'Recibos');
-  }
 }
 
 // ── Gerar HTML do recibo ─────────────────────────────────────────

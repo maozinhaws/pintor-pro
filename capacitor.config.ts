@@ -6,8 +6,8 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   plugins: {
     Keyboard: {
-      resize: 'resize',
-      resizeOnFullScreen: true
+      resize: 'none',
+      resizeOnFullScreen: false
     }
   }
 };

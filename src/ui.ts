@@ -157,7 +157,7 @@ function renderItemModal(): void {
   setTimeout(() => { const inp = document.getElementById('item-modal-body')!.querySelector('.item-title-inp') as HTMLInputElement; if (inp) inp.focus(); }, 50);
 }
 
-function openServicesModal(): void { if (!S.tempItem) return; document.getElementById('services-modal')!.style.display = 'flex'; _renderItemObsChips(); }
+function openServicesModal(): void { if (!S.tempItem) return; (document.activeElement as HTMLElement)?.blur(); document.getElementById('services-modal')!.style.display = 'flex'; _renderItemObsChips(); }
 function closeServicesModal(): void { document.getElementById('services-modal')!.style.display = 'none'; }
 
 function _renderItemObsChips(): void {
@@ -211,6 +211,7 @@ function _detailUpdateArea(): void {
 
 function openDetailNamePick(): void {
   if (!S.tempItem) return;
+  (document.activeElement as HTMLElement)?.blur();
   const nomes = (S.config.flashNomes || defCfg.flashNomes).split(',').map(s => s.trim()).filter(Boolean);
   document.getElementById('detail-nome-pick-grid')!.innerHTML = nomes.map(n =>
     `<button type="button" data-nm="${esc(n)}" onclick="selectDetailNome(this.dataset.nm)" style="padding:10px 4px;border-radius:10px;border:1.5px solid var(--bdr-input);background:var(--bg2);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;text-align:center;">${esc(n)}</button>`
@@ -911,7 +912,25 @@ export function renderGoogleStatus(): void {
   }
 }
 
-(window as any).renderGoogleStatus = renderGoogleStatus;
+(window as any).renderGoogleStatus = function renderLocalBackupStatus(): void {
+  const cfgWrap = document.getElementById('gdrive-cfg-status');
+  const bkpWrap = document.getElementById('gdrive-backup-btns');
+  const bkpInfo = document.getElementById('gdrive-backup-info');
+
+  if (cfgWrap) {
+    cfgWrap.innerHTML = `<div style="font-size:12px;color:var(--ink3);line-height:1.6;">Seus dados ficam salvos no dispositivo. Para maior segurança, exporte um arquivo de backup regularmente e guarde em local seguro.</div>`;
+  }
+
+  if (bkpInfo) {
+    bkpInfo.textContent = 'Exporte um arquivo com seus dados ou restaure um backup salvo anteriormente.';
+  }
+
+  if (bkpWrap) {
+    bkpWrap.innerHTML = `
+      <button onclick="exportBackup()" style="width:100%;height:48px;border-radius:12px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-download"/></svg> Exportar Backup</button>
+      <button onclick="document.getElementById('backup-file')?.click()" style="width:100%;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">📂 Importar Backup</button>`;
+  }
+};
 
 // ── Setup event listeners after DOM is ready ──
 window.addEventListener('pp-ready', () => {
