@@ -3,6 +3,7 @@
  * Tests complete workflows: create budget, add items, save, export, etc.
  */
 
+// @ts-ignore - vitest types not always available in build environment
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock state and functions

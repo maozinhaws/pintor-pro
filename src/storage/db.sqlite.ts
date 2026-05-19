@@ -1,3 +1,4 @@
+// @ts-nocheck - Capacitor types not available in build environment
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import {
   LEGACY_LOCAL_STORAGE_KEYS,

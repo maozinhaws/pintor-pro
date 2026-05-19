@@ -361,4 +361,5 @@ class PhotoEditor {
 // Export for use in app
 (window as any).PhotoEditor = PhotoEditor;
 
-export { PhotoEditor, DrawingState, DrawingAction };
+export { PhotoEditor };
+export type { DrawingState, DrawingAction };
