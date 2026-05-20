@@ -1,3 +1,11 @@
+import "@fontsource/sora/600.css";
+import "@fontsource/sora/700.css";
+import "@fontsource/sora/800.css";
+import "@fontsource/manrope/400.css";
+import "@fontsource/manrope/500.css";
+import "@fontsource/manrope/600.css";
+import "@fontsource/manrope/700.css";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -13,6 +21,7 @@ import { db } from "@/lib/db";
 
 import appCss from "../styles.css?url";
 import { Sidebar, SidebarProvider, MenuButton } from "@/components/app-shell";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 
 
@@ -99,7 +108,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "viewport",
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
-      { name: "theme-color", content: "#020617" },
+      { name: "theme-color", content: "#f4f4f6" },
       { title: "Pintor Plus — Orçamentos no canteiro de obra" },
       {
         name: "description",
@@ -155,6 +164,7 @@ function RootComponent() {
           <ThemeHandler />
           <Sidebar />
           <MenuButton />
+          <ThemeToggle />
           <main className="flex-1 min-w-0">
             <Outlet />
           </main>
