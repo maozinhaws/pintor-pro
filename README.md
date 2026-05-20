@@ -1,8 +1,9 @@
 # 📱 Pintor Plus MVP - Complete Implementation
 
-**Status**: ✅ ALL 9 SPRINTS COMPLETE  
-**Build Date**: May 19, 2026  
-**Target**: Android 12+ (API 31+)
+**Status**: ✅ ALL 9 SPRINTS COMPLETE + LOVABLE DESIGN SYSTEM  
+**Build Date**: May 20, 2026  
+**Target**: Android 12+ (API 31+)  
+**Design**: Lovable UI/UX System (Glass Morphism + Brutal Design)
 
 ---
 
@@ -16,11 +17,22 @@ java -version           # JDK 17+ required
 # Check Node.js
 node --version          # v18+ recommended
 npm --version
+
+# Check Android SDK
+echo $ANDROID_SDK_ROOT  # Should be ~/Android/Sdk
 ```
 
-### Build APK (Automated)
+### Build APK (Automated - Recommended)
 ```bash
-./build-apk-final.sh
+# Option 1: With Lovable Design (recommended)
+./BUILD_APK_LOVABLE.sh
+
+# Option 2: Manual build
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export ANDROID_SDK_ROOT=~/Android/Sdk
+cd android
+bash gradlew clean assembleDebug
+
 # Output: android/app/build/outputs/apk/debug/app-debug.apk (~45MB)
 ```
 
@@ -102,6 +114,14 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 - ✅ Form validation
 - ✅ Responsive design
 
+### 🎨 Lovable Design System (NEW)
+- ✅ Glass morphism effects (.glass, .glass-brand, .glass-press)
+- ✅ Brutal design patterns (.brutal-border, .brutal-shadow)
+- ✅ Professional color palette (#ff6b35 orange + #7b5cff purple)
+- ✅ Manrope + Sora typography
+- ✅ Full dark mode with CSS custom properties
+- ✅ Accessibility features (font sizing, high contrast)
+
 ---
 
 ## 📁 Key Files
@@ -111,10 +131,12 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 - `src/photo-editor.ts` - Canvas drawing tools
 - `src/camera.ts` - Camera integration
 - `src/storage/` - Dexie/SQLite wrappers
-- `dist/app.html` - Compiled web app
+- `src/styles-lovable.ts` - Lovable design system (NEW)
+- `dist/app.html` - Compiled web app with embedded design
 
 ### Build
-- `build-apk-final.sh` - Automated APK builder
+- `BUILD_APK_LOVABLE.sh` - Automated APK builder with design (NEW)
+- `build-apk-final.sh` - Legacy APK builder
 - `android/` - Capacitor Android project
 - `vite.config.ts` - Web build config
 
@@ -123,6 +145,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 - Uses Vitest framework
 
 ### Documentation
+- `LOVABLE_DESIGN_INTEGRATION.md` - Design system guide (NEW)
 - `APK_BUILD_INSTRUCTIONS.md` - Detailed build guide
 - `SPRINT_9_FINAL_SUMMARY.md` - Complete sprint summary
 - `SPRINT_8_PHOTO_EDITOR.md` - Photo editor details
@@ -316,9 +339,18 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 ## ✨ Next Steps
 
-1. **Build APK**: Run `./build-apk-final.sh`
-2. **Install**: `adb install -r app-debug.apk`
-3. **Test**: Open app and verify features
+1. **Build APK with Design**: Run `./BUILD_APK_LOVABLE.sh`
+   - Or manually:
+     ```bash
+     export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+     export ANDROID_SDK_ROOT=~/Android/Sdk
+     cd android && bash gradlew clean assembleDebug
+     ```
+2. **Install**: `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`
+3. **Test**: Open app and verify:
+   - Lovable design loaded (glass effects, colors, fonts)
+   - All 40+ features working
+   - Dark mode toggle works
 4. **Report**: Issues → GitHub or Slack
 5. **Deploy**: Create release build with keystore
 
@@ -331,6 +363,6 @@ MVP implementation for Pintor Plus
 
 ---
 
-**Status**: ✅ Production Ready  
-**Last Updated**: 2026-05-19  
-**Version**: 1.0.0-mvp
+**Status**: ✅ Production Ready + Lovable Design System  
+**Last Updated**: 2026-05-20  
+**Version**: 1.0.0-mvp+lovable
