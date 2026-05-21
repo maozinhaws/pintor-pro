@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body style="padding:20px;">
+<div class="card-wrap">
+  <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:12px;">
+    <span class="label">Numeric display · Sora tabular figures</span>
+    <span class="token">font-variant-numeric: tabular-nums lining-nums</span>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+
+    <!-- LIGHT -->
+    <div style="background:#f4f4f6; border-radius:14px; padding:18px; font-family:Sora,sans-serif; font-variant-numeric:tabular-nums lining-nums;">
+      <div class="token" style="font-size:10px; margin-bottom:10px;">light</div>
+      <div style="font-size:32px; line-height:1; font-weight:800; color:#16a34a; letter-spacing:-1px; text-shadow:1px 1px 0 rgba(0,0,0,0.2);">R$ 4.280,00</div>
+      <div style="font-size:16px; font-weight:700; color:#0a0a0a; margin-top:8px;">ORC-2026-0142</div>
+      <div style="font-size:13px; font-weight:500; color:#6b7280; margin-top:4px;">12/04/2026 · 14:32</div>
+    </div>
+
+    <!-- DARK -->
+    <div style="background:#0b0d12; border-radius:14px; padding:18px; font-family:Sora,sans-serif; font-variant-numeric:tabular-nums lining-nums;">
+      <div class="token" style="font-size:10px; color:#9aa0aa; margin-bottom:10px;">dark</div>
+      <div style="font-size:32px; line-height:1; font-weight:800; color:#4ade80; letter-spacing:-1px; text-shadow:1px 1px 0 rgba(0,0,0,0.55);">R$ 4.280,00</div>
+      <div style="font-size:16px; font-weight:700; color:#ffffff; margin-top:8px;">ORC-2026-0142</div>
+      <div style="font-size:13px; font-weight:500; color:#d1d5db; margin-top:4px;">12/04/2026 · 14:32</div>
+    </div>
+  </div>
+
+  <div class="token" style="margin-top:12px; font-size:10px;">No light: ID em preto pra prioridade neutra. No dark: laranja-claro <code>#ff8c5a</code> pro ID (preto não funciona contra fundo escuro). Verde-claro <code>#4ade80</code> pra total, <code>--ink2 #d1d5db</code> pra data — todos passam AA contra <code>#0b0d12</code>.</div>
+</div>
+</body></html>

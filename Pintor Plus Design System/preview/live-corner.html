@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body style="padding:32px;">
+<div class="card-wrap">
+  <div class="label" style="margin-bottom:24px;">Live corner · forma assinatura · texto branco em fundos coloridos</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+
+    <!-- .glass — white card, dark text (NÃO é fundo colorido) -->
+    <div>
+      <div style="background:#ffffff; height:120px; border-radius:0 32px 32px 32px; box-shadow:0 8px 30px rgba(0,0,0,0.04); padding:18px; display:flex; flex-direction:column; justify-content:space-between; font-family:var(--font-display);">
+        <span style="font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#6b7280;">.glass</span>
+        <span style="font-weight:800; font-size:18px; color:#0a0a0a; letter-spacing:-0.02em;">Card branco</span>
+      </div>
+      <div class="token" style="margin-top:8px;">border-radius: 0 32px 32px 32px · canto vivo top-left · fundo branco → texto escuro</div>
+    </div>
+
+    <!-- .glass-brand — gradient, WHITE text always -->
+    <div>
+      <div style="background:linear-gradient(135deg,#ff6b35,#7b5cff); height:120px; border-radius:36px 0 36px 36px; box-shadow:0 20px 50px -15px rgba(123,92,255,0.35); padding:18px; display:flex; flex-direction:column; justify-content:space-between; font-family:var(--font-display); color:#ffffff;">
+        <span style="font-size:10px; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:#ffffff; opacity:0.9;">.glass-brand</span>
+        <span style="font-weight:800; font-size:18px; color:#ffffff; letter-spacing:-0.02em; text-shadow:0 1px 2px rgba(0,0,0,0.18);">Brand colorido</span>
+      </div>
+      <div class="token" style="margin-top:8px;">border-radius: 36px 0 36px 36px · canto vivo top-right · fundo colorido → texto <strong style="color:#ff6b35;">SEMPRE branco</strong></div>
+    </div>
+  </div>
+  <div class="token" style="margin-top:14px; font-size:10px;">Regra geral do sistema: qualquer botão, pill ou card com fundo colorido (gradient, brand, semantic) usa texto <code>#fff</code>. Cards de superfície (.glass, .sec, .hoc) usam <code>--ink</code> normal.</div>
+</div>
+</body></html>

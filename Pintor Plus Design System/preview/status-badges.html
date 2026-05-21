@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css"></head>
+<body style="padding:20px;">
+<div class="card-wrap">
+  <div class="label" style="margin-bottom:14px;">Status badges · .hbadge · ciclo do orçamento</div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px;">
+    <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#FFFBEB;color:#92400E;">Rascunho</span>
+    <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#fff3e0;color:#ff6b35;">Enviado</span>
+    <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#ECFDF5;color:#065F46;">Aprovado</span>
+    <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#FEF2F2;color:#ef4444;">Recusado</span>
+  </div>
+
+  <div class="label" style="margin-bottom:10px;">Recusado · strikethrough no nome — light + dark</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+
+    <!-- LIGHT -->
+    <div style="background:#f4f4f6; border-radius:14px; padding:14px;">
+      <div class="token" style="font-size:10px; margin-bottom:10px;">light · strike #4b5563 · texto #9ca3af</div>
+      <div style="background:#fff; border:1px solid #ececef; border-radius:14px; padding:14px; box-shadow:0 4px 12px rgba(15,23,42,0.05); font-family:Sora,sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-size:15px; font-weight:700; color:#9ca3af; text-decoration:line-through; text-decoration-thickness:1.5px; text-decoration-color:#4b5563;">Ana Carolina Souza</div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:2px;">#0142 · 12/04/2026</div>
+          </div>
+          <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#FEF2F2;color:#ef4444;flex-shrink:0;margin-left:10px;">Recusado</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DARK -->
+    <div style="background:#0b0d12; border-radius:14px; padding:14px;">
+      <div class="token" style="font-size:10px; color:#9aa0aa; margin-bottom:10px;">dark · strike #ffffff · texto #9ca3af</div>
+      <div style="background:#14171d; border:1px solid #262932; border-radius:14px; padding:14px; box-shadow:0 4px 12px rgba(0,0,0,0.4); font-family:Sora,sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div style="font-size:15px; font-weight:700; color:#9ca3af; text-decoration:line-through; text-decoration-thickness:1.5px; text-decoration-color:#ffffff;">Ana Carolina Souza</div>
+            <div style="font-size:11px; color:#9ca3af; margin-top:2px;">#0142 · 12/04/2026</div>
+          </div>
+          <span style="display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#7F1D1D;color:#fca5a5;flex-shrink:0;margin-left:10px;">Recusado</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="token" style="margin-top:10px; font-size:10px;">Regra: status <code>recusado</code>/<code>cancelado</code> aplica <code>text-decoration:line-through</code> no nome. Texto vai pra <code>#9ca3af</code> (cinza claro). Linha do strike é <code>#4b5563</code> (cinza escuro) no light e <code>#ffffff</code> (branco) no dark.</div>
+</div>
+</body></html>

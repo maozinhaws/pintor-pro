@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><link rel="stylesheet" href="_preview.css">
+<style>
+  /* All three theme cards show the orange focus glow — proves the glow
+     is consistent across themes (Suave / Minimalista / Brutalista). */
+  .theme-card{
+    cursor:pointer;
+    padding:18px 14px;
+    text-align:center;
+    transition:transform 120ms;
+    font-family:Sora,sans-serif;
+    background:#fff;
+    /* Saturated orange glow on every theme card */
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.5), 0 4px 12px rgba(15,23,42,0.05);
+  }
+  .theme-card .preview{ height:60px; border-radius:12px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; }
+  .theme-card .title{ font-weight:800; font-size:13px; color:#111; letter-spacing:-0.01em; }
+  .theme-card .desc{ font-size:10px; color:#6b7280; margin-top:3px; font-weight:500; }
+
+  /* Suave card — rounded corners + glass preview */
+  .card-suave{ border-radius:18px; border:1px solid #ff6b35; }
+  .preview-suave{ background:linear-gradient(135deg,#ff6b35,#7b5cff); }
+  .preview-suave .glob{ width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,0.4); backdrop-filter:blur(10px); }
+
+  /* Minimalista card — square corners + flat color + subtle animation */
+  .card-mini{ border-radius:2px; border:1px solid #ff6b35; }
+  .preview-mini{ background:#f4f4f6; border-radius:0 !important; }
+  .preview-mini .square{ width:30px; height:30px; background:#ff6b35; animation:miniPulse 1.8s ease-in-out infinite; }
+  @keyframes miniPulse { 0%,100%{ transform:scale(1); } 50%{ transform:scale(0.88); } }
+
+  /* Brutalista card — square, black border + black/white only */
+  .card-bru{ border-radius:0; border:2px solid #000; }
+  .preview-bru{ background:#fff; border:2px solid #000; border-radius:0 !important; }
+  .preview-bru .blk{ width:40px; height:14px; background:#000; }
+</style>
+</head>
+<body style="padding:24px;">
+<div class="card-wrap">
+  <div class="eyebrow-cmd-prev" style="font-family:'DM Mono',monospace; font-size:10px; color:#ff6b35; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:14px;">&gt; Aparência</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+    <div class="theme-card card-suave">
+      <div class="preview preview-suave"><div class="glob"></div></div>
+      <div class="title">Suave</div>
+      <div class="desc">Glass &amp; cores · curvas · liquid-glass</div>
+    </div>
+    <div class="theme-card card-mini">
+      <div class="preview preview-mini"><div class="square"></div></div>
+      <div class="title">Minimalista</div>
+      <div class="desc">Sólido &amp; direto · sem curvas · com animação</div>
+    </div>
+    <div class="theme-card card-bru">
+      <div class="preview preview-bru"><div class="blk"></div></div>
+      <div class="title" style="font-weight:900;">Brutalista</div>
+      <div class="desc" style="color:#000;">Acessibilidade · cores objetivas · sem degradê · sem animação</div>
+    </div>
+  </div>
+  <div class="token" style="margin-top:14px; font-size:10px;">O glow laranja saturado (<code>0 0 0 3px rgba(255,107,53,0.5)</code>) aparece em todos os três temas — é o foco/seleção universal do sistema. Inclusive no Brutalista, onde tudo o mais é preto/branco.</div>
+</div>
+</body></html>

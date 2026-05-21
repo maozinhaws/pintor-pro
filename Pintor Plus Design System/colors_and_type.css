@@ -1,0 +1,621 @@
+/* ===========================================================
+   Pintor Plus — design tokens
+   Source of truth: app.css + styles-lovable.ts
+   from github.com/maozinhaws/pintor-plus@feature/storage-sqlite-dexie-offline
+
+   The shipped app stacks TWO layers:
+   1) app.css — original slate/purple/amber palette (still drives all .sec,
+      .rcard, .hoc, .finput, .hbadge, .fab-add, etc. — most screens).
+   2) styles-lovable.ts — injected at runtime, OVERRIDES --bl to orange
+      in light mode and adds .glass / .glass-brand utilities. So the final
+      light-mode --bl IS orange, but the amber FAB and WhatsApp-green CTA
+      remain as defined in app.css.
+
+   Theme toggle is the `.dark` CLASS on <html>, NOT [data-theme="escuro"].
+   =========================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=DM+Mono:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+
+/* Local Sora variable font — provided by the brand owner.
+   Declared FIRST so it wins over any Google Fonts fallback. */
+@font-face {
+  font-family: "Sora";
+  src: url("fonts/Sora-VariableFont_wght.ttf") format("truetype-variations"),
+       url("fonts/Sora-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* ----- Type families ----- */
+  /* Production body/everything uses Sora. The Lovable layer adds Manrope as
+     an optional body alternate but most screens still hit 'Sora, sans-serif'. */
+  --font-display: "Sora", system-ui, sans-serif;
+  --font-body:    "Sora", system-ui, sans-serif;
+  --font-alt:     "Manrope", "Sora", system-ui, sans-serif;   /* available, used in some Lovable utilities */
+  --font-mono:    "DM Mono", "JetBrains Mono", ui-monospace, monospace; /* DM Mono for numbers/totals — production usage */
+  --font-numeric: "Calibri", "DM Mono", ui-monospace, system-ui, sans-serif; /* .minp / number inputs in production */
+
+  /* ----- Type scale ----- */
+  --fs-eyebrow: 0.625rem;   /* 10px — uppercase tracking widest */
+  --fs-xs:      0.6875rem;  /* 11px */
+  --fs-sm:      0.8125rem;  /* 13px */
+  --fs-base:    0.875rem;   /* 14px — body default (matches .finput, .rcard-name) */
+  --fs-md:      0.9375rem;  /* 15px — card titles (.hon) */
+  --fs-lg:      1rem;       /* 16px — section titles (.sec-title) */
+  --fs-xl:      1.125rem;   /* 18px */
+  --fs-2xl:     1.5rem;     /* 24px — page name (.hm-name) */
+  --fs-3xl:     1.75rem;    /* 28px — totals (.orc-total-display) */
+
+  --lh-tight: 1.05;
+  --lh-snug:  1.2;
+  --lh-base:  1.5;
+
+  --tracking-eyebrow: 0.05em;
+  --tracking-tight:  -0.02em;
+
+  /* ===== BRAND (post-Lovable override, light mode) ===== */
+  --bl:  #ff6b35;     /* primary action / focus / step-active — orange after Lovable */
+  --bld: #ff6b35;     /* dark variant (Lovable keeps same) */
+  --bll: #fff3e0;     /* light-brand bg — used for selected checkbox row, ghost button bg */
+  --brand:   #ff6b35;
+  --brand-2: #7b5cff; /* secondary purple — gradient partner, also dark-mode primary */
+  --brand-gradient: linear-gradient(135deg, #ff6b35 0%, #ff6b35 45%, #7b5cff 100%);  /* 3-stop: orange holds 45% */
+
+  /* ===== Semantic accents ===== */
+  --gn:  #16a34a;     /* success / aprovado / WhatsApp count */
+  --gnl: #ECFDF5;     /* light success bg */
+  --rd:  #ef4444;     /* destructive / recusado */
+  --rdl: #FEF2F2;     /* light destructive bg */
+  --am:  #F59E0B;     /* amber — warning, rascunho badge */
+  --aml: #FFFBEB;     /* light amber bg */
+  /* WhatsApp brand for action buttons */
+  --whatsapp-grad: linear-gradient(135deg, #25D366, #128C7E);
+
+  /* ===== Ink scale (3 levels of foreground) ===== */
+  --ink:  #111111;    /* primary text */
+  --ink2: #374151;    /* secondary text, icon strokes */
+  --ink3: #6b7280;    /* tertiary / muted / placeholders / eyebrows */
+
+  /* ===== Surfaces (light) ===== */
+  --bg:           #f4f4f6;
+  --bg2:          #f4f4f6;
+  --bg-input:     #ffffff;
+  --bg-card:      #ffffff;
+  --bg-card-alt:  #ffffff;
+  --bg-modal:     #ffffff;
+  --bg-yellow:    #fff3e0;   /* misnomed — actually light orange after Lovable */
+
+  /* ===== Borders ===== */
+  --bdr:        #ececef;
+  --bdr-input:  #e5e7eb;
+
+  /* ===== Radii ===== */
+  --radius-sm:  10px;
+  --radius-md:  16px;
+  --radius-lg:  24px;
+  --radius-xl:  28px;
+  --radius-2xl: 32px;       /* glass card */
+  --radius-3xl: 36px;       /* glass-brand */
+  --radius-pill: 9999px;
+
+  /* ===== Shadows / elevation ===== */
+  --sh:            0 4px 12px rgba(15,23,42,0.05);   /* default card shadow (app.css) */
+  --shadow-soft:   0 1px 2px rgba(0,0,0,0.04);
+  --shadow-glass:  0 8px 30px rgba(0,0,0,0.10);
+  --shadow-strong: 0 14px 40px rgba(0,0,0,0.18);
+  --shadow-brand:  0 24px 56px -15px rgba(123,92,255,0.5);
+  --shadow-fab:    0 8px 24px rgba(0,0,0,0.25);
+  --shadow-focus:  0 0 0 1px #ff6b35, 0 0 10px 1px rgba(255,107,53,0.7);   /* neon orange glow — tight, all themes */
+  --shadow-wa:     0 4px 14px rgba(37,211,102,0.30);
+  --shadow-bl:     0 4px 14px rgba(255,107,53,0.30);
+
+  /* ===== Transitions ===== */
+  --t-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --t-base: 350ms ease;
+
+  /* ----- Backward-compatible aliases (legacy class refs) ----- */
+  --background:       var(--bg);
+  --card:             var(--bg-card);
+  --secondary:        var(--bg2);
+  --muted:            var(--bg2);
+  --border:           var(--bdr);
+  --foreground:       var(--ink);
+  --muted-foreground: var(--ink3);
+  --destructive:      var(--rd);
+  --success:          var(--gn);
+  --warning:          var(--am);
+}
+
+/* ===== Dark theme — toggled by `.dark` class on <html> ===== */
+:root.dark {
+  --bl:  #7b5cff;     /* DARK MODE FLIPS — primary becomes purple */
+  --bld: #7b5cff;
+  --bll: #4c1d95;
+  --brand:   #ff6b35; /* orange stays for gradient/glow accents */
+  --brand-2: #7b5cff;
+
+  --gnl: #064E3B;
+  --rdl: #7F1D1D;
+  --am:  #FBBF24;
+  --aml: #78350F;
+
+  --ink:  #ededf0;
+  --ink2: #d1d5db;
+  --ink3: #9aa0aa;
+
+  --bg:           #0b0d12;
+  --bg2:          #1c2027;
+  --bg-input:     #14171d;
+  --bg-card:      #14171d;
+  --bg-card-alt:  #0b0d12;
+  --bg-modal:     #14171d;
+  --bg-yellow:    #1c2027;
+
+  --bdr:        #262932;
+  --bdr-input:  #3f4451;
+
+  --sh:           0 4px 12px rgba(0,0,0,0.4);
+  --shadow-glass: 0 8px 30px rgba(0,0,0,0.4);
+}
+
+/* ===========================================================
+   THEMES — three aesthetic modes (data-tema on <html>)
+   Default (no attribute) = Suave.
+   Set via document.documentElement.dataset.tema = "minimalista" | "brutalista"
+   =========================================================== */
+
+/* SUAVE — default, no rule needed beyond the :root tokens above.
+   Curves, glass surfaces, liquid-glass / gelatin animations,
+   smooth state transitions. */
+
+/* MINIMALISTA — square, no curves. Animations are KEPT.
+   Everything keeps its color but loses radius. */
+:root[data-tema="minimalista"],
+:root[data-tema="minimalista"] * {
+  --radius-sm:  0px;
+  --radius-md:  0px;
+  --radius:     0px;
+  --radius-lg:  0px;
+  --radius-xl:  0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-pill: 0px;
+}
+/* Force-square key signature shapes even when they hardcode pixels */
+:root[data-tema="minimalista"] .glass,
+:root[data-tema="minimalista"] .glass-strong,
+:root[data-tema="minimalista"] .glass-brand,
+:root[data-tema="minimalista"] .hero,
+:root[data-tema="minimalista"] .glass-card,
+:root[data-tema="minimalista"] .modal-box,
+:root[data-tema="minimalista"] .field-input,
+:root[data-tema="minimalista"] .finput,
+:root[data-tema="minimalista"] .chip,
+:root[data-tema="minimalista"] .cta-pill,
+:root[data-tema="minimalista"] .sb-cta,
+:root[data-tema="minimalista"] .btn-ink-pill,
+:root[data-tema="minimalista"] .btn-brand,
+:root[data-tema="minimalista"] .btn-wa,
+:root[data-tema="minimalista"] .metric-pill,
+:root[data-tema="minimalista"] .hbadge {
+  border-radius: 2px !important;
+}
+
+/* BRUTALISTA — high contrast, NO gradients, objective colors.
+   Pure black text on pure white. Thick black borders. No shadows.
+   No animations. */
+:root[data-tema="brutalista"] {
+  --ink:   #000000;
+  --ink2:  #000000;
+  --ink3:  #1a1a1a;
+  --bg:    #ffffff;
+  --bg2:   #ffffff;
+  --bg-card:     #ffffff;
+  --bg-card-alt: #ffffff;
+  --bg-modal:    #ffffff;
+  --bg-input:    #ffffff;
+  --bdr:        #000000;
+  --bdr-input:  #000000;
+  --sh:           none;
+  --shadow-soft:  none;
+  --shadow-glass: none;
+  --shadow-strong: none;
+  --shadow-brand: none;
+  --shadow-fab:   none;
+  --shadow-focus: 0 0 0 1px #ff6b35, 0 0 10px 1px rgba(255,107,53,0.7);
+  /* Override the brand gradient to a SOLID color so any element using it
+     loses its gradient automatically. */
+  --brand-gradient: #000000;
+  --whatsapp-grad:  #16a34a;
+}
+:root[data-tema="brutalista"] *,
+:root[data-tema="brutalista"] *::before,
+:root[data-tema="brutalista"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+/* Kill ALL inline / utility gradients explicitly */
+:root[data-tema="brutalista"] .glass-brand,
+:root[data-tema="brutalista"] .hero,
+:root[data-tema="brutalista"] .sb-cta,
+:root[data-tema="brutalista"] .cta-pill,
+:root[data-tema="brutalista"] .mode-avatar,
+:root[data-tema="brutalista"] .stepper .seg.active,
+:root[data-tema="brutalista"] .step-pill.active,
+:root[data-tema="brutalista"] .step-pill.done,
+:root[data-tema="brutalista"] .chip.active,
+:root[data-tema="brutalista"] .sb-brand .mark {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+:root[data-tema="brutalista"] .hero-title,
+:root[data-tema="brutalista"] .hero-sub,
+:root[data-tema="brutalista"] .hero-toque-pill {
+  color: #ffffff !important;
+  background: transparent !important;
+}
+:root[data-tema="brutalista"] .inline-link,
+:root[data-tema="brutalista"] .eyebrow-cmd,
+:root[data-tema="brutalista"] .page-eyebrow,
+:root[data-tema="brutalista"] .sb-eyebrow {
+  color: #000000 !important;
+}
+:root[data-tema="brutalista"] .eyebrow-cmd::before { color: #000000 !important; }
+/* All visible surfaces get a thick black border in brutalista */
+:root[data-tema="brutalista"] .glass,
+:root[data-tema="brutalista"] .glass-strong,
+:root[data-tema="brutalista"] .glass-card,
+:root[data-tema="brutalista"] .hero,
+:root[data-tema="brutalista"] .modal-box,
+:root[data-tema="brutalista"] .sec,
+:root[data-tema="brutalista"] .hoc,
+:root[data-tema="brutalista"] .metric-pill,
+:root[data-tema="brutalista"] .chip,
+:root[data-tema="brutalista"] .field-input,
+:root[data-tema="brutalista"] .finput {
+  border: 2px solid #000 !important;
+  box-shadow: none !important;
+}
+/* Heavier text weight + larger hit targets for accessibility */
+:root[data-tema="brutalista"] body {
+  font-weight: 500;
+}
+/* Override hero gradient text-on-light tone to pure black */
+:root[data-tema="brutalista"] .hero-title { color: #000; }
+:root[data-tema="brutalista"] .hero-sub   { color: #000; font-weight: 600; }
+:root[data-tema="brutalista"] .hero-toque-pill { background: #000; }
+/* ----- Accessibility (font-size + contrast) ----- */
+body.acessivel,
+:root[data-fonte="grande"] { font-size: 17px; }
+:root[data-fonte="normal"] { font-size: 16px; }
+:root[data-fonte="pequeno"] { font-size: 14px; }
+
+:root[data-contraste="alto"] {
+  --ink:  #000000;
+  --ink2: #1f1f1f;
+  --bdr:  #000000;
+}
+
+/* ===========================================================
+   Base
+   =========================================================== */
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+}
+
+::selection {
+  background-color: var(--brand);
+  color: #fff;
+}
+
+/* ===========================================================
+   Semantic typography
+   =========================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+
+h1 { font-size: var(--fs-2xl); font-weight: 800; line-height: var(--lh-tight); }
+h2 { font-size: var(--fs-xl);  font-weight: 800; line-height: var(--lh-snug); }
+h3 { font-size: var(--fs-lg);  font-weight: 700; line-height: var(--lh-snug); }
+
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.text-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.text-mono { font-family: var(--font-mono); }
+.text-brand { color: var(--bl); }
+.text-brand-2 { color: var(--brand-2); }
+.numeric, .total {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ===========================================================
+   Signature surfaces (from styles-lovable.ts)
+   =========================================================== */
+
+.glass {
+  background: var(--bg-card);
+  border: 1px solid var(--bdr);
+  border-radius: 0 32px 32px 32px;     /* live corner top-left */
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-strong {
+  background: var(--bg-card);
+  border: 1px solid var(--bdr);
+  border-radius: 0 32px 32px 32px;
+  box-shadow: var(--shadow-strong);
+}
+
+.glass-brand {
+  background: linear-gradient(135deg, #ff6b35 0%, #ff6b35 45%, #7b5cff 100%);  /* 3-stop */
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 36px 0 36px 36px;     /* live corner top-right */
+  color: #ffffff;
+  box-shadow: var(--shadow-brand);
+}
+
+.glass-brand-glow {
+  position: relative;
+  isolation: isolate;
+}
+.glass-brand-glow::before {
+  content: "";
+  position: absolute; inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #ff6b35, #7b5cff);
+  filter: blur(22px);
+  opacity: 0.22;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.glass-press {
+  transition: transform 150ms cubic-bezier(.2,.8,.2,1), box-shadow 150ms ease;
+}
+.glass-press:active { transform: scale(0.98); }
+
+/* ===========================================================
+   Brutal helpers (legacy name, actually SOFT — used by .sec, .rcard, .hoc)
+   =========================================================== */
+
+.brutal-border {
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius-md);
+}
+.brutal-border-thin {
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius-md);
+}
+.brutal-shadow     { box-shadow: 0 10px 30px rgba(0,0,0,0.06); }
+.brutal-shadow-sm  { box-shadow: 0 4px 14px rgba(0,0,0,0.05); }
+.brutal-shadow-brand { box-shadow: 0 20px 50px -15px rgba(123,92,255,0.35); }
+.brutal-press      { transition: transform 120ms cubic-bezier(.2,.8,.2,1), box-shadow 120ms ease; }
+.brutal-press:active { transform: scale(0.98); }
+
+/* ===========================================================
+   Buttons
+   =========================================================== */
+
+/* Primary ink pill — used on actions like "Criar Primeiro" */
+.btn-dark {
+  background: #0a0a0a;
+  color: #fff;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: none;
+  cursor: pointer;
+  transition: background var(--t-fast), transform 100ms ease;
+}
+.btn-dark:hover  { background: #1f1f1f; }
+.btn-dark:active { transform: scale(0.97); }
+:root.dark .btn-dark { background: #ededf0; color: #0b0d12; }
+:root.dark .btn-dark:hover { background: #ffffff; }
+
+/* Brand action — orange filled, used in step-Next, .act-save */
+.btn-brand {
+  background: var(--bl);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 22px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-bl);
+  transition: transform var(--t-fast), opacity var(--t-fast);
+}
+.btn-brand:active { transform: scale(0.97); }
+
+/* WhatsApp action — real WhatsApp gradient */
+.btn-wa {
+  background: var(--whatsapp-grad);
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 22px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-wa);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* PDF / secondary outline action */
+.btn-pdf {
+  background: var(--bg-input);
+  color: var(--ink2);
+  border: 1.5px solid var(--bdr);
+  border-radius: 14px;
+  padding: 12px 22px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Floating Action Button — LEGACY (app.css). The Lovable prototype dropped
+   this in favour of the gradient pill at the bottom of the sidebar. Class
+   kept here only for compatibility with old templates. */
+.fab-add {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--am);
+  color: #92400E;
+  border: 2.5px solid #FDE68A;
+  box-shadow: var(--shadow-fab);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 700;
+  transition: transform 200ms;
+}
+.fab-add:active { transform: scale(0.92); }
+
+/* ===========================================================
+   Inputs — production .finput style
+   =========================================================== */
+
+.finput, .field {
+  width: 100%;
+  height: 46px;
+  background: var(--bg-input);
+  color: var(--ink);
+  border: 1.5px solid var(--bdr-input);
+  border-radius: 12px;
+  padding: 0 14px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 180ms, box-shadow 180ms;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.finput:focus, .field:focus {
+  border-color: var(--bl);
+  box-shadow: 0 0 0 3px rgba(255,107,53,0.18);
+}
+
+.flbl {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 6px;
+}
+
+/* ===========================================================
+   Cards & list rows (production patterns)
+   =========================================================== */
+
+/* Section card — used everywhere for content blocks */
+.sec {
+  background: var(--bg-card-alt);
+  border-radius: 14px;
+  border: 1px solid var(--bdr);
+  padding: 14px;
+  box-shadow: var(--sh);
+}
+
+/* Home orçamento card */
+.hoc {
+  background: var(--bg-modal);
+  border-radius: 14px;
+  border: 1px solid var(--bdr);
+  padding: 14px;
+  box-shadow: var(--sh);
+  transition: transform 0.2s;
+}
+.hoc:active { transform: scale(0.98); }
+.hoc.card-rascunho { background: #fff3e0; }
+:root.dark .hoc.card-rascunho { background: rgba(120,53,15,0.22); border-left: 3px solid #FBBF24; }
+
+/* ===========================================================
+   Status badges (.hbadge from app.css)
+   =========================================================== */
+
+.hbadge {
+  display: inline-flex;
+  padding: 3px 9px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.hbadge.hby { background: var(--aml); color: #92400E; }  /* amber — rascunho/pendente */
+.hbadge.hbg { background: var(--gnl); color: #065F46; }  /* green — aprovado */
+.hbadge.hbb { background: var(--bll); color: var(--bld); } /* brand — enviado */
+.hbadge.hbr { background: var(--rdl); color: var(--rd); }  /* red — recusado */
+
+/* ===========================================================
+   Step pills (wizard progress bar from .step-pill)
+   =========================================================== */
+
+.steps {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.step-pill {
+  flex: 1;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--bg2);
+  border: 1px solid #9ca3af;
+  transition: background 0.3s, border-color 0.3s;
+}
+.step-pill.active {
+  background: linear-gradient(90deg, #ff6b35, #7b5cff);
+  opacity: 1;
+}
+.step-pill.done {
+  background: linear-gradient(90deg, #ff6b35, #7b5cff);
+}
+/* Borda fica igual nas ativas e nas vazias — em ambos os modos */
+.step-label {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* No-scrollbar */
+.no-scrollbar              { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

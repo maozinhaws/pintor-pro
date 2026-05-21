@@ -1,0 +1,72 @@
+/* Shared styling for preview cards. Each card renders at ~700px wide.
+   Cards have NO outer chrome — they show the asset directly. */
+
+@import url("../colors_and_type.css");
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.card-wrap { width: 100%; }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.col { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.token {
+  font-family: "Sora", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+  letter-spacing: 0.01em;
+}
+
+.swatch {
+  width: 100%;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
+  font-family: "Sora", system-ui, sans-serif;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  position: relative;
+}
+.swatch.light-text { color: #fff; }
+.swatch.dark-text  { color: #0a0a0a; }
+.swatch .meta {
+  position: absolute;
+  bottom: 8px; left: 12px; right: 12px;
+  display: flex; justify-content: space-between;
+  font-family: "Sora", system-ui, sans-serif; font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
