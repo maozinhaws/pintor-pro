@@ -109,7 +109,18 @@ body{min-height:-webkit-fill-available;}
 
 /* pg-flash: respeitar o grid em desktop (não cobrir sidebar) */
 @media (min-width: 1024px) {
-  #pg-flash { left:240px !important; }
+  #pg-flash {
+    left:240px !important;
+    background:var(--bg) !important;
+  }
+}
+/* iframe do flash sempre 100% de width e height */
+#pg-flash { display:none; }
+#pg-flash.active { display:flex !important; }
+#pg-flash #flash-iframe {
+  width:100% !important; height:100% !important;
+  flex:1 !important; border:none !important;
+  display:block !important; background:var(--bg) !important;
 }
 
 /* Tema cards (selecionado) */
@@ -337,51 +348,54 @@ input[type="number"] { font-family: 'Calibri', sans-serif !important; }
 .hoas { gap: 6px !important; margin-top: 10px !important; }
 .hoa { height: 38px !important; font-size: 12px !important; border-radius: 9px !important; font-weight: 700 !important; }
 /* ── Modo Acessibilidade — fontes, botões e contraste aumentados ── */
-body.acessivel { font-size: 17px !important; line-height: 1.7 !important; }
-body.acessivel .finput, body.acessivel .fsel { height: 62px !important; font-size: 18px !important; border-width: 2px !important; border-radius: 14px !important; }
-body.acessivel .fta { font-size: 18px !important; min-height: 130px !important; border-width: 2px !important; line-height: 1.7 !important; }
-body.acessivel .flbl { font-size: 15px !important; font-weight: 700 !important; letter-spacing: .3px !important; }
-body.acessivel .sec-title { font-size: 19px !important; font-weight: 900 !important; }
-body.acessivel .sec { padding: 20px !important; margin-bottom: 20px !important; border-width: 2px !important; }
-body.acessivel .fld { margin-bottom: 20px !important; }
-body.acessivel .act-btn { height: 64px !important; font-size: 18px !important; border-radius: 16px !important; font-weight: 800 !important; }
-body.acessivel .add-room-btn { height: 60px !important; font-size: 17px !important; border-width: 2.5px !important; }
-body.acessivel .chk-item { padding: 18px 16px !important; gap: 14px !important; border-width: 2px !important; }
-body.acessivel .chk-box { width: 30px !important; height: 30px !important; border-width: 2.5px !important; border-radius: 8px !important; }
-body.acessivel .chk-item.on .chk-box::after { font-size: 16px !important; font-weight: 900 !important; }
-body.acessivel .chk-lbl { font-size: 18px !important; font-weight: 600 !important; }
-body.acessivel .toggle-row { padding: 18px 16px !important; border-width: 2px !important; }
-body.acessivel .toggle-lbl { font-size: 18px !important; font-weight: 700 !important; }
-body.acessivel .toggle-sub { font-size: 14px !important; }
-body.acessivel .toggle-sw { width: 56px !important; height: 32px !important; }
-body.acessivel .toggle-sw::after { width: 25px !important; height: 25px !important; top: 3.5px !important; left: 3.5px !important; }
-body.acessivel .toggle-sw.on::after { left: 27.5px !important; }
-body.acessivel .rcard { margin-bottom: 18px !important; border-width: 2px !important; border-radius: 16px !important; }
-body.acessivel .rcard-head, body.acessivel .rcard-body { padding: 18px !important; }
-body.acessivel .rcard-name { font-size: 18px !important; font-weight: 700 !important; }
-body.acessivel .rcard-del { width: 44px !important; height: 44px !important; border-radius: 12px !important; font-size: 16px !important; }
-body.acessivel .mbox { padding: 14px !important; }
-body.acessivel .minp { font-size: 26px !important; font-weight: 800 !important; }
-body.acessivel .item-card { padding: 18px !important; margin-top: 16px !important; border-width: 2px !important; }
-body.acessivel .item-del { width: 42px !important; height: 42px !important; }
-body.acessivel .price-check-row input[type=number], body.acessivel .price-check-row input[type=text] { height: 60px !important; font-size: 20px !important; }
-body.acessivel .hoc { padding: 20px 18px !important; border-radius: 18px !important; border-width: 2px !important; margin-bottom: 12px !important; }
-body.acessivel .hon { font-size: 19px !important; font-weight: 800 !important; }
-body.acessivel .hos { font-size: 15px !important; }
-body.acessivel .hoov { font-size: 20px !important; font-weight: 800 !important; }
-body.acessivel .hoa { height: 50px !important; font-size: 15px !important; font-weight: 700 !important; }
-body.acessivel .hoas { gap: 10px !important; margin-top: 16px !important; }
-body.acessivel .hm-name { font-size: 28px !important; font-weight: 800 !important; }
-body.acessivel .topnav-btn { height: 56px !important; font-size: 12px !important; }
-body.acessivel .topnav-btn svg { width: 24px !important; height: 24px !important; }
-body.acessivel .srch-bar { height: 48px !important; font-size: 16px !important; border-width: 2px !important; }
-body.acessivel .step-num { font-size: 18px !important; }
-body.acessivel .step-title { font-size: 14px !important; }
-body.acessivel .badge-rascunho, body.acessivel .hbadge { font-size: 12px !important; padding: 4px 10px !important; }
+/* LEGACY (desativado): body.acessivel — usar data-fonte no <html> */
+body.acessivel_LEGACY_OFF { font-size: 17px; line-height: 1.7; }
+body.acessivel { /* desativado */ }
+body.acessivel-OFF { font-size: 17px !important; line-height: 1.7 !important; }
+body.acessivel-LEGACY-OFF .finput, body.acessivel-LEGACY-OFF .fsel { height: 62px !important; font-size: 18px !important; border-width: 2px !important; border-radius: 14px !important; }
+body.acessivel-LEGACY-OFF .fta { font-size: 18px !important; min-height: 130px !important; border-width: 2px !important; line-height: 1.7 !important; }
+body.acessivel-LEGACY-OFF .flbl { font-size: 15px !important; font-weight: 700 !important; letter-spacing: .3px !important; }
+body.acessivel-LEGACY-OFF .sec-title { font-size: 19px !important; font-weight: 900 !important; }
+body.acessivel-LEGACY-OFF .sec { padding: 20px !important; margin-bottom: 20px !important; border-width: 2px !important; }
+body.acessivel-LEGACY-OFF .fld { margin-bottom: 20px !important; }
+body.acessivel-LEGACY-OFF .act-btn { height: 64px !important; font-size: 18px !important; border-radius: 16px !important; font-weight: 800 !important; }
+body.acessivel-LEGACY-OFF .add-room-btn { height: 60px !important; font-size: 17px !important; border-width: 2.5px !important; }
+body.acessivel-LEGACY-OFF .chk-item { padding: 18px 16px !important; gap: 14px !important; border-width: 2px !important; }
+body.acessivel-LEGACY-OFF .chk-box { width: 30px !important; height: 30px !important; border-width: 2.5px !important; border-radius: 8px !important; }
+body.acessivel-LEGACY-OFF .chk-item.on .chk-box::after { font-size: 16px !important; font-weight: 900 !important; }
+body.acessivel-LEGACY-OFF .chk-lbl { font-size: 18px !important; font-weight: 600 !important; }
+body.acessivel-LEGACY-OFF .toggle-row { padding: 18px 16px !important; border-width: 2px !important; }
+body.acessivel-LEGACY-OFF .toggle-lbl { font-size: 18px !important; font-weight: 700 !important; }
+body.acessivel-LEGACY-OFF .toggle-sub { font-size: 14px !important; }
+body.acessivel-LEGACY-OFF .toggle-sw { width: 56px !important; height: 32px !important; }
+body.acessivel-LEGACY-OFF .toggle-sw::after { width: 25px !important; height: 25px !important; top: 3.5px !important; left: 3.5px !important; }
+body.acessivel-LEGACY-OFF .toggle-sw.on::after { left: 27.5px !important; }
+body.acessivel-LEGACY-OFF .rcard { margin-bottom: 18px !important; border-width: 2px !important; border-radius: 16px !important; }
+body.acessivel-LEGACY-OFF .rcard-head, body.acessivel-LEGACY-OFF .rcard-body { padding: 18px !important; }
+body.acessivel-LEGACY-OFF .rcard-name { font-size: 18px !important; font-weight: 700 !important; }
+body.acessivel-LEGACY-OFF .rcard-del { width: 44px !important; height: 44px !important; border-radius: 12px !important; font-size: 16px !important; }
+body.acessivel-LEGACY-OFF .mbox { padding: 14px !important; }
+body.acessivel-LEGACY-OFF .minp { font-size: 26px !important; font-weight: 800 !important; }
+body.acessivel-LEGACY-OFF .item-card { padding: 18px !important; margin-top: 16px !important; border-width: 2px !important; }
+body.acessivel-LEGACY-OFF .item-del { width: 42px !important; height: 42px !important; }
+body.acessivel-LEGACY-OFF .price-check-row input[type=number], body.acessivel-LEGACY-OFF .price-check-row input[type=text] { height: 60px !important; font-size: 20px !important; }
+body.acessivel-LEGACY-OFF .hoc { padding: 20px 18px !important; border-radius: 18px !important; border-width: 2px !important; margin-bottom: 12px !important; }
+body.acessivel-LEGACY-OFF .hon { font-size: 19px !important; font-weight: 800 !important; }
+body.acessivel-LEGACY-OFF .hos { font-size: 15px !important; }
+body.acessivel-LEGACY-OFF .hoov { font-size: 20px !important; font-weight: 800 !important; }
+body.acessivel-LEGACY-OFF .hoa { height: 50px !important; font-size: 15px !important; font-weight: 700 !important; }
+body.acessivel-LEGACY-OFF .hoas { gap: 10px !important; margin-top: 16px !important; }
+body.acessivel-LEGACY-OFF .hm-name { font-size: 28px !important; font-weight: 800 !important; }
+body.acessivel-LEGACY-OFF .topnav-btn { height: 56px !important; font-size: 12px !important; }
+body.acessivel-LEGACY-OFF .topnav-btn svg { width: 24px !important; height: 24px !important; }
+body.acessivel-LEGACY-OFF .srch-bar { height: 48px !important; font-size: 16px !important; border-width: 2px !important; }
+body.acessivel-LEGACY-OFF .step-num { font-size: 18px !important; }
+body.acessivel-LEGACY-OFF .step-title { font-size: 14px !important; }
+body.acessivel-LEGACY-OFF .badge-rascunho, body.acessivel-LEGACY-OFF .hbadge { font-size: 12px !important; padding: 4px 10px !important; }
 body.acessivel button, body.acessivel [role=button] { min-height: 44px; }
 /* Contraste extra em modo acessível */
-body.acessivel .ink, body.acessivel { color: var(--ink) !important; }
-body.acessivel .finput:focus, body.acessivel .fta:focus, body.acessivel .fsel:focus { border-color: var(--bl) !important; box-shadow: 0 0 0 3px rgba(124,58,237,.2) !important; }
+body.acessivel-LEGACY-OFF .ink, body.acessivel { color: var(--ink) !important; }
+body.acessivel-LEGACY-OFF .finput:focus, body.acessivel-LEGACY-OFF .fta:focus, body.acessivel-LEGACY-OFF .fsel:focus { border-color: var(--bl) !important; box-shadow: 0 0 0 3px rgba(124,58,237,.2) !important; }
 /* ── Busca ── */
 .srch-wrap{position:relative;margin-top:10px;}
 .srch-bar{width:100%;height:38px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:100px;padding:0 14px 0 36px;font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);outline:none;-webkit-appearance:none;}
@@ -3418,7 +3432,16 @@ if (S.config && S.config.msg && !S.config.msg.includes('{total}')) {
   S.config.msg += '\\n\\n*Valor Total: {total}*';
   localStorage.setItem('pp-config', JSON.stringify(S.config));
 }
-if (S.config.acessibilidade) document.body.classList.add('acessivel');
+// LEGACY removed: acessibilidade agora vai por data-fonte/data-contraste no <html>
+if (S.config.acessibilidade) {
+  S.config.acessibilidade = false;
+  // migrar para new system
+  try {
+    localStorage.setItem('pp-fonte', 'grande');
+    document.documentElement.dataset.fonte = 'grande';
+  } catch(e){}
+}
+document.body.classList.remove('acessivel');
 
 S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean);
 S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean);
@@ -4433,7 +4456,7 @@ function renderLogoPreview() {
 function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); const isHC = document.documentElement.dataset.contraste === 'alto'; if(accSw) accSw.classList.toggle('on', isHC); const fontSize = document.documentElement.dataset.fonte || 'normal'; setA11yFontSize(fontSize); _cfgDirty = false; showPage('pg-config'); }); }
 function saveConfig() {
   S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false, flashNomes: (document.getElementById('cfg-flash-nomes')||{}).value||defCfg.flashNomes, flashServicos: (document.getElementById('cfg-flash-servicos')||{}).value||defCfg.flashServicos, flashMateriais: (document.getElementById('cfg-flash-materiais')||{}).value||defCfg.flashMateriais };
-  document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
+  document.body.classList.remove('acessivel');
   S.DEFAULT_SERVICES = S.config.servicos.split(',').map(s=>s.trim()).filter(Boolean); 
   if(!S.DEFAULT_SERVICES.length) S.DEFAULT_SERVICES = defCfg.servicos.split(',').map(s=>s.trim()); 
   S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); 
