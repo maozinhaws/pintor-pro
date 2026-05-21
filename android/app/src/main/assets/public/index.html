@@ -197,7 +197,7 @@ body{min-height:-webkit-fill-available;}
 .photo-btn:active{transform:scale(0.98); opacity:0.8;}
 
 /* ── Design profissional — substituição do bloco inflate ── */
-.flbl { font-size: 11px !important; letter-spacing: .4px !important; margin-bottom: 6px !important; }
+.flbl { font-family: 'Sora', sans-serif !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 0.16em !important; text-transform: uppercase !important; color: var(--ink3) !important; margin-bottom: 8px !important; }
 .sec-title { font-size: 14px !important; margin-bottom: 12px !important; }
 .sec { padding: 14px !important; margin-bottom: 12px !important; border-radius: 14px !important; border-width: 1px !important; }
 input[type="number"] { font-family: 'Calibri', sans-serif !important; }
@@ -639,12 +639,12 @@ body { background:
   z-index:40 !important;
   transform:translateX(-100%); transition:transform 0.25s ease;
 }
-.sidebar.open { transform:translateX(0) !important; }
+.sidebar.open, .sidebar.active { transform:translateX(0) !important; }
 .sidebar-overlay {
-  display:none; position:fixed; inset:0; z-index:39;
-  background:rgba(0,0,0,0.45); backdrop-filter:blur(4px);
+  display:none !important; position:fixed !important; inset:0 !important; z-index:39 !important;
+  background:rgba(0,0,0,0.45) !important; backdrop-filter:blur(4px) !important;
 }
-.sidebar.open ~ .sidebar-overlay { display:block; }
+.sidebar.open ~ .sidebar-overlay, .sidebar.active ~ .sidebar-overlay, .sidebar-overlay.active { display:block !important; }
 
 /* ── Sidebar brand ── */
 .sb-brand { display:flex; align-items:center; gap:12px; padding:4px 6px; }
@@ -858,9 +858,21 @@ body { background:
 /* ── Item card ── */
 .item-card { background:var(--bg-card); border:1px solid var(--bdr); border-radius:12px; padding:14px; margin-top:10px; box-shadow:0 2px 8px rgba(0,0,0,0.03); }
 
-/* ── Top nav (list pages) ── */
-.topnav { background:var(--bg-card) !important; border-bottom:1px solid var(--bdr) !important; box-shadow:0 4px 16px rgba(0,0,0,0.03) !important; }
-.title-big { font-family:"Sora",sans-serif !important; font-weight:800 !important; letter-spacing:-0.025em !important; }
+/* ── Top nav (list pages) — design system ── */
+.topnav { background:var(--bg) !important; border-bottom:none !important; box-shadow:none !important; padding:max(20px,env(safe-area-inset-top,20px)) 20px 16px !important; }
+.topnav-row { justify-content:flex-start !important; padding-left:48px !important; position:relative !important; min-height:auto !important; margin-bottom:16px !important; }
+.page-hdr-block { display:flex; flex-direction:column; gap:6px; align-items:flex-start; text-align:left; }
+.page-hdr-block .page-eyebrow {
+  font-family:"Sora",sans-serif !important;
+  font-weight:700; font-size:11px; letter-spacing:0.16em;
+  text-transform:uppercase; color:var(--ink3) !important;
+}
+.title-big {
+  font-family:"Sora",sans-serif !important; font-weight:800 !important;
+  font-size:24px !important; letter-spacing:-0.025em !important;
+  text-transform:none !important; color:var(--ink) !important;
+  line-height:1 !important;
+}
 
 /* ── Wizard progress pills ── */
 .step-pill { border-radius:9999px !important; height:8px !important; background:var(--bg2); border:1px solid #9ca3af; }
@@ -934,12 +946,26 @@ body { background:
 .glass-overlay { background:rgba(0,0,0,0.45) !important; backdrop-filter:blur(8px) !important; }
 .tbox { background:var(--bg-modal) !important; border-radius:24px !important; border:none !important; box-shadow:0 30px 60px -20px rgba(0,0,0,0.4) !important; }
 
-/* ── Status badges ── */
-.hbadge { display:inline-flex; padding:3px 9px; border-radius:100px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
-.hbadge.hby { background:var(--aml); color:#92400E; }
-.hbadge.hbg { background:var(--gnl); color:#065F46; }
-.hbadge.hbb { background:var(--bll); color:var(--bld); }
-.hbadge.hbr { background:var(--rdl); color:var(--rd); }
+/* ── Status badges (design system) ── */
+.hbadge { display:inline-flex; padding:3px 9px; border-radius:100px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; font-family:'Sora',sans-serif; }
+.hbadge.hby { background:#FFFBEB; color:#92400E; }              /* Rascunho — amber */
+.hbadge.hbb { background:#fff3e0; color:#ff6b35; }              /* Enviado — brand */
+.hbadge.hbg { background:#ECFDF5; color:#065F46; }              /* Aprovado — green */
+.hbadge.hbr { background:#FEF2F2; color:#ef4444; }              /* Recusado — red */
+:root.dark .hbadge.hby { background:#451A03; color:#fbbf24; }
+:root.dark .hbadge.hbb { background:#7c2d12; color:#ff8c5a; }
+:root.dark .hbadge.hbg { background:#052e2b; color:#4ade80; }
+:root.dark .hbadge.hbr { background:#7F1D1D; color:#fca5a5; }
+/* Recusado/cancelado — strikethrough no nome */
+.hoc.is-recusado .hon, .hoc.is-cancelado .hon {
+  color:#9ca3af !important;
+  text-decoration:line-through !important;
+  text-decoration-thickness:1.5px !important;
+  text-decoration-color:#4b5563 !important;
+}
+:root.dark .hoc.is-recusado .hon, :root.dark .hoc.is-cancelado .hon {
+  text-decoration-color:#ffffff !important;
+}
 
 /* ── Filter chips ── */
 .chip { display:inline-flex; align-items:center; background:var(--bg-modal); color:var(--ink); border:1px solid var(--bdr); border-radius:9999px; padding:7px 14px; font-family:"Sora",sans-serif; font-weight:700; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; cursor:pointer; }
@@ -1202,7 +1228,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">MEUS ORÇAMENTOS</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Histórico</div><div class="title-big">Orçamentos</div></div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
         <div class="srch-wrap">
@@ -1217,7 +1243,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">MEUS CONTATOS</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Cadastros · CRM</div><div class="title-big">Clientes</div></div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
         <div class="srch-wrap">
@@ -1227,7 +1253,10 @@ body { background:
       </div>
       <div class="scr">
         <div style="display:flex;gap:10px;margin-bottom:16px;">
-          <button onclick="editClient(-1)" style="flex:1;height:46px;border-radius:9999px;background:#0a0a0a;color:#fff;border:none;font-weight:700;font-family:'Sora',sans-serif;font-size:13px;cursor:pointer;letter-spacing:0.06em;">＋ Novo Contato</button>
+          <button onclick="editClient(-1)" style="flex:1;height:46px;border-radius:9999px;background:linear-gradient(135deg,#ff5722 0%,#a78bfa 100%);color:#fff;border:none;font-weight:700;font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;letter-spacing:0.12em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,0.2);box-shadow:0 6px 18px -8px rgba(167,139,250,0.45);display:flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo Contato
+          </button>
           <button onclick="pickPhoneContactToSave()" title="Importar da agenda do celular" style="height:46px;width:46px;border-radius:12px;background:#E0F2FE;color:#0284C7;border:1px solid #BAE6FD;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg class="ico" aria-hidden="true"><use href="#ico-smartphone"/></svg></button>
         </div>
         <div id="clientes-list-full"></div>
@@ -1238,7 +1267,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">FORNECEDORES</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Rede</div><div class="title-big">Fornecedores</div></div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
         <div class="srch-wrap">
@@ -1247,7 +1276,10 @@ body { background:
         </div>
       </div>
       <div class="scr">
-        <button onclick="openEditFornecedor(-1)" style="width:100%;height:46px;border-radius:12px;background:var(--bl);color:#fff;border:none;font-weight:700;font-family:'Sora',sans-serif;font-size:13px;cursor:pointer;margin-bottom:16px;">＋ Novo Fornecedor</button>
+        <button onclick="openEditFornecedor(-1)" style="width:100%;height:46px;border-radius:9999px;background:linear-gradient(135deg,#ff5722 0%,#a78bfa 100%);color:#fff;border:none;font-weight:700;font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;margin-bottom:16px;letter-spacing:0.12em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,0.2);box-shadow:0 6px 18px -8px rgba(167,139,250,0.45);display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Novo Fornecedor
+        </button>
         <div id="fornecedores-list-full"></div>
       </div>
     </div>
@@ -1256,7 +1288,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">AGENDA & EVENTOS</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Próximos eventos</div><div class="title-big">Agenda</div></div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
       </div>
@@ -1272,8 +1304,9 @@ body { background:
           </div>
           <div class="cal-grid" id="cal-grid-body"></div>
         </div>
-        <button onclick="openEventModal()" style="width:100%; height:52px; border-radius:14px; background:var(--bg-input); border:2px dashed var(--bld); color:var(--bl); font-weight:800; font-family:'Sora',sans-serif; font-size:14px; cursor:pointer; margin-bottom:12px;">
-          + Criar Novo Lembrete / Evento
+        <button onclick="openEventModal()" style="width:100%;height:46px;border-radius:9999px;background:linear-gradient(135deg,#ff5722 0%,#a78bfa 100%);color:#fff;border:none;font-weight:700;font-family:'Sora',sans-serif;font-size:11px;cursor:pointer;margin-bottom:16px;letter-spacing:0.12em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,0.2);box-shadow:0 6px 18px -8px rgba(167,139,250,0.45);display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          Novo Lembrete / Evento
         </button>
         <div class="sec-title" style="font-size:14px;" id="agenda-day-title">Eventos do Dia</div>
         <div id="agenda-eventos-list"></div>
@@ -1285,7 +1318,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button class="btn-home-global dark-nav" onclick="goHome()" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-          <div class="title-big">NOVO ORÇAMENTO</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Passo 1 · Cliente</div><div class="title-big">Novo Orçamento</div></div>
         </div>
         <div class="steps" id="steps-s1"></div>
         <div class="wizard-nav">
@@ -1338,7 +1371,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button class="btn-home-global dark-nav" onclick="goHome()" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-          <div class="title-big">NOVO ORÇAMENTO</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Passo 2 · Ambientes</div><div class="title-big">Novo Orçamento</div></div>
         </div>
         <div class="steps" id="steps-s2"></div>
         <div class="wizard-nav">
@@ -1357,7 +1390,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button class="btn-home-global dark-nav" onclick="goHome()" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-          <div class="title-big">NOVO ORÇAMENTO</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Passo 3 · Pagamento</div><div class="title-big">Novo Orçamento</div></div>
         </div>
         <div class="steps" id="steps-s3"></div>
         <div class="wizard-nav">
@@ -1389,7 +1422,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button class="btn-home-global dark-nav" onclick="goHome()" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-          <div class="title-big">NOVO ORÇAMENTO</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Passo 4 · Revisão</div><div class="title-big">Novo Orçamento</div></div>
         </div>
         <div class="steps" id="steps-s4"></div>
         <div class="wizard-nav">
@@ -1456,7 +1489,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">CONFIGURAÇÕES</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Aparência</div><div class="title-big">Configurações</div></div>
           <button class="btn-home-global dark-nav" onclick="_cfgGuardedExit(()=>homeTab('home'))" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
         <div class="wizard-nav">
@@ -1680,7 +1713,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position:absolute;left:0;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink);padding:0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">TERMOS E SERVIÇOS</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Legal</div><div class="title-big">Termos</div></div>
           <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;right:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
         </div>
       </div>
@@ -1795,7 +1828,7 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="closeHistorico()" style="position:absolute;left:0;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink);padding:0;"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
-          <div class="title-big">Histórico</div>
+          <div class="page-hdr-block"><div class="page-eyebrow">Atividade · Auditoria</div><div class="title-big">Histórico</div></div>
           <button class="btn-home-global dark-nav" onclick="closeHistorico()" style="position:absolute;right:0;" aria-label="Fechar" title="Fechar"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
         </div>
       </div>
@@ -2329,31 +2362,47 @@ body { background:
   <!-- MENU LATERAL -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-hdr">
-      <div style="display:flex; align-items:center; gap:12px; flex-direction: row;">
-        <!-- IMPLEMENTAÇÃO: LOGÓTIPO PADRÃO DO MENU -->
-        <img id="sidebar-logo-img" src="/assets/apple-touch-icon-DWXOgEjU.png" style="width:36px; height:36px; border-radius:50%; object-fit:cover; display:block; border:1.5px solid var(--bdr-input); background-color: #ffffff;">
-        <div class="hm-name" style="font-size:18px;">Menu</div>
-      </div>
-      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink2);"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
+    <!-- Brand P+ — design system -->
+    <div class="sb-brand">
+      <div class="mark">P+</div>
+      <div class="name">Pintor<span>Plus</span></div>
+      <button onclick="toggleSidebar()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--ink2);padding:6px;">
+        <svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg>
+      </button>
     </div>
-    <div class="sidebar-links">
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('home')"><svg class="ico" aria-hidden="true"><use href="#ico-home"/></svg> Início</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('orcamentos')"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Meus Orçamentos</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('clientes')"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg> Contatos</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('fornecedores')"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg> Fornecedores</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('agenda')"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Agenda e Lembretes</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('backup')"><svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg> Backup</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); openConfig()"><svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações</div>
-      <a href="/privacy-policy.html" class="sidebar-link" style="font-weight:400; font-size:13px; color:var(--ink3); text-decoration:none;"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Política de Privacidade</a>
-      <div class="sidebar-link" onclick="toggleSidebar(); showTutorial()" style="margin-top:auto; font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); showFaq()" style="font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); abrirModalSuporte()" style="font-weight:700; font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg> Suporte / Reportar Bug</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); pwaShowInstallUI()" style="font-weight:800; font-size:13px; color:#fff; background:linear-gradient(135deg,var(--bl),var(--bld)); border-radius:12px; margin:4px 10px; padding:13px 14px;">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 2v13m0 0-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="5" rx="2"/></svg>
-        Instalar App
-      </div>
+
+    <!-- Principal -->
+    <div class="sb-section">
+      <div class="sb-eyebrow">Principal</div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('home')"><svg class="ico" aria-hidden="true"><use href="#ico-home"/></svg><span>Dashboard</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('orcamentos')"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg><span>Orçamentos</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('clientes')"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg><span>Clientes</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('agenda')"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg><span>Agenda</span></div>
     </div>
+
+    <!-- Sistema -->
+    <div class="sb-section">
+      <div class="sb-eyebrow">Sistema</div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('fornecedores')"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg><span>Fornecedores</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('backup')"><svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg><span>Backup</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); openConfig()"><svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg><span>Configurações</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); homeTab('termos')"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg><span>Termos</span></div>
+    </div>
+
+    <div class="sb-spacer"></div>
+
+    <!-- Ajuda secundária -->
+    <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:10px;">
+      <div class="sb-link" onclick="toggleSidebar(); showTutorial()" style="font-size:13px;color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg><span>Tutorial</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); showFaq()" style="font-size:13px;color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg><span>FAQ</span></div>
+      <div class="sb-link" onclick="toggleSidebar(); abrirModalSuporte()" style="font-size:13px;color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg><span>Suporte</span></div>
+    </div>
+
+    <!-- CTA Novo Orçamento — design system gradient pill -->
+    <button class="sb-cta" onclick="toggleSidebar(); openTipoOrcModal();">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      Novo Orçamento
+    </button>
   </div>
 
   <!-- MODAL: MUDAR STATUS -->
@@ -3050,6 +3099,13 @@ function getStatusBadgeClass(st) {
   if (s.includes('recus') || s.includes('cancel')) return 'hbr';
   return 'hby';
 }
+function getStatusCardClass(st) {
+  const s = (st || '').toLowerCase();
+  if (s.includes('recus')) return 'is-recusado';
+  if (s.includes('cancel')) return 'is-cancelado';
+  return '';
+}
+window.getStatusCardClass = getStatusCardClass;
 
 // ── CHAVE GOOGLE MAPS (responsabilidade do app, não do usuário) ────────────
 // Restringir no Google Cloud Console: apenas pintorplus.com.br
@@ -4188,7 +4244,7 @@ function renderHomeMini() {
   
   const wrap=document.getElementById('home-orcs-mini');if(!wrap)return;
   if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
-  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
+  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''} ${getStatusCardClass(o.status)}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
 }
 
 // --- MÓDULO: EVENTOS DA SEMANA NA HOME ---
@@ -4292,7 +4348,7 @@ function renderOrcamentosList() {
     const isRascunho=(o.status||'')==='Rascunho';
     const badgeHtml=isRascunho?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
     const orcShortId=String(o.id||'').slice(-6);
-    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${o.end||'—'} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
+    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''} ${getStatusCardClass(o.status)}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${o.end||'—'} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
   }).join('');
 }
 
