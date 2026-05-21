@@ -107,6 +107,11 @@ body{min-height:-webkit-fill-available;}
 /* Hide old global home button in topnav (the home icon top-left of pages) */
 .btn-home-global { display:none !important; }
 
+/* pg-flash: respeitar o grid em desktop (não cobrir sidebar) */
+@media (min-width: 1024px) {
+  #pg-flash { left:240px !important; }
+}
+
 /* Tema cards (selecionado) */
 .tema-card.active {
   border-color:#ff6b35 !important;
@@ -3342,14 +3347,21 @@ function toggleHighContrast() {
   S.config.altoContraste = on;
   try { localStorage.setItem('pp-contraste', on ? 'alto' : 'normal'); } catch(e){}
 }
-// Apply persisted a11y on load
+// Apply persisted a11y on load + migrate from legacy body.acessivel
 (function applyA11y(){
   try {
+    // Legacy migration: if config has 'acessibilidade:true', migrate to data-fonte=grande
+    document.body.classList.remove('acessivel');
     const f = localStorage.getItem('pp-fonte');
     const c = localStorage.getItem('pp-contraste');
     if (f) document.documentElement.dataset.fonte = f;
     if (c) document.documentElement.dataset.contraste = c;
   } catch(e){}
+  // Watch and remove body.acessivel if added later
+  const obs = new MutationObserver(() => {
+    if (document.body.classList.contains('acessivel')) document.body.classList.remove('acessivel');
+  });
+  obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 })();
 window.setA11yFontSize = setA11yFontSize;
 window.toggleHighContrast = toggleHighContrast;
