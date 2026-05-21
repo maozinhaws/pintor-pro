@@ -1148,6 +1148,72 @@ body { background:
 @keyframes pgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
 .sec,.rcard,.item-card,.cfg-card,.sum-card,.glass-card { animation:pgIn 0.2s ease forwards; }
 
+/* ═══════════════════════════════════════════════════════
+   CONSISTÊNCIA VISUAL GLOBAL — design system Lovable + preview/
+   Aplicada após tudo para garantir uniformidade entre páginas.
+   ═══════════════════════════════════════════════════════ */
+
+/* Cards de superfície — todos com live corner (radius 0 no top-left) */
+.glass-card,
+.cfg-card,
+.sec,
+.hoc {
+  background:var(--bg-card) !important;
+  border:1px solid var(--bdr) !important;
+  border-radius:0 24px 24px 24px !important;
+  box-shadow:var(--shadow-glass) !important;
+  padding:20px !important;
+  margin-bottom:16px !important;
+}
+/* Sub-cards (item-card, rcard) — radius normal pra não competir com pai */
+.item-card,
+.rcard {
+  background:var(--bg-card-alt) !important;
+  border:1px solid var(--bdr) !important;
+  border-radius:14px !important;
+  box-shadow:var(--sh) !important;
+}
+/* CFG card header (accordion) */
+.cfg-card { padding:0 !important; overflow:hidden !important; }
+.cfg-card .cfg-card-hdr { padding:16px 20px !important; font-family:'Sora',sans-serif; font-weight:700; font-size:14px; }
+.cfg-card .cfg-card-body.open { padding:0 20px 20px !important; }
+
+/* Section titles consistentes */
+.sec-title,
+.glass-title {
+  font-family:'Sora',sans-serif !important;
+  font-weight:800 !important;
+  font-size:15px !important;
+  letter-spacing:0.04em !important;
+  color:var(--ink) !important;
+  text-transform:uppercase !important;
+  margin-bottom:14px !important;
+}
+
+/* Padding consistente entre páginas (.scr) */
+.scr {
+  padding-top:8px !important;
+  padding-bottom:24px !important;
+}
+@media (min-width: 1024px) {
+  .scr { padding-left:36px !important; padding-right:36px !important; }
+}
+
+/* Body com background uniforme em todas as páginas */
+body {
+  background:
+    radial-gradient(1200px 600px at 20% -10%,rgba(255,107,53,0.06),transparent 60%),
+    radial-gradient(1000px 700px at 100% 100%,rgba(123,92,255,0.06),transparent 60%),
+    var(--bg) !important;
+}
+
+/* Animação consistente em todas as superfícies */
+.glass-card, .cfg-card, .sec, .hoc, .item-card, .rcard {
+  animation:pgIn 0.22s ease forwards;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+
 </style>
 <link rel="stylesheet" href="/photo-annotator.css">
   <script type="module" crossorigin src="/assets/app-BMYZpkzZ.js"></script>
