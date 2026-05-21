@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pintor Plus · Design Variations</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600;700&family=Noto+Serif+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+html, body { background: #18181b; color: #fff; min-height: 100vh; font-family: 'Sora', sans-serif; }
+
+/* ─────────────────────── PAGE SHELL ─────────────────────── */
+.shell { padding: 48px 32px; max-width: 1640px; margin: 0 auto; }
+.hdr {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-bottom: 48px; padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.hdr-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: #ff6b35; margin-bottom: 8px;
+}
+.hdr-title {
+  font-family: 'Sora', sans-serif; font-weight: 800;
+  font-size: 36px; letter-spacing: -0.025em;
+}
+.hdr-meta {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: rgba(255,255,255,0.5); text-align: right; line-height: 1.6;
+}
+
+.variants {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px;
+}
+@media (max-width: 1400px) { .variants { grid-template-columns: 1fr; } }
+
+.variant {
+  display: flex; flex-direction: column;
+}
+.variant-meta {
+  padding: 16px 4px 20px;
+}
+.variant-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
+.variant-name {
+  font-family: 'Sora', sans-serif; font-weight: 800;
+  font-size: 22px; letter-spacing: -0.02em; margin: 4px 0 8px;
+}
+.variant-tags {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+}
+.variant-tag {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px;
+  background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.variant-desc {
+  font-family: 'Manrope', sans-serif; font-size: 12px; line-height: 1.6;
+  color: rgba(255,255,255,0.6);
+}
+.frame {
+  background: #fff; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5);
+  aspect-ratio: 9/16; max-width: 420px; width: 100%; align-self: center;
+}
+.frame-content {
+  width: 100%; height: 100%; overflow-y: auto;
+}
+
+/* ═══════════════════════════════════════════════════════
+   VARIANT 1 · PENTAGRAM (Michael Bierut)
+   Typographic supremacy · Swiss grid · 1 accent color · 60% whitespace
+   ═══════════════════════════════════════════════════════ */
+.v1 .frame-content {
+  background: #fafafa; color: #000; padding: 24px;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+.v1-rule { height: 2px; background: #000; margin-bottom: 16px; }
+.v1-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.v1-title {
+  font-family: 'IBM Plex Serif', serif; font-weight: 500;
+  font-size: 48px; letter-spacing: -0.03em; line-height: 0.9;
+  margin-bottom: 36px;
+}
+.v1-num-bar {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid #000; border-bottom: 1px solid #000;
+  padding: 18px 0; margin-bottom: 36px;
+}
+.v1-num-cell {
+  border-right: 1px solid #000; padding-right: 12px;
+}
+.v1-num-cell:last-child { border-right: none; padding-left: 12px; padding-right: 0; }
+.v1-num-cell:nth-child(2) { padding-left: 12px; }
+.v1-num-val {
+  font-family: 'IBM Plex Serif', serif; font-weight: 400;
+  font-size: 32px; line-height: 1; letter-spacing: -0.02em;
+}
+.v1-num-lbl {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 0.16em; text-transform: uppercase; margin-top: 6px;
+  color: #666;
+}
+.v1-cta {
+  border-top: 2px solid #000; border-bottom: 2px solid #000;
+  padding: 28px 0; margin-bottom: 36px;
+}
+.v1-cta-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.v1-cta-title {
+  font-family: 'IBM Plex Serif', serif; font-weight: 400;
+  font-size: 56px; letter-spacing: -0.04em; line-height: 0.92;
+  color: #ff6b35; margin-bottom: 12px;
+}
+.v1-cta-arrow {
+  font-family: 'IBM Plex Serif', serif; font-size: 36px;
+  display: inline-block; transform: translateY(-2px);
+}
+.v1-cta-sub {
+  font-size: 13px; color: #444; line-height: 1.5;
+}
+.v1-section {
+  margin-bottom: 32px;
+}
+.v1-section-hdr {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: 1px solid #000; padding-bottom: 8px; margin-bottom: 16px;
+}
+.v1-section-num {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 0.18em;
+}
+.v1-section-name {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+}
+.v1-empty {
+  padding: 24px 0; text-align: center;
+  font-family: 'IBM Plex Serif', serif; font-style: italic;
+  color: #888; font-size: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   VARIANT 2 · APPLE GLASS
+   Vivid backdrop · Glassmorphism · Brand gradient · Subtle motion
+   ═══════════════════════════════════════════════════════ */
+.v2 .frame-content {
+  background:
+    radial-gradient(80% 50% at 50% 0%, rgba(255,107,53,0.5), transparent 70%),
+    radial-gradient(60% 50% at 100% 100%, rgba(123,92,255,0.6), transparent 70%),
+    #0b0d12;
+  color: #fff; padding: 24px; font-family: 'Sora', sans-serif;
+}
+.v2-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.v2-greeting { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.6); font-weight: 700; }
+.v2-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.18); display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.9);
+}
+.v2-title { font-weight: 800; font-size: 32px; letter-spacing: -0.025em; margin-bottom: 8px; }
+.v2-metrics { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+.v2-metric {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.06); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px; padding: 7px 14px; font-size: 12px; font-weight: 600;
+}
+.v2-metric-dot { width: 7px; height: 7px; border-radius: 50%; }
+.v2-hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff6b35 45%, #7b5cff 100%);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 36px 0 36px 36px;
+  padding: 28px 24px;
+  box-shadow: 0 20px 60px -15px rgba(123,92,255,0.5);
+  margin-bottom: 16px;
+}
+.v2-hero::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0) 40%, rgba(255,255,255,0.25) 50%, rgba(255,255,255,0) 60%, transparent 70%);
+  animation: v2-flare 5s ease-in-out infinite;
+}
+@keyframes v2-flare {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+.v2-hero-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; position: relative; z-index: 2; }
+.v2-hero-toque {
+  background: rgba(0,0,0,0.32); backdrop-filter: blur(10px);
+  border-radius: 999px; padding: 5px 12px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.v2-hero-plus {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255,255,255,0.2); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.35);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 300;
+}
+.v2-hero-title {
+  font-weight: 800; font-size: 36px; line-height: 1; letter-spacing: -0.03em;
+  text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.18);
+  position: relative; z-index: 2; margin-bottom: 10px;
+}
+.v2-hero-sub { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.85); position: relative; z-index: 2; }
+.v2-glass {
+  background: rgba(20,23,29,0.5); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0 24px 24px 24px;
+  padding: 20px; margin-bottom: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.v2-glass-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.v2-glass-title { font-weight: 800; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+.v2-glass-link { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #a78bfa; }
+.v2-empty { padding: 16px 0; text-align: center; font-size: 13px; color: rgba(255,255,255,0.5); }
+
+/* ═══════════════════════════════════════════════════════
+   VARIANT 3 · KENYA HARA
+   Japanese minimalism · Quiet hierarchy · Negative space · Beige warmth
+   ═══════════════════════════════════════════════════════ */
+.v3 .frame-content {
+  background: #f6f3ee; color: #1a1814; padding: 32px 28px;
+  font-family: 'Noto Serif JP', 'IBM Plex Serif', serif;
+}
+.v3-mark {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #c64a1d; margin-bottom: 32px;
+}
+.v3-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(26,24,20,0.4); margin-bottom: 8px;
+}
+.v3-title {
+  font-family: 'Noto Serif JP', serif; font-weight: 300;
+  font-size: 38px; letter-spacing: -0.01em; line-height: 1.05;
+  margin-bottom: 64px;
+}
+.v3-title em { font-style: normal; color: #c64a1d; font-weight: 400; }
+.v3-stats { margin-bottom: 64px; }
+.v3-stat {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 18px 0; border-bottom: 1px solid rgba(26,24,20,0.1);
+}
+.v3-stat-val {
+  font-family: 'Noto Serif JP', serif; font-weight: 300;
+  font-size: 32px; letter-spacing: -0.02em;
+}
+.v3-stat-lbl {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 10px;
+  letter-spacing: 0.24em; text-transform: uppercase;
+  color: rgba(26,24,20,0.55); font-weight: 500;
+}
+.v3-cta {
+  text-align: center; margin: 80px 0; padding: 48px 0;
+  border-top: 1px solid rgba(26,24,20,0.15);
+  border-bottom: 1px solid rgba(26,24,20,0.15);
+}
+.v3-cta-icon {
+  display: inline-block; width: 48px; height: 48px; border-radius: 50%;
+  border: 1px solid #1a1814; line-height: 46px; font-size: 24px; font-weight: 300;
+  margin-bottom: 16px;
+}
+.v3-cta-name {
+  font-family: 'Noto Serif JP', serif; font-weight: 400;
+  font-size: 22px; letter-spacing: 0.02em; margin-bottom: 4px;
+}
+.v3-cta-sub {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(26,24,20,0.55);
+}
+.v3-section { margin-top: 48px; }
+.v3-section-hdr {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 16px;
+}
+.v3-section-name {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 10px;
+  letter-spacing: 0.24em; text-transform: uppercase; font-weight: 500;
+}
+.v3-section-link {
+  font-family: 'IBM Plex Sans', sans-serif; font-size: 9px;
+  letter-spacing: 0.2em; text-transform: uppercase; color: #c64a1d;
+}
+.v3-empty {
+  font-family: 'Noto Serif JP', serif; font-style: italic;
+  font-size: 13px; color: rgba(26,24,20,0.4);
+  padding: 16px 0; text-align: center;
+}
+
+/* Footer */
+.footer {
+  margin-top: 64px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex; justify-content: space-between;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 0.12em; color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="hdr">
+    <div>
+      <div class="hdr-eyebrow">Huashu Design · Pintor Plus · Dashboard</div>
+      <h1 class="hdr-title">3 Direções de Design</h1>
+    </div>
+    <div class="hdr-meta">
+      Date: 2026-05-21<br>
+      Subject: Dashboard mobile<br>
+      Source: pint-dash.lovable.app + design-md tokens
+    </div>
+  </header>
+
+  <div class="variants">
+
+    <!-- ════════ VARIANT 1 · PENTAGRAM ════════ -->
+    <article class="variant v1">
+      <div class="variant-meta">
+        <div class="variant-num">Direção 01</div>
+        <h2 class="variant-name">Pentagram</h2>
+        <div class="variant-tags">
+          <span class="variant-tag">Editorial</span>
+          <span class="variant-tag">Grid Suíço</span>
+          <span class="variant-tag">Serif</span>
+          <span class="variant-tag">1 Cor</span>
+        </div>
+        <p class="variant-desc">
+          Michael Bierut: <em>"Tipografia é a linguagem do design."</em> Preto sobre branco quente,
+          1 cor de marca (laranja), serifa grande para títulos, mono para metadados.
+          60% de espaço em branco. Sensação editorial — um relatório financeiro, não um app de SaaS.
+        </p>
+      </div>
+      <div class="frame">
+        <div class="frame-content">
+          <div class="v1-rule"></div>
+          <div class="v1-eyebrow">Painel · 21.05.2026</div>
+          <h1 class="v1-title">Sua<br>Empresa</h1>
+
+          <div class="v1-num-bar">
+            <div class="v1-num-cell">
+              <div class="v1-num-val">R$0</div>
+              <div class="v1-num-lbl">Faturamento</div>
+            </div>
+            <div class="v1-num-cell">
+              <div class="v1-num-val">0</div>
+              <div class="v1-num-lbl">Clientes</div>
+            </div>
+            <div class="v1-num-cell">
+              <div class="v1-num-val">2</div>
+              <div class="v1-num-lbl">Orçamentos</div>
+            </div>
+          </div>
+
+          <div class="v1-cta">
+            <div class="v1-cta-num">N.º 01 · Ação Primária</div>
+            <h2 class="v1-cta-title">Novo Orçamento <span class="v1-cta-arrow">→</span></h2>
+            <p class="v1-cta-sub">Comece a transformar um novo ambiente hoje.</p>
+          </div>
+
+          <div class="v1-section">
+            <div class="v1-section-hdr">
+              <span class="v1-section-num">N.º 02</span>
+              <span class="v1-section-name">Fluxo de Orçamentos</span>
+            </div>
+            <div class="v1-empty">— Nenhum orçamento registrado —</div>
+          </div>
+
+          <div class="v1-section">
+            <div class="v1-section-hdr">
+              <span class="v1-section-num">N.º 03</span>
+              <span class="v1-section-name">Agenda · Próximos 7 dias</span>
+            </div>
+            <div class="v1-empty">— Agenda livre —</div>
+          </div>
+
+          <div class="v1-section">
+            <div class="v1-section-hdr">
+              <span class="v1-section-num">N.º 04</span>
+              <span class="v1-section-name">Notícias do Setor</span>
+            </div>
+            <div class="v1-empty">— Aguardando carregamento —</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ════════ VARIANT 2 · APPLE GLASS ════════ -->
+    <article class="variant v2">
+      <div class="variant-meta">
+        <div class="variant-num">Direção 02</div>
+        <h2 class="variant-name">Apple Glass</h2>
+        <div class="variant-tags">
+          <span class="variant-tag">Glassmorphism</span>
+          <span class="variant-tag">Vivid</span>
+          <span class="variant-tag">Motion</span>
+          <span class="variant-tag">Gradient</span>
+        </div>
+        <p class="variant-desc">
+          Estética visionOS/iOS 19. Backdrop colorido vibrante, cards translúcidos com blur,
+          lens flare animado, hierarquia por elevação e saturação. É a direção "premium tech"
+          — sensação de visualizar dados num holograma.
+        </p>
+      </div>
+      <div class="frame">
+        <div class="frame-content">
+          <div class="v2-top">
+            <div class="v2-greeting">Painel · System Active</div>
+            <div class="v2-toggle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+          </div>
+          <h1 class="v2-title">Sua Empresa</h1>
+          <div class="v2-metrics">
+            <span class="v2-metric"><span class="v2-metric-dot" style="background:#ff6b35;"></span>R$ 0 Faturamento</span>
+            <span class="v2-metric"><span class="v2-metric-dot" style="background:#7b5cff;"></span>0 Clientes</span>
+          </div>
+
+          <div class="v2-hero">
+            <div class="v2-hero-top">
+              <span class="v2-hero-toque">Toque para iniciar</span>
+              <div class="v2-hero-plus">+</div>
+            </div>
+            <h2 class="v2-hero-title">Novo<br>Orçamento</h2>
+            <p class="v2-hero-sub">Comece a transformar um novo ambiente hoje.</p>
+          </div>
+
+          <div class="v2-glass">
+            <div class="v2-glass-hdr">
+              <span class="v2-glass-title">Fluxo de Orçamentos</span>
+              <span class="v2-glass-link">Histórico ↗</span>
+            </div>
+            <div class="v2-empty">Nenhum orçamento registrado ainda.</div>
+          </div>
+
+          <div class="v2-glass">
+            <div class="v2-glass-hdr">
+              <span class="v2-glass-title" style="color:#4ade80;">● Próximos Eventos</span>
+              <span class="v2-glass-link">Ver agenda ↗</span>
+            </div>
+            <div class="v2-empty">Nenhum evento nos próximos 7 dias.</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ════════ VARIANT 3 · KENYA HARA ════════ -->
+    <article class="variant v3">
+      <div class="variant-meta">
+        <div class="variant-num">Direção 03</div>
+        <h2 class="variant-name">Kenya Hara</h2>
+        <div class="variant-tags">
+          <span class="variant-tag">Mu (無)</span>
+          <span class="variant-tag">Quiet</span>
+          <span class="variant-tag">Beige</span>
+          <span class="variant-tag">Negative Space</span>
+        </div>
+        <p class="variant-desc">
+          Minimalismo japonês radical (MUJI Art Director). Fundo bege quente, serifa fina,
+          pontos diminutos como marcadores, espaços enormes entre seções. A ausência é o conteúdo.
+          Direcionado a um pintor que valoriza silêncio visual.
+        </p>
+      </div>
+      <div class="frame">
+        <div class="frame-content">
+          <div class="v3-mark"></div>
+          <div class="v3-eyebrow">No. 21.05 · 2026</div>
+          <h1 class="v3-title">Sua <em>empresa</em>,<br>seu ritmo.</h1>
+
+          <div class="v3-stats">
+            <div class="v3-stat">
+              <span class="v3-stat-val">¥0</span>
+              <span class="v3-stat-lbl">Faturamento</span>
+            </div>
+            <div class="v3-stat">
+              <span class="v3-stat-val">0</span>
+              <span class="v3-stat-lbl">Clientes</span>
+            </div>
+            <div class="v3-stat">
+              <span class="v3-stat-val">2</span>
+              <span class="v3-stat-lbl">Orçamentos · rascunho</span>
+            </div>
+          </div>
+
+          <div class="v3-cta">
+            <span class="v3-cta-icon">+</span>
+            <div class="v3-cta-name">Novo orçamento</div>
+            <div class="v3-cta-sub">comece quando quiser</div>
+          </div>
+
+          <div class="v3-section">
+            <div class="v3-section-hdr">
+              <span class="v3-section-name">Fluxo</span>
+              <span class="v3-section-link">histórico →</span>
+            </div>
+            <div class="v3-empty">— ainda vazio —</div>
+          </div>
+
+          <div class="v3-section">
+            <div class="v3-section-hdr">
+              <span class="v3-section-name">Agenda</span>
+              <span class="v3-section-link">ver →</span>
+            </div>
+            <div class="v3-empty">— sem eventos —</div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <footer class="footer">
+    <span>Skill · Huashu Design</span>
+    <span>Brand · Pintor Plus</span>
+    <span>3 of 3 directions</span>
+    <span>v1.0</span>
+  </footer>
+
+</div>
+</body>
+</html>
