@@ -78,13 +78,16 @@ body{min-height:-webkit-fill-available;}
   html, body, #app { height:auto !important; min-height:100vh !important; overflow:visible !important; }
   #app { display:grid !important; grid-template-columns:240px 1fr !important; min-height:100vh !important; }
   .sidebar { grid-column:1 !important; grid-row:1 !important; position:sticky !important; top:0 !important; height:100vh !important; transform:none !important; z-index:5 !important; }
+  .sidebar.active, .sidebar.open { transform:none !important; }  /* não animar drawer em desktop */
   #pages { grid-column:2 !important; grid-row:1 !important; position:relative !important; overflow-y:auto !important; padding:0 !important; height:100vh !important; min-height:0; }
-  .sidebar-overlay { display:none !important; }
+  .sidebar-overlay, .sidebar-overlay.active { display:none !important; opacity:0 !important; pointer-events:none !important; }
   .page { position:relative !important; inset:auto !important; height:auto !important; min-height:100vh !important; }
   .page.active { display:flex !important; }
   /* Hamburger button hidden in desktop */
   .topnav button[onclick="toggleSidebar()"] { display:none !important; }
   .hm-hdr > div > button[onclick="toggleSidebar()"] { display:none !important; }
+  /* X button inside sidebar hidden in desktop */
+  .sb-brand button[onclick="toggleSidebar()"] { display:none !important; }
   /* Main padding so content doesn't touch edges */
   .scr, .hm-hdr { padding-left:36px !important; padding-right:36px !important; }
   .topnav { padding-left:36px !important; padding-right:36px !important; padding-top:28px !important; }
@@ -115,7 +118,13 @@ body{min-height:-webkit-fill-available;}
   }
 }
 /* iframe do flash sempre 100% de width e height */
-#pg-flash { display:none; }
+#pg-flash {
+  display:none !important;
+  position:fixed !important; inset:0 !important;
+  z-index:500 !important;
+  flex-direction:column !important;
+  background:#000 !important;
+}
 #pg-flash.active { display:flex !important; }
 #pg-flash #flash-iframe {
   width:100% !important; height:100% !important;
@@ -2608,10 +2617,10 @@ body { background:
       <div class="sb-link" onclick="toggleSidebar(); abrirModalSuporte()" style="font-size:13px;color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg><span>Suporte</span></div>
     </div>
 
-    <!-- CTA Novo Orçamento — design system gradient pill -->
-    <button class="sb-cta" onclick="toggleSidebar(); openTipoOrcModal();">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-      Novo Orçamento
+    <!-- CTA Instalar App — design system gradient pill -->
+    <button class="sb-cta" onclick="toggleSidebar(); pwaShowInstallUI();">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v13m0 0-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="5" rx="2"/></svg>
+      Instalar App
     </button>
   </div>
 
@@ -3326,11 +3335,16 @@ function setTema(tema) {
     c.classList.toggle('active', c.dataset.tema === tema);
   });
 }
-// Apply persisted tema on load
+// Apply persisted tema on load — runs IMMEDIATELY (not waiting for load event)
 (function applyTema(){
   try {
     const t = localStorage.getItem('pp-tema');
-    if (t && t !== 'suave') document.documentElement.dataset.tema = t;
+    // Aplica imediatamente ao <html> para evitar flash de tema errado
+    if (t === 'minimalista' || t === 'brutalista') {
+      document.documentElement.dataset.tema = t;
+    } else {
+      delete document.documentElement.dataset.tema;
+    }
     window.addEventListener('load', () => {
       const active = localStorage.getItem('pp-tema') || 'suave';
       document.querySelectorAll('.tema-card').forEach(c => c.classList.toggle('active', c.dataset.tema === active));
@@ -4328,7 +4342,14 @@ async function fetchCep(cep){
   showError();
 }
 function toggleManualEnd(){document.getElementById('end-fields').style.display='block';document.getElementById('end-manual-toggle').style.display='none';const msg=document.getElementById('cep-msg');if(msg)msg.style.display='none';document.getElementById('cli-logradouro')?.focus();}
-function toggleSidebar() { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebar-overlay'); if(sb) sb.classList.toggle('active'); if(ov) ov.classList.toggle('active'); }
+function toggleSidebar() {
+  // Em desktop (>= 1024px) a sidebar é sempre visível — ignora toggle
+  if (window.matchMedia && window.matchMedia('(min-width: 1024px)').matches) return;
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if(sb) sb.classList.toggle('active');
+  if(ov) ov.classList.toggle('active');
+}
 
 // CONFIG E IMAGENS
 function loadLogoCfg(input) { 
@@ -5029,8 +5050,16 @@ window.addEventListener('load', () => {
   navigator.serviceWorker?.ready.then(() => _syncAlarmsToSW()).catch(()=>{});
 });
 
-function showTutorial() { document.getElementById('info-modal-title').textContent = '<svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial'; document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>Bem-vindo ao Pintor Plus!</b></div><ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 12px;"><li><b>1. Criação de Orçamento:</b> Na página inicial, toque em "Criar Novo Orçamento". Preencha os dados e avance.</li><li><b>2. Inserindo Medidas:</b> Clique no grande botão laranja "+ Adicionar Novo Item" para abrir o formulário.</li><li><b>3. CRM e Lembretes:</b> Seus clientes são salvos automaticamente. Utilize a aba "Agenda" para gerenciar retornos.</li></ul>`; document.getElementById('info-modal').style.display = 'flex'; }
-function showFaq() { document.getElementById('info-modal-title').textContent = '<svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ'; document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>1. Preciso de internet?</b><br>Apenas para buscar o CEP. O resto funciona offline no seu navegador.</div><div style="margin-bottom: 16px;"><b>2. Como calculo por metro quadrado?</b><br>Ao definir o "Preço base do local", selecione a opção "Por m²".</div>`; document.getElementById('info-modal').style.display = 'flex'; }
+function showTutorial() {
+  document.getElementById('info-modal-title').innerHTML = '<svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial';
+  document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>Bem-vindo ao Pintor Plus!</b></div><ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 12px;"><li><b>1. Criação de Orçamento:</b> Na página inicial, toque em "Criar Novo Orçamento". Preencha os dados e avance.</li><li><b>2. Inserindo Medidas:</b> Clique no grande botão laranja "+ Adicionar Novo Item" para abrir o formulário.</li><li><b>3. CRM e Lembretes:</b> Seus clientes são salvos automaticamente. Utilize a aba "Agenda" para gerenciar retornos.</li></ul>`;
+  document.getElementById('info-modal').style.display = 'flex';
+}
+function showFaq() {
+  document.getElementById('info-modal-title').innerHTML = '<svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ';
+  document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>1. Preciso de internet?</b><br>Apenas para buscar o CEP. O resto funciona offline no seu navegador.</div><div style="margin-bottom: 16px;"><b>2. Como calculo por metro quadrado?</b><br>Ao definir o "Preço base do local", selecione a opção "Por m²".</div><div style="margin-bottom: 16px;"><b>3. Como faço backup dos dados?</b><br>Acesse a seção "Backup" no menu lateral e clique em "Exportar Backup" para salvar um arquivo .json com tudo.</div><div style="margin-bottom: 16px;"><b>4. Posso usar em vários dispositivos?</b><br>Sim — exporte o backup em um aparelho e importe no outro para sincronizar manualmente.</div><div style="margin-bottom: 16px;"><b>5. Como mudo o tema do app?</b><br>Vá em Configurações → Aparência e escolha Suave, Minimalista ou Brutalista.</div>`;
+  document.getElementById('info-modal').style.display = 'flex';
+}
 
 
 
