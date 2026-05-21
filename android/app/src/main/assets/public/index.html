@@ -73,6 +73,89 @@ body{min-height:-webkit-fill-available;}
 .spinner-ring{width:48px;height:48px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
 #spinner-msg{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.1px;}
 #app{width:100vw;height:100%;min-height:-webkit-fill-available;background:var(--bg);border-radius:0;overflow:hidden;box-shadow:none;display:flex;flex-direction:column;position:relative;}
+/* Desktop layout: sidebar fixa + main */
+@media (min-width: 1024px) {
+  html, body, #app { height:auto !important; min-height:100vh !important; overflow:visible !important; }
+  #app { display:grid !important; grid-template-columns:240px 1fr !important; min-height:100vh !important; }
+  .sidebar { grid-column:1 !important; grid-row:1 !important; position:sticky !important; top:0 !important; height:100vh !important; transform:none !important; z-index:5 !important; }
+  #pages { grid-column:2 !important; grid-row:1 !important; position:relative !important; overflow-y:auto !important; padding:0 !important; height:100vh !important; min-height:0; }
+  .sidebar-overlay { display:none !important; }
+  .page { position:relative !important; inset:auto !important; height:auto !important; min-height:100vh !important; }
+  .page.active { display:flex !important; }
+  /* Hamburger button hidden in desktop */
+  .topnav button[onclick="toggleSidebar()"] { display:none !important; }
+  .hm-hdr > div > button[onclick="toggleSidebar()"] { display:none !important; }
+  /* Main padding so content doesn't touch edges */
+  .scr, .hm-hdr { padding-left:36px !important; padding-right:36px !important; }
+  .topnav { padding-left:36px !important; padding-right:36px !important; padding-top:28px !important; }
+  .topnav-row { padding-left:0 !important; }
+}
+
+/* Global theme toggle (round button top-right of main) */
+.theme-toggle-pill {
+  position:fixed; top:20px; right:20px;
+  width:40px; height:40px; border-radius:50%;
+  background:var(--bg-modal); border:1px solid var(--bdr);
+  box-shadow:var(--sh); display:flex; align-items:center; justify-content:center;
+  cursor:pointer; z-index:20; color:var(--ink);
+  transition:background 200ms;
+}
+.theme-toggle-pill:hover { background:var(--bg2); }
+@media (min-width: 1024px) {
+  .theme-toggle-pill { position:fixed; top:24px; right:24px; }
+}
+/* Hide old global home button in topnav (the home icon top-left of pages) */
+.btn-home-global { display:none !important; }
+
+/* Tema cards (selecionado) */
+.tema-card.active {
+  border-color:#ff6b35 !important;
+  box-shadow:0 0 0 3px rgba(255,107,53,0.5), var(--sh) !important;
+}
+@keyframes miniPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(0.88); } }
+
+/* Acessibilidade — tamanhos de fonte (data-fonte no <html>) */
+:root[data-fonte="pequeno"] { font-size:14px; }
+:root[data-fonte="normal"]  { font-size:16px; }
+:root[data-fonte="grande"]  { font-size:18px; }
+:root[data-fonte="pequeno"] .title-big { font-size:20px !important; }
+:root[data-fonte="grande"] .title-big { font-size:28px !important; }
+:root[data-fonte="grande"] .finput, :root[data-fonte="grande"] .fta, :root[data-fonte="grande"] .fsel { font-size:16px !important; height:52px !important; }
+:root[data-fonte="grande"] .hon { font-size:17px !important; }
+:root[data-fonte="grande"] .sb-link { font-size:15px !important; padding:11px 12px !important; }
+
+/* Alto contraste */
+:root[data-contraste="alto"] { --ink3:var(--ink2); --bdr:var(--ink3); }
+:root[data-contraste="alto"]:not(.dark) .hbadge.hby { background:#fef3c7; color:#78350f; }
+:root[data-contraste="alto"]:not(.dark) { --ink:#000000; --ink2:#1f2937; }
+:root[data-contraste="alto"].dark { --ink:#ffffff; --ink2:#f1f5f9; }
+
+/* Topnav row: title left, action button right */
+.topnav-row { display:flex !important; align-items:flex-end !important; justify-content:space-between !important; padding-left:0 !important; gap:16px; }
+.topnav .cta-pill-action {
+  display:inline-flex; align-items:center; gap:6px;
+  background:linear-gradient(135deg,#ff6b35 0%,#ff6b35 35%,#ec4899 65%,#a78bfa 100%);
+  color:#fff; border:none; border-radius:9999px; padding:10px 18px;
+  font-family:'Sora',sans-serif; font-weight:700; font-size:11px;
+  letter-spacing:0.08em; text-transform:uppercase;
+  box-shadow:0 8px 20px -8px rgba(255,107,53,0.5);
+  cursor:pointer; flex-shrink:0;
+}
+
+/* Chip styles to match design system */
+.chip-row .chip {
+  background:var(--bg-modal); border:1px solid var(--bdr);
+  color:var(--ink); border-radius:9999px;
+  padding:7px 14px; font-family:'Sora',sans-serif;
+  font-weight:700; font-size:10px; letter-spacing:0.14em;
+  text-transform:uppercase; cursor:pointer;
+  transition:background 150ms;
+}
+.chip-row .chip:hover { background:var(--bg2); }
+.chip-row .chip.active {
+  background:linear-gradient(135deg,#ff6b35,#7b5cff);
+  color:#fff !important; border-color:transparent;
+}
 /* Suporte moderno: 100dvh = altura dinâmica excluindo UI do browser */
 @supports (height:100dvh){html,body,#app{height:100dvh;min-height:unset;}}
 .topnav{flex-shrink:0;background:var(--bg-modal);padding:max(16px,env(safe-area-inset-top,16px)) 20px 16px;border-bottom:1px solid var(--bdr);z-index:10;box-shadow:0 4px 12px rgba(0,0,0,.03);}
@@ -615,9 +698,43 @@ h1, h2, h3, h4, h5, h6 { font-family: 'Sora', system-ui, sans-serif; letter-spac
 :root[data-tema="minimalista"] .sec,.hoc,.rcard,.item-card,.chip,.hbadge { border-radius:2px !important; }
 
 /* Tema Brutalista */
-:root[data-tema="brutalista"] { --ink:#000; --ink2:#000; --bg:#fff; --bg-card:#fff; --bg-modal:#fff; --bdr:#000; --bdr-input:#000; --sh:none; --shadow-glass:none; --brand-gradient:#000; }
-:root[data-tema="brutalista"] *,:root[data-tema="brutalista"] *::before,:root[data-tema="brutalista"] *::after { animation:none !important; transition:none !important; }
-:root[data-tema="brutalista"] .hero,:root[data-tema="brutalista"] .sb-cta,:root[data-tema="brutalista"] .cta-pill,:root[data-tema="brutalista"] .mode-avatar { background:#000 !important; color:#fff !important; }
+/* TEMA BRUTALISTA — acessibilidade preto/branco, sem gradient, sem animação */
+:root[data-tema="brutalista"], :root[data-tema="brutalista"].dark {
+  --ink:#000 !important; --ink2:#000 !important; --ink3:#000 !important;
+  --bg:#fff !important; --bg2:#fff !important; --bg-card:#fff !important; --bg-card-alt:#fff !important; --bg-modal:#fff !important; --bg-input:#fff !important;
+  --bdr:#000 !important; --bdr-input:#000 !important;
+  --sh:none !important; --shadow-glass:none !important; --shadow-brand:none !important;
+  --bl:#000 !important; --bld:#000 !important; --bll:#fff !important;
+}
+:root[data-tema="brutalista"] *,:root[data-tema="brutalista"] *::before,:root[data-tema="brutalista"] *::after {
+  animation:none !important; transition:none !important;
+}
+:root[data-tema="brutalista"] body { background:#fff !important; }
+:root[data-tema="brutalista"] .hero,
+:root[data-tema="brutalista"] .sb-cta,
+:root[data-tema="brutalista"] .cta-pill,
+:root[data-tema="brutalista"] .cta-pill-action,
+:root[data-tema="brutalista"] .mode-avatar,
+:root[data-tema="brutalista"] .sb-brand .mark,
+:root[data-tema="brutalista"] .chip.active {
+  background:#000 !important; color:#fff !important; border-color:#000 !important;
+}
+:root[data-tema="brutalista"] .hero::before,
+:root[data-tema="brutalista"] .hero::after { display:none !important; }
+:root[data-tema="brutalista"] .sidebar { border-right:2px solid #000 !important; }
+:root[data-tema="brutalista"] .sb-link { border:1px solid transparent !important; }
+:root[data-tema="brutalista"] .sb-link.active { background:#000 !important; color:#fff !important; }
+:root[data-tema="brutalista"] .glass-card,
+:root[data-tema="brutalista"] .cfg-card,
+:root[data-tema="brutalista"] .sec,
+:root[data-tema="brutalista"] .hoc,
+:root[data-tema="brutalista"] .item-card { border:2px solid #000 !important; border-radius:0 !important; box-shadow:none !important; }
+:root[data-tema="brutalista"] .finput,
+:root[data-tema="brutalista"] .fsel,
+:root[data-tema="brutalista"] .fta,
+:root[data-tema="brutalista"] .chip { border:2px solid #000 !important; border-radius:0 !important; background:#fff !important; color:#000 !important; }
+:root[data-tema="brutalista"] .hbadge { border:1.5px solid #000 !important; background:#fff !important; color:#000 !important; }
+:root[data-tema="brutalista"] .theme-toggle-pill { background:#fff !important; border:2px solid #000 !important; color:#000 !important; box-shadow:none !important; }
 
 /* Fundo com glow sutil */
 body { background:
@@ -1112,18 +1229,12 @@ body { background:
   <div id="pages">
     <div class="page active" id="pg-home">
       <div class="hm-hdr">
-        <!-- Menu button -->
+        <!-- Menu button (only mobile) -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;">
+          <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--ink);padding:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;" class="hide-desktop">
             <svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg>
           </button>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div class="theme-sw-wrap">
-              <span class="tsw-ic" onclick="setTheme('light')"><svg class="ico" aria-hidden="true"><use href="#ico-sun"/></svg></span>
-              <div class="theme-sw" onclick="toggleThemeAnim()"></div>
-              <span class="tsw-ic" onclick="setTheme('dark')"><svg class="ico" aria-hidden="true"><use href="#ico-moon"/></svg></span>
-            </div>
-          </div>
+          <div></div>
         </div>
         <!-- Performance Hub header -->
         <div style="margin-bottom:14px;">
@@ -1229,11 +1340,24 @@ body { background:
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
           <div class="page-hdr-block"><div class="page-eyebrow">Histórico</div><div class="title-big">Orçamentos</div></div>
-          <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+          <button class="cta-pill-action" onclick="openTipoOrcModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo
+          </button>
         </div>
         <div class="srch-wrap">
           <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
-          <input type="search" class="srch-bar" id="orc-search" placeholder="Buscar por nome, valor, status, endereço…" oninput="renderOrcamentosList()">
+          <input type="search" class="srch-bar" id="orc-search" placeholder="Buscar por cliente…" oninput="renderOrcamentosList()">
+        </div>
+        <!-- Filter chips -->
+        <div class="chip-row" id="orc-filter-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;">
+          <button class="chip active" data-status="todos" onclick="setOrcFilter('todos')">Todos</button>
+          <button class="chip" data-status="rascunho" onclick="setOrcFilter('rascunho')">Rascunho</button>
+          <button class="chip" data-status="enviado" onclick="setOrcFilter('enviado')">Enviado</button>
+          <button class="chip" data-status="aprovado" onclick="setOrcFilter('aprovado')">Aprovado</button>
+          <button class="chip" data-status="andamento" onclick="setOrcFilter('andamento')">Em andamento</button>
+          <button class="chip" data-status="finalizado" onclick="setOrcFilter('finalizado')">Finalizado</button>
+          <button class="chip" data-status="cancelado" onclick="setOrcFilter('cancelado')">Cancelado</button>
         </div>
       </div>
       <div class="scr"><div id="orcamentos-list-full"></div></div>
@@ -1243,8 +1367,11 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="page-hdr-block"><div class="page-eyebrow">Cadastros · CRM</div><div class="title-big">Clientes</div></div>
-          <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+          <div class="page-hdr-block"><div class="page-eyebrow">Base · Contatos</div><div class="title-big">Clientes</div></div>
+          <button class="cta-pill-action" onclick="editClient(-1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo
+          </button>
         </div>
         <div class="srch-wrap">
           <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
@@ -1267,8 +1394,11 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Rede</div><div class="title-big">Fornecedores</div></div>
-          <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+          <div class="page-hdr-block"><div class="page-eyebrow">Rede · Parceiros</div><div class="title-big">Fornecedores</div></div>
+          <button class="cta-pill-action" onclick="openEditFornecedor(-1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo
+          </button>
         </div>
         <div class="srch-wrap">
           <span class="srch-ico"><svg class="ico" aria-hidden="true"><use href="#ico-search"/></svg></span>
@@ -1288,8 +1418,11 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="page-hdr-block"><div class="page-eyebrow">Próximos eventos</div><div class="title-big">Agenda</div></div>
-          <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
+          <div class="page-hdr-block"><div class="page-eyebrow">Calendário · Eventos</div><div class="title-big">Agenda</div></div>
+          <button class="cta-pill-action" onclick="openEventModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            Novo
+          </button>
         </div>
       </div>
       <div class="scr">
@@ -1489,15 +1622,42 @@ body { background:
       <div class="topnav">
         <div class="topnav-row">
           <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Aparência</div><div class="title-big">Configurações</div></div>
-          <button class="btn-home-global dark-nav" onclick="_cfgGuardedExit(()=>homeTab('home'))" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-        </div>
-        <div class="wizard-nav">
-          <button class="wbtn-back" onclick="_cfgGuardedExit(()=>homeTab('home'))">‹ Voltar</button>
-          <button class="wbtn-next" onclick="saveConfig()">Salvar →</button>
+          <div class="page-hdr-block"><div class="page-eyebrow">Sistema · Empresa</div><div class="title-big">Configurações</div></div>
+          <button class="cta-pill-action" onclick="saveConfig()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Salvar
+          </button>
         </div>
       </div>
       <div class="scr">
+
+        <!-- CARD: Aparência (temas Suave / Minimalista / Brutalista) -->
+        <div class="cfg-card" style="padding:18px;">
+          <div class="eyebrow-cmd" style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--bl);margin-bottom:14px;">&gt; Aparência</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div class="tema-card" data-tema="suave" onclick="setTema('suave')" style="cursor:pointer;background:var(--bg-modal);border:1px solid var(--bdr);border-radius:16px;padding:14px;text-align:center;transition:border-color 150ms,box-shadow 150ms;">
+              <div style="width:100%;height:60px;border-radius:12px;background:linear-gradient(135deg,#ff6b35,#7b5cff);display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                <div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.4);backdrop-filter:blur(10px);"></div>
+              </div>
+              <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--ink);letter-spacing:-0.01em;">Suave</div>
+              <div style="font-family:'Sora',sans-serif;font-size:11px;color:var(--ink3);margin-top:3px;font-weight:500;">Glass &amp; cores · padrão</div>
+            </div>
+            <div class="tema-card" data-tema="minimalista" onclick="setTema('minimalista')" style="cursor:pointer;background:var(--bg-modal);border:1px solid var(--bdr);border-radius:16px;padding:14px;text-align:center;transition:border-color 150ms,box-shadow 150ms;">
+              <div style="width:100%;height:60px;background:#f4f4f6;display:flex;align-items:center;justify-content:center;margin-bottom:10px;border-radius:2px;">
+                <div style="width:30px;height:30px;background:#111;animation:miniPulse 1.8s ease-in-out infinite;"></div>
+              </div>
+              <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:14px;color:var(--ink);letter-spacing:-0.01em;">Minimalista</div>
+              <div style="font-family:'Sora',sans-serif;font-size:11px;color:var(--ink3);margin-top:3px;font-weight:500;">Sólido &amp; direto</div>
+            </div>
+            <div class="tema-card" data-tema="brutalista" onclick="setTema('brutalista')" style="cursor:pointer;background:#fff;border:2px solid #000;border-radius:0;padding:14px;text-align:center;transition:none;">
+              <div style="width:100%;height:60px;background:#fff;border:2px solid #000;display:flex;align-items:center;justify-content:center;margin-bottom:10px;border-radius:0;">
+                <div style="width:40px;height:14px;background:#000;"></div>
+              </div>
+              <div style="font-family:'Sora',sans-serif;font-weight:900;font-size:14px;color:#000;letter-spacing:-0.01em;">Brutalista</div>
+              <div style="font-family:'Sora',sans-serif;font-size:11px;color:#000;margin-top:3px;font-weight:500;">Acessível · sem degradê</div>
+            </div>
+          </div>
+        </div>
 
         <!-- CARD: Empresa -->
         <div class="cfg-card">
@@ -1599,11 +1759,21 @@ body { background:
             <span><svg class="ico" aria-hidden="true"><use href="#ico-eye"/></svg></span><span>Acessibilidade</span><span class="cfg-chev">›</span>
           </button>
           <div class="cfg-card-body" id="cc-acessibilidade">
-            <div style="font-size:12px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Ativa fontes maiores, botões e espaçamentos aumentados para facilitar leitura e toque. Também ajusta o contraste para melhor visibilidade.</div>
-            <div class="toggle-row" style="margin-bottom:0;" onclick="var sw=document.getElementById('cfg-acessibilidade-sw');sw.classList.toggle('on');S.config.acessibilidade=sw.classList.contains('on');document.body.classList.toggle('acessivel',S.config.acessibilidade);_cfgDirty=true;">
+            <div class="eyebrow-cmd" style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--bl);margin-bottom:8px;">&gt; Acessibilidade</div>
+
+            <div style="margin-bottom:14px;">
+              <label class="flbl">Tamanho da fonte</label>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                <button type="button" class="a11y-fs-btn" data-fs="pequeno" onclick="setA11yFontSize('pequeno')" style="height:46px;border-radius:9999px;border:1px solid var(--bdr);background:var(--bg-modal);font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);cursor:pointer;">Pequeno</button>
+                <button type="button" class="a11y-fs-btn" data-fs="normal" onclick="setA11yFontSize('normal')" style="height:46px;border-radius:9999px;border:1px solid var(--bdr);background:var(--bg-modal);font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);cursor:pointer;">Normal</button>
+                <button type="button" class="a11y-fs-btn" data-fs="grande" onclick="setA11yFontSize('grande')" style="height:46px;border-radius:9999px;border:1px solid var(--bdr);background:var(--bg-modal);font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink);cursor:pointer;">Grande</button>
+              </div>
+            </div>
+
+            <div class="toggle-row" style="margin-bottom:0;" onclick="toggleHighContrast()">
               <div>
-                <div class="toggle-lbl">Modo Acessibilidade</div>
-                <div class="toggle-sub">Textos e botões maiores</div>
+                <div class="toggle-lbl">Alto Contraste</div>
+                <div class="toggle-sub">Aumenta legibilidade reduzindo opacidades</div>
               </div>
               <div class="toggle-sw" id="cfg-acessibilidade-sw"></div>
             </div>
@@ -2361,6 +2531,27 @@ body { background:
 
   <!-- MENU LATERAL -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Global theme toggle (top-right floating) -->
+  <button class="theme-toggle-pill" id="theme-toggle-pill" onclick="toggleThemeAnim()" aria-label="Alternar tema">
+    <svg id="theme-toggle-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    <svg id="theme-toggle-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+  <script>
+    (function(){
+      function updateThemeIcon(){
+        const isDark = document.documentElement.classList.contains('dark');
+        const sun = document.getElementById('theme-toggle-icon-sun');
+        const moon = document.getElementById('theme-toggle-icon-moon');
+        if(sun && moon){ sun.style.display = isDark ? 'none' : 'block'; moon.style.display = isDark ? 'block' : 'none'; }
+      }
+      window.addEventListener('load', updateThemeIcon);
+      // hook into existing toggleThemeAnim
+      const origToggle = window.toggleThemeAnim;
+      window.toggleThemeAnim = function(){ if(typeof origToggle==='function') origToggle.apply(this,arguments); setTimeout(updateThemeIcon, 50); };
+    })();
+  </script>
+
   <div class="sidebar" id="sidebar">
     <!-- Brand P+ — design system -->
     <div class="sb-brand">
@@ -3106,6 +3297,84 @@ function getStatusCardClass(st) {
   return '';
 }
 window.getStatusCardClass = getStatusCardClass;
+
+/* Tema (Suave / Minimalista / Brutalista) */
+function setTema(tema) {
+  if (tema === 'suave') delete document.documentElement.dataset.tema;
+  else document.documentElement.dataset.tema = tema;
+  try { localStorage.setItem('pp-tema', tema); } catch(e){}
+  document.querySelectorAll('.tema-card').forEach(c => {
+    c.classList.toggle('active', c.dataset.tema === tema);
+  });
+}
+// Apply persisted tema on load
+(function applyTema(){
+  try {
+    const t = localStorage.getItem('pp-tema');
+    if (t && t !== 'suave') document.documentElement.dataset.tema = t;
+    window.addEventListener('load', () => {
+      const active = localStorage.getItem('pp-tema') || 'suave';
+      document.querySelectorAll('.tema-card').forEach(c => c.classList.toggle('active', c.dataset.tema === active));
+    });
+  } catch(e){}
+})();
+window.setTema = setTema;
+
+/* Acessibilidade — tamanho de fonte + alto contraste */
+function setA11yFontSize(size) {
+  document.documentElement.dataset.fonte = size;
+  S.config = S.config || {};
+  S.config.fonte = size;
+  try { localStorage.setItem('pp-fonte', size); } catch(e){}
+  document.querySelectorAll('.a11y-fs-btn').forEach(b => {
+    const active = b.dataset.fs === size;
+    b.style.background = active ? 'var(--bll)' : 'var(--bg-modal)';
+    b.style.borderColor = active ? '#ff6b35' : 'var(--bdr)';
+    b.style.color = active ? '#ff6b35' : 'var(--ink)';
+  });
+}
+function toggleHighContrast() {
+  const sw = document.getElementById('cfg-acessibilidade-sw');
+  if(sw) sw.classList.toggle('on');
+  const on = sw && sw.classList.contains('on');
+  document.documentElement.dataset.contraste = on ? 'alto' : 'normal';
+  S.config = S.config || {};
+  S.config.altoContraste = on;
+  try { localStorage.setItem('pp-contraste', on ? 'alto' : 'normal'); } catch(e){}
+}
+// Apply persisted a11y on load
+(function applyA11y(){
+  try {
+    const f = localStorage.getItem('pp-fonte');
+    const c = localStorage.getItem('pp-contraste');
+    if (f) document.documentElement.dataset.fonte = f;
+    if (c) document.documentElement.dataset.contraste = c;
+  } catch(e){}
+})();
+window.setA11yFontSize = setA11yFontSize;
+window.toggleHighContrast = toggleHighContrast;
+
+window._orcFilter = 'todos';
+function setOrcFilter(f) {
+  window._orcFilter = f;
+  document.querySelectorAll('#orc-filter-chips .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.status === f);
+  });
+  if (typeof renderOrcamentosList === 'function') renderOrcamentosList();
+}
+window.setOrcFilter = setOrcFilter;
+function matchStatusFilter(o, f) {
+  if (!f || f === 'todos') return true;
+  const s = (o.status || '').toLowerCase();
+  if (f === 'rascunho') return s.includes('rascunho') || s === '' || s === 'pendente';
+  if (f === 'enviado') return s.includes('envia');
+  if (f === 'aprovado') return s.includes('aprov');
+  if (f === 'andamento') return s.includes('andamento') || s.includes('execução') || s.includes('execucao');
+  if (f === 'finalizado') return s.includes('finaliz') || s.includes('concl');
+  if (f === 'cancelado') return s.includes('cancel') || s.includes('recus');
+  return true;
+}
+window.matchStatusFilter = matchStatusFilter;
 
 // ── CHAVE GOOGLE MAPS (responsabilidade do app, não do usuário) ────────────
 // Restringir no Google Cloud Console: apenas pintorplus.com.br
@@ -4149,7 +4418,7 @@ function renderLogoPreview() {
   }
 }
 
-function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
+function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); const isHC = document.documentElement.dataset.contraste === 'alto'; if(accSw) accSw.classList.toggle('on', isHC); const fontSize = document.documentElement.dataset.fonte || 'normal'; setA11yFontSize(fontSize); _cfgDirty = false; showPage('pg-config'); }); }
 function saveConfig() {
   S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false, flashNomes: (document.getElementById('cfg-flash-nomes')||{}).value||defCfg.flashNomes, flashServicos: (document.getElementById('cfg-flash-servicos')||{}).value||defCfg.flashServicos, flashMateriais: (document.getElementById('cfg-flash-materiais')||{}).value||defCfg.flashMateriais };
   document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
@@ -4341,7 +4610,9 @@ function renderOrcamentosList() {
   const wrap=document.getElementById('orcamentos-list-full');if(!wrap)return;
   if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:24px 16px;background:#fff;border-radius:14px;border:1px solid var(--bdr);"><div style="font-size:32px;margin-bottom:8px;opacity:.3;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg></div><div style="font-size:13px;color:var(--ink3);font-style:italic;">Nenhum orçamento ainda</div><button onclick="newOrc()" style="margin-top:12px;padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--bl),var(--bld));border:none;font-family:\'Sora\',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Criar primeiro</button></div>'; return; }
   const indexed = S.orcs.map((o,i)=>({o,i}));
-  const filtered = q ? indexed.filter(({o})=>_orcMatch(o,q)) : indexed;
+  const fStatus = window._orcFilter || 'todos';
+  const filteredByStatus = fStatus === 'todos' ? indexed : indexed.filter(({o}) => matchStatusFilter(o, fStatus));
+  const filtered = q ? filteredByStatus.filter(({o})=>_orcMatch(o,q)) : filteredByStatus;
   if(!filtered.length){ wrap.innerHTML=`<div class="srch-empty">Nenhum orçamento encontrado para "<strong>${_esc(q)}</strong>".</div>`; return; }
   wrap.innerHTML=filtered.map(({o,i})=>{
     let tot=calcOrcTotal(o); const qtdLocais=(o.rooms||[]).length; const infoTxt=qtdLocais===1?`${o.rooms[0].items?.length||0} item(ns)`:`${qtdLocais} local(is)`;
