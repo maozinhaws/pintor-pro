@@ -882,7 +882,7 @@ function _removeSupportImage(idx: number): void {
 
 // ── Google Drive Status UI ──
 export function renderGoogleStatus(): void {
-  const email = S.googleEmail || localStorage.getItem('pp-google-email') || '';
+  const email = S.googleEmail || localStorage.getItem('pp-gdrive-email') || localStorage.getItem('pp-google-email') || '';
   const signedIn = !!email;
 
   const cfgWrap = document.getElementById('gdrive-cfg-status');
@@ -912,25 +912,8 @@ export function renderGoogleStatus(): void {
   }
 }
 
-(window as any).renderGoogleStatus = function renderLocalBackupStatus(): void {
-  const cfgWrap = document.getElementById('gdrive-cfg-status');
-  const bkpWrap = document.getElementById('gdrive-backup-btns');
-  const bkpInfo = document.getElementById('gdrive-backup-info');
-
-  if (cfgWrap) {
-    cfgWrap.innerHTML = `<div style="font-size:12px;color:var(--ink3);line-height:1.6;">Seus dados ficam salvos no dispositivo. Para maior segurança, exporte um arquivo de backup regularmente e guarde em local seguro.</div>`;
-  }
-
-  if (bkpInfo) {
-    bkpInfo.textContent = 'Exporte um arquivo com seus dados ou restaure um backup salvo anteriormente.';
-  }
-
-  if (bkpWrap) {
-    bkpWrap.innerHTML = `
-      <button onclick="exportBackup()" style="width:100%;height:48px;border-radius:12px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-download"/></svg> Exportar Backup</button>
-      <button onclick="document.getElementById('backup-file')?.click()" style="width:100%;height:44px;border-radius:12px;background:var(--bg2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">📂 Importar Backup</button>`;
-  }
-};
+// renderGoogleStatus já está registrado como export acima — expõe no window
+(window as any).renderGoogleStatus = renderGoogleStatus;
 
 // ── Setup event listeners after DOM is ready ──
 window.addEventListener('pp-ready', () => {

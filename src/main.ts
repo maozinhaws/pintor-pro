@@ -12,6 +12,21 @@ import './photo-editor';
 import { S, saveOrcs } from './state';
 import { toast, formatNum, money, esc, formatPhone, validateFullName, validatePhone, getStatusBadgeClass, getRoomMeds, normalizeDecimalInput, normalizeMeasureInput, numFromInput, digitsOnly, setFieldError, f1, ptFloat, safeUrl, ico } from './utils';
 import { Storage } from './storage/storage';
+import { registerGDriveOnWindow } from './services/google-drive';
+import { registerCalendarOnWindow } from './services/calendar';
+import { registerAuthOnWindow } from './services/auth';
+import { registerBackupValidatorOnWindow } from './services/backup-validator';
+import { registerAutoSyncOnWindow, purgeExpiredDeleted } from './services/auto-sync';
+
+registerGDriveOnWindow();
+registerCalendarOnWindow();
+registerAuthOnWindow();
+registerBackupValidatorOnWindow();
+registerAutoSyncOnWindow();
+purgeExpiredDeleted(); // remove lixeira > 90 dias no startup
+
+// Expõe CLIENT_ID para o HTML inline (não é segredo — é public OAuth client id)
+(window as any).__VITE_GOOGLE_CLIENT_ID__ = (import.meta as any).env?.VITE_GOOGLE_CLIENT_ID || '';
 
 let Keyboard: any = { addListener: () => ({ catch: () => {} }) };
 let StatusBar: any = { setStyle: () => ({ catch: () => {} }) };

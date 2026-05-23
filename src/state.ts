@@ -51,6 +51,20 @@ S.DEFAULT_SERVICES = (S.config.servicos || DEFAULT_CONFIG.servicos).split(',').m
 S.statusArr = (S.config.statusList || DEFAULT_CONFIG.statusList).split(',').map(s => s.trim()).filter(Boolean);
 
 export function saveOrcs() {
+  // Detecta itens removidos → soft delete (ficam na lixeira por 90 dias)
+  try {
+    const prevRaw = localStorage.getItem('pp-orcs');
+    if (prevRaw) {
+      const prev = JSON.parse(prevRaw) as { id: string }[];
+      const currentIds = new Set(S.orcs.map((o: any) => o.id));
+      prev.forEach(o => {
+        if (!currentIds.has(o.id)) {
+          (window as any).softDelete?.('orcs', o);
+        }
+      });
+    }
+  } catch {}
+
   const json = JSON.stringify(S.orcs);
   try { localStorage.setItem('pp-orcs', json); }
   catch (e) {
@@ -63,4 +77,6 @@ export function saveOrcs() {
   // Persist to IndexedDB/SQLite for iOS safety (async, fire-and-forget)
   const storage = (window as any).Storage;
   if (storage?.isReady) storage.saveOrcs(S.orcs).catch(() => {});
+  // Agenda sincronização automática com Google Drive
+  try { (window as any).scheduleSync?.(); } catch {}
 }

@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#7C3AED">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f8f5f2" media="(prefers-color-scheme: light)">
 <meta name="application-name" content="Pintor+">
 <meta name="description" content="Gerencie orçamentos, clientes e agenda. O app profissional para pintores — funciona offline.">
 <title>App Pintor Plus</title>
@@ -39,80 +40,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
 
 :root {
-  /* OKLCH palette (Lovable) */
-  --midnight: oklch(0.14 0.05 275);
-  --surface: oklch(0.96 0.02 280);
-  --brand: oklch(0.74 0.20 50);
-  --violet: oklch(0.63 0.22 290);
-  --success: oklch(0.65 0.19 130);
-  --warning: oklch(0.72 0.18 70);
-  --info: oklch(0.68 0.20 260);
+  /* Brand — paleta Vulcão (Obras Rápido) */
+  --bl: #ff6b35; --bld: #e85520; --bll: rgba(255,107,53,0.12);
+  --bl2: #7b5cff; --bl2l: rgba(123,92,255,0.12);
+  --gn: #16a34a; --gnl: #dcfce7;
+  --rd: #ef4444; --rdl: #fee2e2;
+  --am: #f59e0b; --aml: #fef3c7;
 
-  /* MVP existing colors (preserved for compatibility) */
-  --bl: #7C3AED; --bld: #6D28D9; --bll: #F5F3FF;
-  --gn: #10B981; --gnl: #ECFDF5;
-  --rd: #EF4444; --rdl: #FEF2F2;
-  --am: #F59E0B; --aml: #FFFBEB;
-  --ink: #0F172A; --ink2: #334155; --ink3: #64748B;
-  --bg: #F8FAFC; --bg2: #F1F5F9; --bdr: #E2E8F0;
-  --bg-input: #ffffff; --bdr-input: #CBD5E1;
-  --bg-card: #F1F5F9; --bg-card-alt: #ffffff;
-  --bg-yellow: #F5F3FF; --bg-modal: #ffffff;
-  --sh: 0 4px 12px rgba(15,23,42,.05);
-}
-
-/* Tema moderno (default) */
-:root[data-theme="moderno"] {
-  --midnight: oklch(0.14 0.05 275);
-  --surface: oklch(0.96 0.02 280);
-  --brand: oklch(0.74 0.20 50);
-  --violet: oklch(0.63 0.22 290);
-  --success: oklch(0.65 0.19 130);
-}
-
-/* Tema brutalista */
-:root[data-theme="brutalista"] {
-  --midnight: oklch(0.10 0.02 280);
-  --brand: oklch(0.72 0.24 50);
-  --violet: oklch(0.58 0.26 290);
-}
-
-/* Tema minimalista */
-:root[data-theme="minimalista"] {
-  --midnight: oklch(0.20 0.03 280);
-  --surface: oklch(0.98 0.01 0);
-  --brand: oklch(0.72 0.18 50);
+  /* Light mode */
+  --ink: #111111; --ink2: #4b5563; --ink3: #6b7280;
+  --bg: #f4f4f6; --bg2: #ededef; --bdr: #ececef;
+  --bg-input: #ffffff; --bdr-input: #64748b;
+  --bg-card: #f4f4f6; --bg-card-alt: #ffffff;
+  --bg-yellow: #fff8f5; --bg-modal: #ffffff;
+  --sh: 0 1px 2px rgba(15,23,42,.06), 0 12px 28px -8px rgba(15,23,42,.14);
 }
 
 /* Dark mode overrides */
 :root.dark {
-  --midnight: oklch(0.95 0.02 280);
-  --surface: oklch(0.15 0.05 280);
-  --brand: oklch(0.78 0.18 50);
-  --violet: oklch(0.72 0.20 290);
+  --bl: #ff6b35; --bld: #e85520; --bll: rgba(255,107,53,0.14);
+  --bl2: #7b5cff; --bl2l: rgba(123,92,255,0.14);
+  --gn: #34d399; --gnl: rgba(52,211,153,.10);
+  --rd: #f87171; --rdl: rgba(248,113,113,.12);
+  --am: #fbbf24; --aml: rgba(251,191,36,.12);
 
-  --bl: #8B5CF6; --bld: #A78BFA; --bll: #4C1D95;
-  --gn: #10B981; --gnl: #064E3B;
-  --rd: #EF4444; --rdl: #7F1D1D;
-  --am: #FBBF24; --aml: #78350F;
-  --ink: #F8FAFC; --ink2: #E2E8F0; --ink3: #94A3B8;
-  --bg: #0F172A; --bg2: #1E293B; --bdr: #334155;
-  --bg-input: #1E293B; --bdr-input: #475569;
-  --bg-card: #1E293B; --bg-card-alt: #0F172A;
-  --bg-yellow: #1E293B; --bg-modal: #1E293B;
-  --sh: 0 4px 12px rgba(0,0,0,.4);
-}
-:root.dark {
-  --bl: #8B5CF6; --bld: #A78BFA; --bll: #4C1D95;
-  --gn: #10B981; --gnl: #064E3B;
-  --rd: #EF4444; --rdl: #7F1D1D;
-  --am: #FBBF24; --aml: #78350F;
-  --ink: #F8FAFC; --ink2: #E2E8F0; --ink3: #94A3B8;
-  --bg: #0F172A; --bg2: #1E293B; --bdr: #334155;
-  --bg-input: #1E293B; --bdr-input: #475569;
-  --bg-card: #1E293B; --bg-card-alt: #0F172A;
-  --bg-yellow: #1E293B; --bg-modal: #1E293B;
-  --sh: 0 4px 12px rgba(0,0,0,.4);
+  /* Dark mode */
+  --ink: #ededf0; --ink2: #9aa0aa; --ink3: #6b7280;
+  --bg: #0b0d12; --bg2: #1c2027; --bdr: #262932;
+  --bg-input: #14171d; --bdr-input: #3d4450;
+  --bg-card: #14171d; --bg-card-alt: #1c2027;
+  --bg-yellow: #1e1914; --bg-modal: #14171d;
+  --sh: 0 2px 6px rgba(0,0,0,.30), 0 18px 40px -10px rgba(0,0,0,.45);
 }
 
 /* Glass morphism utilities (Lovable) */
@@ -216,13 +174,8 @@ html[data-contraste="alto"] .ink {
 
 html, body, #app, .page, .sec, .finput, .fta, .fsel, .chk-item, .chk-box, .rcard, .rcard-head, .item-card, .item-summary, .tbox, .mic-panel, .sum-card, .fmt-card, .sidebar, .sidebar-hdr, .hm-hdr, .hoc, .topnav { transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, box-shadow 0.35s ease; }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:linear-gradient(to bottom right, var(--brand) 0%, 10%, var(--violet) 100%);background-attachment:fixed;display:flex;align-items:center;justify-content:center;font-family:'Inter','Sora',sans-serif;color:var(--ink);}
-html[data-theme="brutalista"] body {
-  background: #FFFFFF;
-}
-html[data-theme="minimalista"] body {
-  background: #F5F5F5;
-}
+html,body{width:100%;height:100%;overflow:hidden;background:#f4f4f6;display:flex;align-items:center;justify-content:center;font-family:'Sora','Inter',sans-serif;color:var(--ink);}
+:root.dark html,:root.dark body,html.dark{background:#0b0d12;}
 /* iOS Safari: -webkit-fill-available exclui a barra de endereço corretamente */
 html{height:-webkit-fill-available;}
 body{min-height:-webkit-fill-available;}
@@ -284,7 +237,7 @@ body{min-height:-webkit-fill-available;}
 .item-summary{background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.02);}
 .act-btn{width:100%;height:52px;border-radius:14px;border:none;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px;transition:all .18s;}
 .act-btn:active{opacity:.8;}
-.act-save{background:var(--bl);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3);}
+.act-save{background:linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%);color:#fff;border:none;box-shadow:0 6px 14px -4px rgba(255,107,53,.45),0 16px 36px -10px rgba(123,92,255,.40);}
 .act-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;box-shadow:0 4px 14px rgba(37,211,102,.3);}
 .act-pdf{background:var(--bg-input);color:var(--ink2);border:1.5px solid var(--bdr);}
 .fmt-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:14px;}
@@ -304,17 +257,53 @@ body{min-height:-webkit-fill-available;}
 #toast { position: absolute; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%) translateY(8px); background: #1E293B !important; color: #FFFFFF !important; padding: 9px 18px; border-radius: 100px; font-size: 13px; font-weight: 700; opacity: 0; pointer-events: none; z-index: 999999999; white-space: nowrap; transition: all .26s cubic-bezier(.34,1.4,.64,1); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
 #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-.hm-hdr{padding:max(32px,env(safe-area-inset-top,32px)) 20px 24px;background:#fff;border-bottom:1px solid var(--bdr);flex-shrink:0;}
-.hm-name{font-size:24px;font-weight:800;letter-spacing:-.8px;color:var(--ink);font-family:'Syne',sans-serif;}
-.hoc{background:#fff;border-radius:16px;border:1px solid var(--bdr);padding:16px;margin-bottom:12px;box-shadow:var(--sh);transition:transform .2s;}
+/* ── Hero CTA Card — Novo Orçamento ── */
+.hero-cta{position:relative;border-radius:36px 0 36px 36px;background:linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%);padding:16px 20px 20px;color:#fff;isolation:isolate;overflow:hidden;margin-bottom:20px;cursor:pointer;container-type:inline-size;}
+html.dark .hero-cta{background:linear-gradient(145deg,#e87838 0%,#d06420 45%,#4a1070 98%,#2d0945 100%);}
+.hero-cta::before{content:"";position:absolute;top:-50%;left:-50%;width:60%;height:200%;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,0) 40%,rgba(255,255,255,0.32) 50%,rgba(255,255,255,0) 60%,transparent 70%);transform:translateX(-150%) rotate(8deg);animation:heroLensFlare 5s ease-in-out infinite;pointer-events:none;z-index:1;mix-blend-mode:screen;}
+@keyframes heroLensFlare{0%{transform:translateX(-150%) rotate(8deg)}60%{transform:translateX(350%) rotate(8deg)}100%{transform:translateX(350%) rotate(8deg)}}
+.hero-top-row{display:flex;margin-bottom:14px;}
+.hero-bottom-row{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;}
+.hero-toque-pill{display:inline-flex;align-items:center;background:rgba(0,0,0,0.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.22);box-shadow:inset 0 2px 6px rgba(0,0,0,0.22),inset 0 1px 2px rgba(0,0,0,0.15);color:rgba(255,255,255,0.90);padding:clamp(4px,1.2cqi,7px) clamp(9px,3cqi,15px);border-radius:999px;font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(9px,2.2cqi,12px);letter-spacing:.13em;text-transform:uppercase;position:relative;z-index:2;white-space:nowrap;}
+.hero-title{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(26px,10cqi,48px);line-height:1.0;letter-spacing:-0.03em;text-transform:uppercase;color:#fff;white-space:normal;word-break:keep-all;overflow-wrap:normal;flex:1 1 0;min-width:0;position:relative;z-index:2;}
+.hero-plus-pill{width:calc(clamp(26px,10cqi,48px)*2);height:calc(clamp(26px,10cqi,48px)*2);flex-shrink:0;border-radius:50%;background:rgba(0,0,0,0.12);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.22);box-shadow:inset 0 2px 6px rgba(0,0,0,0.22),inset 0 1px 2px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;color:#fff;position:relative;z-index:2;}
+.hm-hdr{padding:max(20px,env(safe-area-inset-top,20px)) 16px 0;background:var(--bg-modal);border-bottom:1px solid var(--bdr);flex-shrink:0;}
+.hm-name{font-size:24px;font-weight:800;letter-spacing:-.8px;color:var(--ink);font-family:'Sora',sans-serif;}
+
+/* ── Dir3: Header orbital ── */
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:14px;}
+.orbital-btn{width:38px;height:38px;flex-shrink:0;border-radius:12px;background:rgba(255,255,255,0.07);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .15s;padding:0;}
+.orbital-btn:active{opacity:.6;}
+.identity-center{flex:1;text-align:center;min-width:0;}
+.empresa-nome{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;letter-spacing:-.3px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;}
+.empresa-tagline-wrap{height:16px;overflow:hidden;position:relative;}
+.tagline-a,.tagline-b{display:block;font-family:'Sora',sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;animation-duration:6s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;}
+html.dark .tagline-a, html.dark .tagline-b { color: rgba(255,255,255,0.45); }
+.tagline-a{animation-name:tagline-in-a;position:absolute;top:0;left:0;right:0;}
+.tagline-b{animation-name:tagline-in-b;position:absolute;top:0;left:0;right:0;}
+@keyframes tagline-in-a{0%,40%{opacity:1;transform:translateY(0)}50%,90%{opacity:0;transform:translateY(-8px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes tagline-in-b{0%,40%{opacity:0;transform:translateY(8px)}50%,90%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(8px)}}
+
+/* ── Métricas da home ── */
+.header-metrics{display:flex;align-items:center;justify-content:center;gap:0;padding:10px 0 14px;border-top:1px solid rgba(255,255,255,0.07);}
+.metric-item{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.metric-val{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.5px;}
+.metric-label{display:flex;align-items:center;gap:5px;font-family:'Sora',sans-serif;font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);}
+.metric-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.metric-sep{width:1px;height:32px;background:rgba(128,128,128,0.2);flex-shrink:0;}
+
+/* Light mode: orbital buttons darker */
+:root:not(.dark) .orbital-btn{background:rgba(0,0,0,0.05);border-color:rgba(0,0,0,0.10);}
+:root:not(.dark) .header-metrics{border-top-color:var(--bdr);}
+.hoc{background:var(--bg-card-alt);border-radius:14px;border:1px solid var(--bdr);padding:14px 16px;margin-bottom:10px;box-shadow:var(--sh);transition:transform .2s;}
 .hoc:active{transform:scale(.98);}
-.hot{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
-.hon{font-size:15px;font-weight:600;color:var(--ink);margin-bottom:2px;}
-.hos{font-size:12px;color:var(--ink3);}
-.hbadge{display:inline-flex;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;text-transform:uppercase;}
+.hot{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.hon{font-size:14px;font-weight:700;font-family:'Sora',sans-serif;color:var(--ink);margin-bottom:0;}
+.hos{font-size:11px;font-weight:500;font-family:'Sora',sans-serif;color:var(--ink3);}
+.hbadge{display:inline-flex;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;font-family:'Sora',sans-serif;text-transform:uppercase;letter-spacing:.04em;}
 .hbadge.hby{background:var(--aml);color:#92400E;}.hbadge.hbg{background:var(--gnl);color:#065F46;}.hbadge.hbb{background:var(--bll);color:var(--bld);}.hbadge.hbr{background:var(--rdl);color:var(--rd);}
-.hob{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-.hood{font-size:11px;color:var(--ink3);}.hoov{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--bl);}
+.hob{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.hood{font-size:11px;font-family:'Sora',sans-serif;color:var(--ink3);}.hoov{font-family:'JetBrains Mono','DM Mono',monospace;font-size:13px;font-weight:600;color:var(--ink);}
 .hoas{display:flex;gap:6px;}
 .hoa{flex:1;height:36px;border-radius:9px;border:none;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
 .hoa.wa{background:#E5DDD5;color:#111;}.hoa.ok{background:var(--bll);color:var(--bl);}.hoa:active{opacity:.7;}
@@ -335,7 +324,7 @@ body{min-height:-webkit-fill-available;}
 .tsw-ic { font-size: 14px; cursor: pointer; }
 .sidebar-overlay{position:absolute;inset:0;background:rgba(17,24,39,0.4);opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:900;}
 .sidebar-overlay.active{opacity:1;pointer-events:auto;}
-.sidebar{position:absolute;top:0;bottom:0;left:0;width:260px;background:#fff;z-index:901;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:4px 0 16px rgba(0,0,0,0.1);display:flex;flex-direction:column;}
+.sidebar{position:absolute;top:0;bottom:0;left:0;width:260px;background:var(--bg-modal);z-index:901;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:4px 0 16px rgba(0,0,0,0.1);display:flex;flex-direction:column;}
 .sidebar.active{transform:translateX(0);}
 .sidebar-hdr{padding:max(24px,env(safe-area-inset-top,24px)) 20px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr);background:var(--bg-modal);}
 .sidebar-links{padding:12px 0;display:flex;flex-direction:column;background:var(--bg-modal);height:100%;overflow-y:auto;}
@@ -399,7 +388,7 @@ input[type="number"] { font-family: 'Calibri', sans-serif !important; }
 #del-confirm-modal { z-index: 99999999 !important; }
 .fab-add { position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--am); color: #92400E; border: 2.5px solid #FDE68A; box-shadow: 0 8px 24px rgba(0,0,0,0.25); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 50; transition: transform 0.2s; }
 .fab-add:active { transform: scale(0.92); }
-.hm-hdr { background: var(--bg-modal) !important; padding: max(20px, env(safe-area-inset-top, 20px)) 16px 12px !important; }
+.hm-hdr { background: var(--bg-modal) !important; padding: max(20px, env(safe-area-inset-top, 20px)) 16px 0 !important; }
 .hm-name { font-size: 17px !important; }
 .hoc { background: var(--bg-modal) !important; border-radius: 14px !important; padding: 14px !important; }
 .hon { font-size: 15px !important; }
@@ -452,7 +441,7 @@ body.acessivel .badge-rascunho, body.acessivel .hbadge { font-size: 12px !import
 body.acessivel button, body.acessivel [role=button] { min-height: 44px; }
 /* Contraste extra em modo acessível */
 body.acessivel .ink, body.acessivel { color: var(--ink) !important; }
-body.acessivel .finput:focus, body.acessivel .fta:focus, body.acessivel .fsel:focus { border-color: var(--bl) !important; box-shadow: 0 0 0 3px rgba(124,58,237,.2) !important; }
+body.acessivel .finput:focus, body.acessivel .fta:focus, body.acessivel .fsel:focus { border-color: var(--bl) !important; box-shadow: 0 0 0 3px rgba(232,120,56,.2) !important; }
 /* ── Busca ── */
 .srch-wrap{position:relative;margin-top:10px;}
 .srch-bar{width:100%;height:38px;background:var(--bg-input);border:1.5px solid var(--bdr-input);border-radius:100px;padding:0 14px 0 36px;font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);outline:none;-webkit-appearance:none;}
@@ -463,7 +452,7 @@ body.acessivel .finput:focus, body.acessivel .fta:focus, body.acessivel .fsel:fo
 .wizard-nav { display: flex; margin-top: 12px; justify-content: space-between; }
 .wbtn-back, .wbtn-next { height: 44px; border-radius: 14px; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .15s; }
 .wbtn-back { min-width: 100px; padding: 0 16px; background: var(--bg2); border: 1.5px solid var(--bdr); color: var(--ink2); }
-.wbtn-next { min-width: 120px; padding: 0 16px; background: linear-gradient(135deg, var(--bl), var(--bld)); border: none; color: #fff; box-shadow: 0 6px 16px rgba(124,58,237,.3); font-weight: 800; }
+.wbtn-next { min-width: 120px; padding: 0 16px; background: linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%); border: none; color: #fff; box-shadow: 0 6px 16px rgba(255,107,53,.35); font-weight: 800; border-radius: 14px; }
 .wbtn-back:active { opacity: .75; background: var(--bdr); }
 .wbtn-next:active { transform: scale(.97); }
 body.kb-open .wizard-nav { margin-top: 4px; }
@@ -580,13 +569,13 @@ body.kb-open .title-big { font-size: 14px; }
 #pwa-install-bar{display:none;position:absolute;bottom:0;left:0;right:0;z-index:200;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg,rgba(15,23,42,0) 0%,rgba(15,23,42,.04) 100%);}
 #pwa-install-bar.show{display:block;animation:pwaSlideUp .35s cubic-bezier(.22,.8,.22,1);}
 @keyframes pwaSlideUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
-#pwa-install-card{background:var(--bg-modal);border:1.5px solid var(--bdr);border-radius:20px;padding:14px 16px;box-shadow:0 -4px 32px rgba(124,58,237,.1),0 8px 32px rgba(0,0,0,.12);display:flex;align-items:center;gap:12px;}
+#pwa-install-card{background:var(--bg-modal);border:1.5px solid var(--bdr);border-radius:20px;padding:14px 16px;box-shadow:0 -4px 32px rgba(232,120,56,.1),0 8px 32px rgba(0,0,0,.12);display:flex;align-items:center;gap:12px;}
 #pwa-install-card .pwa-icon{width:48px;height:48px;border-radius:14px;flex-shrink:0;object-fit:cover;}
 #pwa-install-card .pwa-info{flex:1;min-width:0;}
 #pwa-install-card .pwa-title{font-size:14px;font-weight:800;color:var(--ink);line-height:1.2;}
 #pwa-install-card .pwa-sub{font-size:11px;color:var(--ink3);margin-top:2px;line-height:1.35;}
 #pwa-install-card .pwa-btns{display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;}
-#pwa-btn-install{height:36px;padding:0 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--bl),var(--bld));color:#fff;font-family:'Sora',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(124,58,237,.38);}
+#pwa-btn-install{height:36px;padding:0 16px;border-radius:10px 0 10px 10px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);color:#fff;font-family:'Sora',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,0.20);}
 #pwa-btn-dismiss{background:none;border:none;font-family:'Sora',sans-serif;font-size:11px;color:var(--ink3);cursor:pointer;padding:2px 4px;text-decoration:underline;text-underline-offset:2px;}
 /* ── Modal iOS install ── */
 #pwa-ios-modal{display:none;position:absolute;inset:0;z-index:300;background:rgba(15,23,42,.52);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding:10px;}
@@ -637,7 +626,7 @@ body.kb-open .title-big { font-size: 14px; }
 .gc-item.selected .gc-check{background:var(--bl);border-color:var(--bl);color:#fff;}
 .gc-search{width:100%;height:42px;border-radius:10px;border:1.5px solid var(--bdr);background:var(--bg-input);padding:0 12px;font-family:'Sora',sans-serif;font-size:13px;color:var(--ink);margin-bottom:12px;box-sizing:border-box;}
 /* ── Premium Install Card ── */
-#pwa-premium-card{display:none;background:linear-gradient(135deg,#7C3AED 0%,#4F46E5 100%);border-radius:20px;padding:18px 16px;margin-bottom:20px;box-shadow:0 8px 24px rgba(124,58,237,.28);position:relative;overflow:hidden;}
+#pwa-premium-card{display:none;background:linear-gradient(135deg,#ff6b35 0%,#e85520 45%,#7b5cff 100%);border-radius:20px;padding:18px 16px;margin-bottom:20px;box-shadow:0 8px 24px rgba(255,107,53,.28);position:relative;overflow:hidden;}
 #pwa-premium-card::before{content:'';position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.07);pointer-events:none;}
 #pwa-premium-card::after{content:'';position:absolute;bottom:-30px;left:-10px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none;}
 #pwa-premium-card.show{display:block;animation:pgIn .3s ease;}
@@ -648,7 +637,7 @@ body.kb-open .title-big { font-size: 14px; }
 .ppc-feat{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:rgba(255,255,255,.9);}
 .ppc-feat svg{opacity:.8;}
 .ppc-actions{display:flex;gap:8px;}
-.ppc-btn-install{flex:1;height:42px;border-radius:12px;border:none;background:#fff;color:#7C3AED;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);}
+.ppc-btn-install{flex:1;height:42px;border-radius:12px 0 12px 12px;border:none;background:rgba(255,255,255,0.15);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.30);color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.25);}
 .ppc-btn-install:active{opacity:.85;}
 .ppc-btn-dismiss{height:42px;padding:0 14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:transparent;color:rgba(255,255,255,.85);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;}
 .ppc-btn-dismiss:active{background:rgba(255,255,255,.1);}
@@ -676,17 +665,520 @@ body.kb-open .title-big { font-size: 14px; }
   z-index: -1;
 }
 
-/* Radial gradient background (Lovable) */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at 10% 0%, var(--brand) 0%, transparent 50%),
-              radial-gradient(circle at 100% 100%, var(--violet) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: -1;
-  opacity: 0.3;
+/* Background Vulcão — light mode */
+
+/* ══════════════════════════════════════════════
+   GLASS DESIGN SYSTEM — derivado do hero card
+   ══════════════════════════════════════════════ */
+
+/* Background com brilho de marca no dark */
+:root.dark html, :root.dark body,
+html.dark, body.dark { color-scheme: dark; }
+
+:root.dark body, html.dark body { background: #0b0d12; }
+
+/* App shell transparente no dark para o glow vazar */
+:root.dark #app, html.dark #app {
+  background: transparent;
 }
+:root.dark .page, html.dark .page {
+  background: transparent;
+}
+
+/* ── Glass cards (Obras Rápido style) ── */
+:root.dark .sec, html.dark .sec,
+:root.dark .cfg-card, html.dark .cfg-card,
+:root.dark .hoc, html.dark .hoc,
+:root.dark .rcard, html.dark .rcard {
+  background: color-mix(in oklab, #14171d 78%, transparent);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 0 20px 20px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.30), 0 18px 40px -10px rgba(0,0,0,.45);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+:root.dark .rcard-head, html.dark .rcard-head {
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── Inputs — branco sempre (visibilidade ao sol, igual Obras Rápido) ── */
+.finput, .fta, .fsel {
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+  border: 2px solid #64748b !important;
+  -webkit-text-fill-color: #0a0a0a !important;
+}
+.finput::placeholder, .fta::placeholder { color: #475569 !important; opacity: 1 !important; }
+.finput:focus, .fta:focus, .fsel:focus {
+  border-color: var(--bl) !important;
+  box-shadow: inset 0 1px 2px rgba(15,23,42,.04), 0 0 0 3px rgba(255,107,53,.22) !important;
+  outline: none;
+}
+:root.dark .finput, html.dark .finput,
+:root.dark .fta, html.dark .fta,
+:root.dark .fsel, html.dark .fsel {
+  background-color: #ffffff !important;
+  color: #0a0a0a !important;
+  border-color: #cbd5e1 !important;
+  -webkit-text-fill-color: #0a0a0a !important;
+}
+:root.dark .finput:focus, html.dark .finput:focus,
+:root.dark .fta:focus, html.dark .fta:focus,
+:root.dark .fsel:focus, html.dark .fsel:focus {
+  border-color: var(--bl) !important;
+  box-shadow: 0 0 0 3px rgba(255,107,53,.25) !important;
+}
+:root.dark .chk-item, html.dark .chk-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+}
+:root.dark .chk-item.on, html.dark .chk-item.on {
+  background: rgba(232,120,56,.15);
+  border-color: rgba(232,120,56,.45);
+}
+:root.dark .chk-box, html.dark .chk-box {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.18);
+}
+:root.dark .chk-item.on .chk-box, html.dark .chk-item.on .chk-box {
+  background: #e87838;
+  border-color: #e87838;
+}
+:root.dark .mbox, html.dark .mbox {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+}
+
+/* ── Glass nav ── */
+:root.dark .topnav, html.dark .topnav {
+  background: rgba(13,13,13,.82);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+}
+:root.dark .hm-hdr, html.dark .hm-hdr {
+  background: rgba(13,13,13,.80);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+:root.dark .sidebar, html.dark .sidebar {
+  background: rgba(10,10,10,.96);
+  border-right: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+}
+:root.dark .sidebar-hdr, html.dark .sidebar-hdr {
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── Botões primários — laranja ── */
+:root.dark .act-btn.act-save, html.dark .act-btn.act-save {
+  background: linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%);
+  border: none;
+  box-shadow: 0 6px 14px -4px rgba(255,107,53,.40), 0 16px 36px -10px rgba(123,92,255,.40);
+  color: #fff;
+}
+:root.dark .act-btn.act-pdf, html.dark .act-btn.act-pdf {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.13);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.28);
+  color: rgba(255,255,255,0.80);
+}
+
+/* ── Botão "Adicionar" / dashed ── */
+:root.dark .add-room-btn, html.dark .add-room-btn {
+  border-color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.03);
+}
+:root.dark .add-room-btn:hover, html.dark .add-room-btn:hover {
+  border-color: rgba(232,120,56,.50);
+  color: #e87838;
+  background: rgba(232,120,56,.07);
+}
+
+/* ── Card menu drop ── */
+:root.dark .card-menu-drop, html.dark .card-menu-drop {
+  background: rgba(20,20,20,.96);
+  border: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 12px 40px rgba(0,0,0,.55);
+}
+:root.dark .card-menu-btn, html.dark .card-menu-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.70);
+}
+:root.dark .cmd-item:hover, html.dark .cmd-item:hover {
+  background: rgba(255,255,255,0.06);
+}
+
+/* ── Badges pill glassmorphism ── */
+:root.dark .hbadge, html.dark .hbadge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.25);
+  color: rgba(255,255,255,0.80);
+}
+:root.dark .hbadge.hbg, html.dark .hbadge.hbg {
+  background: rgba(16,185,129,.15);
+  border-color: rgba(16,185,129,.30);
+  color: #6ee7b7;
+}
+:root.dark .hbadge.hby, html.dark .hbadge.hby {
+  background: rgba(245,158,11,.15);
+  border-color: rgba(245,158,11,.30);
+  color: #fcd34d;
+}
+:root.dark .hbadge.hbr, html.dark .hbadge.hbr {
+  background: rgba(239,68,68,.15);
+  border-color: rgba(239,68,68,.30);
+  color: #fca5a5;
+}
+:root.dark .hbadge.hbb, html.dark .hbadge.hbb {
+  background: rgba(232,120,56,.15);
+  border-color: rgba(232,120,56,.30);
+  color: #fdba74;
+}
+:root.dark .badge-rascunho, html.dark .badge-rascunho {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.60);
+}
+
+/* ── Toggle switch ── */
+:root.dark .toggle-row, html.dark .toggle-row {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+}
+:root.dark .toggle-sw, html.dark .toggle-sw {
+  background: rgba(255,255,255,0.15);
+}
+:root.dark .toggle-sw.on, html.dark .toggle-sw.on {
+  background: #e87838;
+}
+
+/* ── Format cards ── */
+:root.dark .fmt-card, html.dark .fmt-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px 0 16px 16px;
+}
+:root.dark .fmt-card.on, html.dark .fmt-card.on {
+  background: linear-gradient(145deg,#e87838,#c85e18) !important;
+  border-color: rgba(255,255,255,0.20) !important;
+  box-shadow: 0 4px 16px rgba(232,120,56,.30);
+}
+
+/* ── Step pills ── */
+:root.dark .step-pill, html.dark .step-pill {
+  background: rgba(255,255,255,0.12);
+}
+:root.dark .step-pill.done, html.dark .step-pill.done,
+:root.dark .step-pill.active, html.dark .step-pill.active {
+  background: #e87838;
+  opacity: 1;
+}
+
+/* ── Item summary ── */
+:root.dark .item-summary, html.dark .item-summary {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 16px 0 16px 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+:root.dark .item-card, html.dark .item-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 14px;
+}
+
+/* ── Toast dark ── */
+:root.dark #toast, html.dark #toast {
+  background: rgba(232,120,56,.92) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.20);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Modais glass ── */
+:root.dark .modal-wrap > div, html.dark .modal-wrap > div,
+:root.dark [id$="-modal"] > div, html.dark [id$="-modal"] > div {
+  background: rgba(18,18,18,.97);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 24px 0 24px 24px;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+}
+
+/* ── News card ── */
+:root.dark .news-card, html.dark .news-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px 0 16px 16px;
+  backdrop-filter: blur(12px);
+}
+
+/* ── HOC (orçamento cards) override ── */
+:root.dark .hoc, html.dark .hoc {
+  background: rgba(255,255,255,0.045);
+}
+
+/* ── Sec-title ── */
+:root.dark .sec-title, html.dark .sec-title {
+  color: rgba(255,255,255,0.55);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+/* ══════════════════════════════════════════════════════
+   GLASS DESIGN SYSTEM v2 — Full app refactor
+   Fonte: Sora. Cor: laranja #e87838. Radius: 20px 0 20px 20px
+   ══════════════════════════════════════════════════════ */
+
+/* 1 — Fonte global Sora */
+html.dark *, html.dark button, html.dark input,
+html.dark select, html.dark textarea, html.dark label {
+  font-family: 'Sora', sans-serif !important;
+}
+html.dark code, html.dark .mono, html.dark .minp,
+html.dark .hoov { font-family: 'JetBrains Mono', monospace !important; }
+
+/* 2 — Background dark */
+html.dark body { background: #0b0d12 !important; }
+html.dark #app { background: #0b0d12 !important; }
+html.dark .page { background: #0b0d12 !important; }
+
+/* 3 — Cards glass */
+html.dark .sec,
+html.dark .cfg-card,
+html.dark .hoc,
+html.dark .rcard {
+  background: rgba(255,255,255,0.045) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 8px 32px rgba(0,0,0,0.35) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+html.dark .rcard-head {
+  background: rgba(255,255,255,0.035) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* 4 — Inputs glass */
+html.dark .finput,
+html.dark .fta,
+html.dark .fsel {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.13) !important;
+  border-radius: 14px !important;
+  color: rgba(255,255,255,0.90) !important;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.28) !important;
+}
+html.dark .finput:focus,
+html.dark .fta:focus,
+html.dark .fsel:focus {
+  border-color: rgba(232,120,56,.65) !important;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.28), 0 0 0 2px rgba(232,120,56,.18) !important;
+}
+html.dark .mbox {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 12px !important;
+}
+html.dark .minp { background: transparent !important; color: rgba(255,255,255,0.90) !important; }
+
+/* 5 — Checkboxes e toggles */
+html.dark .chk-item {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 14px !important;
+}
+html.dark .chk-item.on { background: rgba(232,120,56,.15) !important; border-color: rgba(232,120,56,.45) !important; }
+html.dark .chk-box { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.18) !important; }
+html.dark .chk-item.on .chk-box { background: #e87838 !important; border-color: #e87838 !important; }
+html.dark .toggle-row { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 16px !important; }
+html.dark .toggle-sw { background: rgba(255,255,255,0.15) !important; }
+html.dark .toggle-sw.on { background: #e87838 !important; }
+
+/* 6 — Navegação glass */
+html.dark .topnav {
+  background: rgba(10,10,10,0.85) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.30) !important;
+}
+html.dark .hm-hdr {
+  background: rgba(10,10,10,0.80) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+}
+html.dark .orbital-btn {
+  background: rgba(255,255,255,0.07) !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.80) !important;
+}
+html.dark .empresa-nome { color: rgba(255,255,255,0.92) !important; }
+html.dark .metric-val { color: rgba(255,255,255,0.88) !important; }
+html.dark .metric-label { color: rgba(255,255,255,0.40) !important; }
+html.dark .metric-sep { background: rgba(255,255,255,0.10) !important; }
+html.dark .header-metrics { border-top-color: rgba(255,255,255,0.07) !important; }
+html.dark .sidebar {
+  background: rgba(8,8,8,0.97) !important;
+  border-right: 1px solid rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
+}
+html.dark .sidebar-hdr {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+}
+
+/* 7 — Botões primários */
+html.dark .act-save {
+  background: linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%) !important;
+  border: none !important;
+  box-shadow: 0 6px 20px rgba(255,107,53,.38) !important;
+  color: #fff !important;
+}
+html.dark .act-pdf {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.28) !important;
+  color: rgba(255,255,255,0.75) !important;
+}
+html.dark .act-btn {
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+/* 8 — Fonte consistente em todos os botões no dark */
+html.dark button {
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 700 !important;
+}
+/* Botão salvar item modal */
+html.dark #btn-salvar-item-modal {
+  background: linear-gradient(135deg,#ff6b35 0%,#ff6b35 45%,#7b5cff 100%) !important;
+  border: none !important;
+  box-shadow: 0 4px 14px rgba(255,107,53,.35) !important;
+}
+
+/* 9 — Dropdown menus glass */
+html.dark .card-menu-drop {
+  background: rgba(14,14,14,0.97) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.55) !important;
+}
+html.dark .card-menu-btn {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(255,255,255,0.70) !important;
+}
+html.dark .cmd-item:hover, html.dark .cmd-item:active { background: rgba(255,255,255,0.06) !important; }
+
+/* 10 — Badges glass pill */
+html.dark .hbadge {
+  background: rgba(255,255,255,0.08) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.25) !important;
+  color: rgba(255,255,255,0.80) !important;
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: .04em !important;
+}
+html.dark .hbadge.hbg { background: rgba(16,185,129,.15) !important; border-color: rgba(16,185,129,.28) !important; color: #6ee7b7 !important; }
+html.dark .hbadge.hby { background: rgba(245,158,11,.15) !important; border-color: rgba(245,158,11,.28) !important; color: #fcd34d !important; }
+html.dark .hbadge.hbr { background: rgba(239,68,68,.15) !important; border-color: rgba(239,68,68,.28) !important; color: #fca5a5 !important; }
+html.dark .hbadge.hbb { background: rgba(232,120,56,.15) !important; border-color: rgba(232,120,56,.28) !important; color: #fdba74 !important; }
+html.dark .badge-rascunho { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.12) !important; color: rgba(255,255,255,0.55) !important; }
+
+/* 11 — Format cards e step pills */
+html.dark .fmt-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.09) !important; }
+html.dark .fmt-card.on { background: linear-gradient(145deg,#e87838,#d06420) !important; border-color: rgba(255,255,255,0.20) !important; box-shadow: 0 4px 16px rgba(232,120,56,.30) !important; }
+html.dark .step-pill { background: rgba(255,255,255,0.12) !important; }
+html.dark .step-pill.done, html.dark .step-pill.active { background: #e87838 !important; opacity: 1 !important; }
+
+/* 12 — Item summary e item card */
+html.dark .item-summary { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.09) !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important; }
+html.dark .item-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.09) !important; }
+
+/* 13 — Add room btn */
+html.dark .add-room-btn { border-color: rgba(255,255,255,0.14) !important; color: rgba(255,255,255,0.40) !important; background: rgba(255,255,255,0.025) !important; }
+html.dark .add-room-btn:hover { border-color: rgba(232,120,56,.50) !important; color: #e87838 !important; background: rgba(232,120,56,.06) !important; }
+
+/* 14 — Toast laranja */
+html.dark #toast {
+  background: linear-gradient(145deg,#e87838,#d06420) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.20) !important;
+  backdrop-filter: blur(12px) !important;
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* 15 — News cards */
+html.dark .news-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; backdrop-filter: blur(12px) !important; }
+
+/* 16 — Section titles uppercase Sora */
+html.dark .sec-title, html.dark [class*="sec-title"] {
+  color: rgba(255,255,255,0.45) !important;
+  font-size: 10px !important;
+  letter-spacing: .10em !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+  font-family: 'Sora', sans-serif !important;
+}
+
+/* 17 — Scrollbar invisível dark */
+html.dark ::-webkit-scrollbar { display: none !important; }
+
+/* 18 — Links e textos de apoio */
+html.dark .flbl {
+  color: rgba(255,255,255,0.40) !important;
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: .08em !important;
+}
+html.dark .title-big {
+  font-family: 'Sora', sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -.02em !important;
+  color: rgba(255,255,255,0.90) !important;
+}
+
+/* 19 — Botões secundários dark */
+html.dark button[style*="background:var(--bg-input)"],
+html.dark button[style*="background: var(--bg-input)"] {
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #e87838 !important;
+}
+/* Chips "ver todos" dark: lilás */
+html.dark button[style*="background:rgba(74,28,160"],
+html.dark button[style*="background: rgba(74,28,160"] {
+  background: rgba(255,107,53,0.12) !important;
+  border-color: rgba(255,107,53,0.25) !important;
+  color: #ff8c55 !important;
+}
+
+/* 20 — HOC border-left colorido (agenda) */
+html.dark .hoc[style*="border-left: 3px solid var(--bl)"] { border-left: 3px solid #e87838 !important; }
+html.dark .hoc[style*="border-left: 3px solid var(--gn)"] { border-left: 3px solid #10B981 !important; }
 </style>
 <link rel="stylesheet" href="/photo-annotator.css">
 </head>
@@ -736,6 +1228,7 @@ body::before {
 <symbol id="ico-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
 <symbol id="ico-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
 <symbol id="ico-database" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></symbol>
+<symbol id="ico-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
 <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
 <symbol id="ico-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
 <symbol id="ico-headphones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></symbol>
@@ -790,23 +1283,83 @@ body::before {
   </div>
 
 
+  <!-- ── TELA DE LOGIN ── -->
+  <div id="pg-login" style="
+    position:fixed;inset:0;z-index:99999;
+    background:var(--bg);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:32px 24px;
+    transition:opacity .4s ease,visibility .4s ease;
+  ">
+    <div style="width:100%;max-width:360px;display:flex;flex-direction:column;align-items:center;gap:0;">
+      <!-- Logo -->
+      <img src="/public/apple-touch-icon.png" alt="Pintor Plus" style="width:72px;height:72px;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,.18);margin-bottom:24px;">
+      <!-- Título -->
+      <div style="font-family:'Sora',sans-serif;font-size:28px;font-weight:800;color:var(--ink);letter-spacing:-.5px;text-align:center;margin-bottom:6px;">Pintor Plus</div>
+      <div style="font-family:'Sora',sans-serif;font-size:13px;color:var(--ink3);text-align:center;margin-bottom:48px;line-height:1.5;">Gestão de orçamentos para pintores<br>profissionais</div>
+
+      <!-- Google Sign-In button (renderizado pelo GIS) -->
+      <div id="google-signin-btn" style="margin-bottom:16px;min-height:44px;display:flex;align-items:center;justify-content:center;"></div>
+
+      <!-- Divider -->
+      <div style="width:100%;display:flex;align-items:center;gap:12px;margin:20px 0;">
+        <div style="flex:1;height:1px;background:var(--bdr);"></div>
+        <span style="font-size:11px;color:var(--ink3);font-weight:600;">OU</span>
+        <div style="flex:1;height:1px;background:var(--bdr);"></div>
+      </div>
+
+      <!-- Acesso offline (sem Google) -->
+      <button onclick="ppLoginOffline()" style="
+        width:100%;height:48px;border-radius:100px;
+        background:transparent;border:1.5px solid var(--bdr);
+        font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--ink2);
+        cursor:pointer;
+      ">Usar sem conta (modo offline)</button>
+
+      <div style="font-size:11px;color:var(--ink3);text-align:center;margin-top:32px;line-height:1.6;max-width:280px;">
+        Ao entrar você concorda com os<br>
+        <a href="/privacy-policy.html" style="color:var(--bl);text-decoration:none;">Termos de Uso e Política de Privacidade</a>
+      </div>
+    </div>
+  </div>
+
   <div id="pages">
     <div class="page active" id="pg-home">
       <div class="hm-hdr">
-        <div style="display:flex; align-items: center; justify-content: space-between;">
-          <div style="display:flex; align-items: center; gap: 12px;">
-            <button onclick="toggleSidebar()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--ink); padding:0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-            <button onclick="homeTab('config')" style="display:flex;align-items:center;gap:8px;background:none;border:none;cursor:pointer;padding:0;" title="Configurações da empresa">
-              <img id="home-logo-img" style="width:32px; height:32px; border-radius:50%; object-fit:cover; display:none; border:1.5px solid var(--bdr-input); background-color:#ffffff;">
-              <div class="hm-name" id="home-saudacao" style="font-size:17px; font-weight:800; color:var(--ink); text-align:left;"></div>
+        <div class="header-top">
+          <button class="orbital-btn" onclick="toggleSidebar()" aria-label="Menu">
+            <svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg>
+          </button>
+          <div class="identity-center" onclick="homeTab('config')" style="cursor:pointer;" title="Configurações da empresa">
+            <div class="empresa-nome" id="home-saudacao"></div>
+            <div class="empresa-tagline-wrap">
+              <span class="tagline-a">Pintor Profissional</span>
+              <span class="tagline-b" id="home-tagline-b">Pronto para o próximo cliente →</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button id="sync-status-btn" onclick="window.executeSync?.()" title="Sincronizar agora" style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;color:var(--ink3);border-radius:8px;transition:color .2s;" aria-label="Status de sincronização">
+              <svg id="sync-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+            </button>
+            <button class="orbital-btn" onclick="toggleThemeAnim()" aria-label="Alternar tema">
+              <svg class="ico" aria-hidden="true"><use href="#ico-moon"/></svg>
             </button>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <div class="theme-sw-wrap">
-              <span class="tsw-ic" onclick="setTheme('light')"><svg class="ico" aria-hidden="true"><use href="#ico-sun"/></svg></span>
-              <div class="theme-sw" onclick="toggleThemeAnim()"></div>
-              <span class="tsw-ic" onclick="setTheme('dark')"><svg class="ico" aria-hidden="true"><use href="#ico-moon"/></svg></span>
-            </div>
+        </div>
+        <div class="header-metrics">
+          <div class="metric-item">
+            <span class="metric-val" id="home-metric-fat">R$ 0</span>
+            <div class="metric-label"><span class="metric-dot" style="background:#e87838;"></span>Faturamento</div>
+          </div>
+          <div class="metric-sep"></div>
+          <div class="metric-item">
+            <span class="metric-val" id="home-metric-orc">0</span>
+            <div class="metric-label"><span class="metric-dot" style="background:#4a6cf7;"></span>Orçamentos</div>
+          </div>
+          <div class="metric-sep"></div>
+          <div class="metric-item">
+            <span class="metric-val" id="home-metric-cli">0</span>
+            <div class="metric-label"><span class="metric-dot" style="background:#10b981;"></span>Clientes</div>
           </div>
         </div>
       </div>
@@ -833,33 +1386,43 @@ body::before {
           </div>
         </div>
 
-        <div style="display:flex;gap:10px;margin-bottom:24px;align-items:center;">
-          <button onclick="homeTab('flash')" title="Orçamento Rápido Flash" style="width:88px;height:88px;border-radius:27px;background:linear-gradient(135deg,#f97316,#fb923c);color:#fff;border:4px solid #fed7aa;font-size:38px;cursor:pointer;box-shadow:0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28);flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='scale(1.07)';this.style.boxShadow='0 16px 36px rgba(249,115,22,.6),0 6px 12px rgba(249,115,22,.3)'" onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 12px 28px rgba(249,115,22,.52),0 4px 8px rgba(249,115,22,.28)'"><svg class="ico" aria-hidden="true"><use href="#ico-zap"/></svg><span style="font-size:10px;font-weight:800;letter-spacing:1px;line-height:1;">FLASH</span></button>
-          <button onclick="showModeSelector()" style="flex:1;height:64px;border-radius:16px;background:var(--bl);color:#fff;border:none;font-family:inherit;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 8px 16px rgba(79,70,229,0.2);display:flex;align-items:center;justify-content:center;gap:8px;">
-            Orçamento detalhado
-          </button>
+        <div class="hero-cta" onclick="showModeSelector()" role="button" tabindex="0" aria-label="Criar novo orçamento">
+          <div class="hero-top-row">
+            <span class="hero-toque-pill">Toque para iniciar</span>
+          </div>
+          <div class="hero-bottom-row">
+            <h2 class="hero-title">Novo<br>Orçamento</h2>
+            <div class="hero-plus-pill">
+              <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" style="width:62%;height:62%;">
+                <line x1="12" y1="3.5" x2="12" y2="20.5" stroke="rgba(255,255,255,0.80)" stroke-width="4"/>
+                <line x1="3.5" y1="12" x2="20.5" y2="12" stroke="rgba(255,255,255,0.80)" stroke-width="4"/>
+              </svg>
+            </div>
+          </div>
         </div>
         
 
-        <div class="sec-title" style="margin-bottom:12px; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Últimos Orçamentos</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec-title" style="margin-bottom:0; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Últimos Orçamentos</div>
+          <button onclick="homeTab('orcamentos')" style="height:28px;padding:0 12px;border-radius:100px;background:rgba(74,28,160,0.10);color:#4a1ca0;border:1px solid rgba(74,28,160,0.22);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:4px;white-space:nowrap;">Ver todos <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
         <div id="home-orcs-mini"></div>
-        <button onclick="homeTab('orcamentos')" style="width:100%; height:40px; border-radius:10px; background:var(--bg-input); color:var(--bl); border:1.5px solid var(--bdr-input); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; margin-bottom:24px;">
-          Ver todos os orçamentos
-        </button>
+        <div style="margin-bottom:24px;"></div>
 
-        <div class="sec-title" style="margin-bottom:12px; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Eventos da Semana (7 dias)</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec-title" style="margin-bottom:0; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Eventos da Semana (7 dias)</div>
+          <button onclick="homeTab('agenda')" style="height:28px;padding:0 12px;border-radius:100px;background:rgba(74,28,160,0.10);color:#4a1ca0;border:1px solid rgba(74,28,160,0.22);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:4px;white-space:nowrap;">Ver agenda <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
         <div id="home-events-mini"></div>
-        <button onclick="homeTab('agenda')" style="width:100%; height:40px; border-radius:10px; background:var(--bg-input); color:var(--bl); border:1.5px solid var(--bdr-input); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-top:4px; margin-bottom:24px;">
-          Ir para a Agenda
-        </button>
+        <div style="margin-bottom:24px;"></div>
 
-        <div class="sec-title" style="margin-bottom:12px; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Notícias do Setor</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec-title" style="margin-bottom:0; font-size: 13px; font-weight: 900; letter-spacing: -.1px;">Notícias do Setor</div>
+          <button onclick="window.open('https://www.pintorabrapp.com.br/revista-pintura-em-movimento','_blank')" style="height:28px;padding:0 12px;border-radius:100px;background:rgba(74,28,160,0.10);color:#4a1ca0;border:1px solid rgba(74,28,160,0.22);font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;letter-spacing:.02em;display:flex;align-items:center;gap:4px;white-space:nowrap;">Ver revista <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+        </div>
         <div id="home-news-mini">
            <div style="text-align:center; padding:16px; font-size:12px; color:var(--ink3);">A carregar notícias...</div>
         </div>
-        <button onclick="window.open('https://www.pintorabrapp.com.br/revista-pintura-em-movimento', '_blank')" style="width:100%; height:46px; border-radius:12px; background:var(--bll); color:var(--bl); border:1.5px dashed var(--bl); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; margin-top:8px;">
-          Aceder à Revista Completa
-        </button>
 
         <div style="text-align:center;padding:8px 0 4px;">
           <a href="/privacy-policy.html" style="font-size:11px;color:var(--ink3);text-decoration:none;border-bottom:1px solid var(--bdr);">Política de Privacidade e Termos de Uso</a>
@@ -1137,6 +1700,15 @@ body::before {
       </div>
       <div class="scr">
 
+        <!-- Card de conta (leitura) -->
+        <div style="margin:0 0 4px;padding:14px;background:var(--bg-card-alt);border:1px solid var(--bdr);border-radius:16px;display:flex;align-items:center;gap:12px;">
+          <img id="cfg-user-avatar" src="/public/apple-touch-icon.png" style="width:46px;height:46px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--bdr);">
+          <div style="flex:1;min-width:0;">
+            <div id="cfg-user-name" style="font-size:15px;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Usuário</div>
+            <div id="cfg-user-email" style="font-size:12px;color:var(--ink3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          </div>
+        </div>
+
         <!-- CARD: Empresa -->
         <div class="cfg-card">
           <button class="cfg-card-hdr" onclick="toggleCfgCard('cc-empresa')">
@@ -1248,53 +1820,58 @@ body::before {
           </div>
         </div>
 
-        <!-- CARD: Backup Local -->
+        <!-- CARD: Backup -->
         <div class="cfg-card">
-          <button class="cfg-card-hdr" onclick="toggleCfgCard('cc-gdrive')">
-            <span><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="color:#4285F4;"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg></span><span>Backup Local</span><span class="cfg-chev">›</span>
+          <button class="cfg-card-hdr" onclick="toggleCfgCard('cc-backup')">
+            <span><svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg></span><span>Backup</span><span class="cfg-chev">›</span>
           </button>
-          <div class="cfg-card-body" id="cc-gdrive">
-            <div id="gdrive-cfg-status"></div>
+          <div class="cfg-card-body" id="cc-backup">
+
+            <!-- Google Drive -->
+            <div style="margin-bottom:18px;">
+              <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg>
+                Google Drive
+              </div>
+              <div id="gdrive-backup-info" style="font-size:13px;color:var(--ink3);margin-bottom:10px;line-height:1.5;">Salve backups na nuvem e acesse de qualquer dispositivo.</div>
+              <div id="gdrive-cfg-status"></div>
+              <div id="gdrive-backup-btns" style="margin-top:8px;"></div>
+            </div>
+
+            <div style="border-top:1px solid var(--bdr);margin-bottom:16px;"></div>
+
+            <!-- Exportar -->
+            <div style="margin-bottom:14px;">
+              <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px;">Exportar para arquivo</div>
+              <div style="font-size:13px;color:var(--ink3);margin-bottom:10px;line-height:1.5;">Gera um arquivo com todos os dados para salvar no dispositivo ou pendrive.</div>
+              <button onclick="exportBackup()" style="width:100%;height:48px;border-radius:12px;background:var(--bg-input);border:2px dashed var(--bdr-input);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--bl);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg> Baixar Backup
+              </button>
+            </div>
+
+            <div style="border-top:1px solid var(--bdr);margin-bottom:16px;"></div>
+
+            <!-- Importar -->
+            <div>
+              <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:8px;">Importar de arquivo</div>
+              <div style="font-size:13px;color:var(--ink3);margin-bottom:10px;line-height:1.5;">Restaura os dados de um backup salvo anteriormente.</div>
+              <input type="file" id="backup-file" accept=".json" style="display:none;" onchange="handleBackupFile(this)">
+              <button onclick="document.getElementById('backup-file').click()" style="width:100%;height:48px;border-radius:12px;background:var(--bll);border:1.5px solid var(--bld);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--bld);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                <svg class="ico" aria-hidden="true"><use href="#ico-upload"/></svg> Importar Backup
+              </button>
+            </div>
+
           </div>
         </div>
 
+        <!-- Botão Sair da conta -->
+        <div style="margin:8px 0 0;">
+          <button onclick="ppLogoutConfirm()" style="width:100%;height:52px;border-radius:14px;background:var(--rdl);border:1.5px solid var(--rd);color:var(--rd);font-family:'Sora',sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg class="ico" aria-hidden="true"><use href="#ico-logout"/></svg> Sair da conta
+          </button>
+        </div>
+
         <div style="height:30px;"></div>
-      </div>
-    </div>
-
-    <!-- BACKUP -->
-    <div class="page" id="pg-backup">
-      <div class="topnav">
-        <div class="topnav-row">
-          <button onclick="toggleSidebar()" style="position: absolute; left: 0; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--ink); padding: 0;"><svg class="ico" aria-hidden="true"><use href="#ico-menu"/></svg></button>
-          <div class="title-big">SISTEMA DE BACKUP</div>
-          <button class="btn-home-global dark-nav" onclick="homeTab('home')" style="position:absolute;left:0;" aria-label="Página inicial" title="Página inicial"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></button>
-        </div>
-      </div>
-      <div class="scr">
-        <div class="sec">
-          <div class="sec-title">Exportar Dados</div>
-          <div style="font-size:13px; color:var(--ink3); margin-bottom:16px;">Gere um arquivo com todos os orçamentos e configurações para salvar num pendrive ou nuvem.</div>
-          <button onclick="exportBackup()" style="width:100%;height:52px;border-radius:14px;background:var(--bg-input);border:2px dashed var(--bdr-input);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--bl);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-            <span style="font-size:20px;">⬇️</span> Baixar Arquivo de Backup
-          </button>
-        </div>
-        <div class="sec">
-          <div class="sec-title">Importar Dados</div>
-          <div style="font-size:13px; color:var(--ink3); margin-bottom:16px;">Restaure os dados de um arquivo de backup previamente gerado.</div>
-          <input type="file" id="backup-file" accept=".json" style="display:none;" onchange="handleBackupFile(this)">
-          <button onclick="document.getElementById('backup-file').click()" style="width:100%;height:52px;border-radius:14px;background:var(--bll);border:1.5px solid var(--bld);font-family:'Sora',sans-serif;font-size:14px;font-weight:700;color:var(--bld);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-            <span style="font-size:20px;">⬆️</span> Escolher Arquivo para Importar
-          </button>
-        </div>
-
-        <!-- Backup Local -->
-        <div class="sec">
-          <div class="sec-title" style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="#4285F4"><path d="M4.56 17.38 6.17 20.12a1.73 1.73 0 0 0 1.5.88h8.66a1.73 1.73 0 0 0 1.5-.88l1.61-2.74zM12 3a1.73 1.73 0 0 0-1.5.87L3.57 15.5a1.73 1.73 0 0 0 0 1.75l1.5 2.6 3.42-5.93L12 7.48l3.5 6.44 3.43 5.93 1.5-2.6a1.73 1.73 0 0 0 0-1.75L13.5 3.87A1.73 1.73 0 0 0 12 3zm3.5 10.92L12 7.48l-3.5 6.44z"/></svg> Backup Local</div>
-          <div id="gdrive-backup-info" style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.55;">Exporte um arquivo com seus dados e importe quando precisar restaurar o aplicativo.</div>
-          <div id="gdrive-backup-btns"></div>
-        </div>
-
       </div>
     </div>
 
@@ -1439,40 +2016,35 @@ body::before {
       --bg:#f7f8fc; --bg-soft:#eef2f7; --card:#ffffff; --card-2:#fff7ed;
       --text:#0f172a; --text-2:#334155; --muted:#64748b;
       --border:#d9e0ea; --border-2:#c4ccd8;
-      --primary-a:#7c3aed; --primary-b:#dc2626;
-      --accent-a:#f97316; --accent-b:#fb923c;
+      --primary-a:#e87838; --primary-b:#d06420;
+      --accent-a:#e87838; --accent-b:#fb923c;
       --danger:#dc2626; --danger-soft:rgba(220,38,38,.10);
       --success:#10b981; --success-soft:#ecfdf5;
       --shadow:0 10px 28px rgba(15,23,42,.10);
-      --glow-a:#7c3aed; --glow-b:#ef4444; --glow-c:#f59e0b;
     }
     body.dark{
-      --bg:#020617; --bg-soft:#111827; --card:#0f172a; --card-2:#3a1d10;
-      --text:#f8fafc; --text-2:#dbe4ef; --muted:#94a3b8;
-      --border:#334155; --border-2:#475569;
-      --primary-a:#5b21b6; --primary-b:#991b1b;
-      --accent-a:#fb923c; --accent-b:#f97316;
+      --bg:#0d0f13; --bg-soft:#141720; --card:#1a1d26; --card-2:#261a10;
+      --text:#ededf0; --text-2:#b0b8c8; --muted:#7a8394;
+      --border:rgba(255,255,255,0.07); --border-2:rgba(255,255,255,0.12);
+      --primary-a:#e87838; --primary-b:#c4551a;
+      --accent-a:#e87838; --accent-b:#fb923c;
       --danger:#f87171; --danger-soft:rgba(248,113,113,.12);
-      --success:#34d399; --success-soft:#052e2b;
-      --shadow:0 14px 28px rgba(0,0,0,.34);
-      --glow-a:#a78bfa; --glow-b:#f87171; --glow-c:#fbbf24;
+      --success:#34d399; --success-soft:rgba(52,211,153,.08);
+      --shadow:0 14px 28px rgba(0,0,0,.40);
     }
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
     html,body{height:100%;overflow:hidden}
-    body{font-family:&quot;Sora&quot;,sans-serif;background:radial-gradient(circle at top, rgba(249,115,22,.10), transparent 34%), var(--bg);color:var(--text);transition:background-color .25s ease,color .25s ease}
-    .app-shell{width:100%;max-width:450px;height:100dvh;margin:0 auto;padding:8px;position:relative}
-    .neon-frame{position:absolute;inset:4px;border-radius:28px;overflow:hidden;pointer-events:none;filter:drop-shadow(0 0 18px rgba(124,58,237,.20))}
-    .neon-frame::before{content:&quot;&quot;;position:absolute;inset:-35%;background:conic-gradient(from 0deg, transparent 0deg, var(--glow-a) 70deg, transparent 110deg, transparent 180deg, var(--glow-b) 240deg, transparent 285deg, var(--glow-c) 330deg, transparent 360deg);animation:spinGlow 6s linear infinite;opacity:.95}
-    .neon-frame::after{content:&quot;&quot;;position:absolute;inset:4px;border-radius:24px;background:var(--bg)}
-    @keyframes spinGlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    .app{position:relative;z-index:1;width:100%;height:100%;border-radius:24px;overflow:hidden;background:var(--bg);border:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column}
-    .theme-toggle{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:12;width:132px;height:56px;border:none;border-radius:999px;background:#F7F9FC;box-shadow:inset 0 0 0 1px rgba(203,213,225,.75),0 8px 22px rgba(15,23,42,.10);display:flex;align-items:center;justify-content:space-between;padding:0 16px;cursor:pointer}.theme-toggle .theme-icon{font-size:24px;line-height:1;position:relative;z-index:2}.theme-toggle .theme-track{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:38px;border-radius:999px;background:#D9E2EC;transition:background-color .25s ease}.theme-toggle .theme-knob{position:absolute;left:31px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:#fff;box-shadow:0 3px 10px rgba(15,23,42,.12);transition:left .25s ease, background-color .25s ease}.theme-toggle.is-dark{background:#EEF2F7;box-shadow:inset 0 0 0 1px rgba(71,85,105,.32),0 8px 22px rgba(0,0,0,.18)}.theme-toggle.is-dark .theme-track{background:#CBD5E1}.theme-toggle.is-dark .theme-knob{left:57px;background:#fff}
-    .hero{flex-shrink:0;background:linear-gradient(135deg,var(--primary-a),var(--primary-b));color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px;border-radius:0 0 22px 22px;box-shadow:0 10px 24px rgba(124,58,237,.22);transition:opacity .25s ease, transform .25s ease}
+    body{font-family:&quot;Sora&quot;,sans-serif;background:var(--bg);color:var(--text);transition:background-color .25s ease,color .25s ease}
+    body.dark{background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(232,120,56,.10), transparent 60%), var(--bg)}
+    .app-shell{width:100%;max-width:450px;height:100dvh;margin:0 auto;position:relative}
+    .app{position:relative;z-index:1;width:100%;height:100%;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+    .theme-toggle{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:14px;z-index:12;width:132px;height:56px;border:none;border-radius:999px;background:#F7F9FC;box-shadow:inset 0 0 0 1px rgba(203,213,225,.75),0 8px 22px rgba(15,23,42,.10);display:flex;align-items:center;justify-content:space-between;padding:0 16px;cursor:pointer}.theme-toggle .theme-icon{font-size:24px;line-height:1;position:relative;z-index:2}.theme-toggle .theme-track{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:72px;height:38px;border-radius:999px;background:#D9E2EC;transition:background-color .25s ease}.theme-toggle .theme-knob{position:absolute;left:31px;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:999px;background:#fff;box-shadow:0 3px 10px rgba(15,23,42,.12);transition:left .25s ease, background-color .25s ease}.theme-toggle.is-dark{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 8px 22px rgba(0,0,0,.28)}.theme-toggle.is-dark .theme-track{background:rgba(255,255,255,.14)}.theme-toggle.is-dark .theme-knob{left:57px;background:#e87838}
+    .hero{flex-shrink:0;background:linear-gradient(140deg,#f08040 0%,#e87838 40%,#d06420 70%,#b84e14 100%);color:#fff;padding:calc(12px + env(safe-area-inset-top,0px)) 14px 10px;border-radius:0 0 22px 22px;box-shadow:0 10px 24px rgba(232,120,56,.30);transition:opacity .25s ease, transform .25s ease}
     .hero.dimmed{opacity:.78;transform:translateY(-2px)}
     .hero h1{font-size:15px;line-height:1.18;letter-spacing:-.2px;font-weight:400;text-align:center;padding-left:58px;padding-right:14px;}
     .steps{display:flex;gap:6px;margin-top:8px}.step-pill{flex:1;height:5px;border-radius:999px;background:rgba(255,255,255,.24);overflow:hidden}.step-pill>span{display:block;width:0;height:100%;background:#fff;border-radius:999px;transition:width .25s ease}
     .screen{flex:1;min-height:0;position:relative;padding:8px 10px calc(10px + env(safe-area-inset-bottom,0px));overflow:hidden;touch-action:pan-y}
-    .transition-overlay{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;overflow:hidden;background:linear-gradient(90deg, rgba(2,6,23,.16) 0%, rgba(2,6,23,.38) 18%, rgba(124,58,237,.28) 36%, rgba(249,115,22,.34) 52%, rgba(2,6,23,.30) 72%, rgba(2,6,23,.10) 100%)}
+    .transition-overlay{position:absolute;inset:0;z-index:8;pointer-events:none;opacity:0;overflow:hidden;background:linear-gradient(90deg, rgba(2,6,23,.16) 0%, rgba(2,6,23,.38) 18%, rgba(232,120,56,.28) 36%, rgba(249,115,22,.34) 52%, rgba(2,6,23,.30) 72%, rgba(2,6,23,.10) 100%)}
     .transition-overlay.run{opacity:1;animation:flashSweep .72s ease forwards}
     .bolt-line{position:absolute;top:-10%;bottom:-10%;right:-38%;width:66%;background:linear-gradient(270deg, rgba(251,146,60,0) 0%, rgba(251,146,60,.44) 18%, rgba(255,255,255,.96) 40%, rgba(255,255,255,1) 50%, rgba(249,115,22,.62) 66%, rgba(139,92,246,.52) 84%, rgba(139,92,246,0) 100%);filter:blur(.3px);box-shadow:0 0 36px rgba(255,255,255,.72),0 0 60px rgba(249,115,22,.56),0 0 82px rgba(139,92,246,.48);transform:skewX(-20deg);animation:sweepRightLeft .72s cubic-bezier(.16,.86,.2,1) forwards}
     .bolt-icon{position:absolute;font-size:30px;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.98),0 0 30px rgba(251,146,60,.98),0 0 44px rgba(139,92,246,.86);opacity:0;animation:boltFloat .72s ease forwards}
@@ -1495,11 +2067,11 @@ body::before {
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.measure-note{margin-top:-2px;margin-bottom:8px;font-size:12px;color:var(--muted);line-height:1.35}
     .nav-row,.step1-actions{display:grid;grid-template-columns:1fr;gap:8px}
     .step1-actions{position:fixed;bottom:0;left:0;right:0;grid-template-columns:52px 1fr;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 30%);z-index:10}
-    body.dark .step1-actions{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 30%)}
+    body.dark .step1-actions{background:linear-gradient(180deg, rgba(13,15,19,0) 0%, var(--bg) 30%)}
     .act-danger{border:none;background:linear-gradient(135deg,#DC2626,#EF4444);color:#fff;box-shadow:0 10px 20px rgba(220,38,38,.22)}
     .act-cancel{background:var(--card);color:var(--text-2);border:2px solid var(--border-2)}
     .footer-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:linear-gradient(180deg, rgba(247,248,252,0) 0%, var(--bg) 30%);z-index:10}
-    body.dark .footer-nav{background:linear-gradient(180deg, rgba(2,6,23,0) 0%, var(--bg) 30%)}
+    body.dark .footer-nav{background:linear-gradient(180deg, rgba(13,15,19,0) 0%, var(--bg) 30%)}
     .footer-nav .act-btn{min-width:0}
     .footer-nav .act-btn{height:54px}
     .act-btn,.add-item-btn{width:100%;height:48px;border-radius:16px;font-family:&quot;Sora&quot;,sans-serif;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;padding:0 12px;transition:transform .12s ease, box-shadow .18s ease, background .25s ease, border-color .25s ease, color .25s ease}.step1-actions .act-btn{height:48px;font-size:14px;border-radius:14px}
@@ -1538,7 +2110,6 @@ body::before {
 </head>
 <body>
   <div class=&quot;app-shell&quot;>
-    <div class=&quot;neon-frame&quot;></div>
     <div class=&quot;app&quot;>
       <div class=&quot;splash-screen&quot; id=&quot;splashScreen&quot;>
         <div class=&quot;splash-burst&quot;></div>
@@ -1653,7 +2224,7 @@ body::before {
       <div class=&quot;fld&quot;>
         <div style=&quot;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;&quot;>
           <label class=&quot;flbl&quot; style=&quot;margin-bottom:0;&quot;>Nome do item</label>
-          <button type=&quot;button&quot; onclick=&quot;openNomePick()&quot; style=&quot;background:#ede9fe;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#7c3aed;cursor:pointer;&quot;>☰ Sugestões</button>
+          <button type=&quot;button&quot; onclick=&quot;openNomePick()&quot; style=&quot;background:rgba(232,120,56,.13);border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#e87838;cursor:pointer;&quot;>☰ Sugestões</button>
         </div>
         <input class=&quot;finput&quot; id=&quot;modalNome&quot; name=&quot;item_nome_app&quot; type=&quot;text&quot; autocomplete=&quot;off&quot; data-form-type=&quot;other&quot; autocapitalize=&quot;words&quot; autocorrect=&quot;off&quot; spellcheck=&quot;false&quot; placeholder=&quot;Ex.: Janela da sala&quot; onclick=&quot;_onNomeFieldClick()&quot; />
       </div>
@@ -1691,26 +2262,26 @@ body::before {
       </div>
     </div>
   </div>
-  <div id=&quot;nomePickModal&quot; style=&quot;display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:flex-end;justify-content:center;&quot;>
-    <div style=&quot;background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:75vh;overflow-y:auto;&quot;>
+  <div id=&quot;nomePickModal&quot; style=&quot;display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);z-index:9000;align-items:flex-end;justify-content:center;&quot;>
+    <div style=&quot;background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:75vh;overflow-y:auto;border-top:1px solid var(--border);&quot;>
       <div style=&quot;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;&quot;>
-        <span style=&quot;font-size:15px;font-weight:800;color:#0f172a;&quot;>Selecione o item</span>
-        <button onclick=&quot;closeNomePick()&quot; aria-label=&quot;Fechar&quot; style=&quot;background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
+        <span style=&quot;font-size:15px;font-weight:800;color:var(--text);&quot;>Selecione o item</span>
+        <button onclick=&quot;closeNomePick()&quot; aria-label=&quot;Fechar&quot; style=&quot;background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);flex-shrink:0;&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
       </div>
       <div id=&quot;nomePickGrid&quot; style=&quot;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;&quot;></div>
     </div>
   </div>
-  <div id=&quot;obsPickModal&quot; style=&quot;display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;align-items:flex-end;justify-content:center;&quot;>
-    <div style=&quot;background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:80vh;overflow-y:auto;&quot;>
+  <div id=&quot;obsPickModal&quot; style=&quot;display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);z-index:9000;align-items:flex-end;justify-content:center;&quot;>
+    <div style=&quot;background:var(--card);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px max(32px,calc(env(safe-area-inset-bottom,0px) + 20px));max-height:80vh;overflow-y:auto;border-top:1px solid var(--border);&quot;>
       <div style=&quot;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;&quot;>
-        <span style=&quot;font-size:15px;font-weight:800;color:#0f172a;&quot;>Serviços e Materiais</span>
-        <button onclick=&quot;closeObsPick()&quot; aria-label=&quot;Fechar&quot; style=&quot;background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
+        <span style=&quot;font-size:15px;font-weight:800;color:var(--text);&quot;>Serviços e Materiais</span>
+        <button onclick=&quot;closeObsPick()&quot; aria-label=&quot;Fechar&quot; style=&quot;background:var(--bg-soft);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);flex-shrink:0;&quot;><svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot; stroke-linecap=&quot;round&quot; stroke-linejoin=&quot;round&quot; width=&quot;16&quot; height=&quot;16&quot;><line x1=&quot;18&quot; y1=&quot;6&quot; x2=&quot;6&quot; y2=&quot;18&quot;/><line x1=&quot;6&quot; y1=&quot;6&quot; x2=&quot;18&quot; y2=&quot;18&quot;/></svg></button>
       </div>
-      <div style=&quot;font-size:12px;font-weight:700;color:#7c3aed;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;&quot;>Serviços</div>
+      <div style=&quot;font-size:12px;font-weight:700;color:#e87838;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;&quot;>Serviços</div>
       <div id=&quot;obsServGrid&quot; style=&quot;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;&quot;></div>
       <div style=&quot;font-size:12px;font-weight:700;color:#059669;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;&quot;>Materiais</div>
       <div id=&quot;obsMatGrid&quot; style=&quot;display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;&quot;></div>
-      <button onclick=&quot;confirmObsPick()&quot; style=&quot;width:100%;height:46px;border-radius:12px;border:none;background:#7c3aed;font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;&quot;>✓ Confirmar</button>
+      <button onclick=&quot;confirmObsPick()&quot; style=&quot;width:100%;height:46px;border-radius:12px;border:none;background:linear-gradient(135deg,#e87838,#d06420);font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;&quot;>✓ Confirmar</button>
     </div>
   </div>
   <div class=&quot;camera-fullscreen&quot; id=&quot;cameraModal&quot;>
@@ -1727,7 +2298,7 @@ body::before {
     </div>
     <div class=&quot;camera-stage&quot;>
       <video id=&quot;cameraVideo&quot; autoplay playsinline muted></video>
-      <div id=&quot;zoomControl&quot; style=&quot;display:none;position:absolute;bottom:90px;left:50%;transform:translateX(-50%);width:60%;background:rgba(0,0,0,0.5);border-radius:20px;padding:8px 16px;z-index:10;&quot;><input type=&quot;range&quot; id=&quot;zoomSlider&quot; style=&quot;width:100%;accent-color:#7c3aed;&quot; /></div>
+      <div id=&quot;zoomControl&quot; style=&quot;display:none;position:absolute;bottom:90px;left:50%;transform:translateX(-50%);width:60%;background:rgba(0,0,0,0.5);border-radius:20px;padding:8px 16px;z-index:10;&quot;><input type=&quot;range&quot; id=&quot;zoomSlider&quot; style=&quot;width:100%;accent-color:#e87838;&quot; /></div>
       <div class=&quot;camera-thumbs&quot; id=&quot;cameraThumbs&quot;></div>
       <div class=&quot;camera-hint&quot;>Fotos do item</div>
     </div>
@@ -1741,14 +2312,14 @@ body::before {
     </div>
   </div>
   <!-- Modal Sair -->
-  <div id=&quot;exitModal&quot; onclick=&quot;if(event.target===this)closeExitModal(false)&quot; style=&quot;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;&quot;>
-    <div style=&quot;background:#fff;padding:24px;border-radius:20px;width:100%;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.2);position:relative;&quot;>
-      <button onclick=&quot;closeExitModal(false)&quot; style=&quot;position:absolute;top:10px;right:10px;background:#fee2e2;border:none;width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:800;color:#dc2626;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;&quot;>✕</button>
-      <div style=&quot;font-size:18px;font-weight:800;color:#0f172a;margin-bottom:8px;&quot;>O que deseja fazer?</div>
-      <div style=&quot;font-size:13px;line-height:1.5;color:#64748b;margin-bottom:20px;&quot;>Você pode salvar um rascunho para continuar depois ou sair sem salvar.</div>
+  <div id=&quot;exitModal&quot; onclick=&quot;if(event.target===this)closeExitModal(false)&quot; style=&quot;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;&quot;>
+    <div style=&quot;background:var(--card);padding:24px;border-radius:20px;width:100%;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,0.3);border:1px solid var(--border);position:relative;&quot;>
+      <button onclick=&quot;closeExitModal(false)&quot; style=&quot;position:absolute;top:10px;right:10px;background:rgba(220,38,38,.12);border:none;width:28px;height:28px;border-radius:50%;font-size:14px;font-weight:800;color:var(--danger);cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;&quot;>✕</button>
+      <div style=&quot;font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px;&quot;>O que deseja fazer?</div>
+      <div style=&quot;font-size:13px;line-height:1.5;color:var(--muted);margin-bottom:20px;&quot;>Você pode salvar um rascunho para continuar depois ou sair sem salvar.</div>
       <div style=&quot;display:flex;flex-direction:column;gap:10px;&quot;>
-        <button onclick=&quot;saveDraftAndExit()&quot; style=&quot;width:100%;height:48px;border-radius:12px;border:none;background:#7c3aed;font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;&quot;>💾 Salvar Rascunho</button>
-        <button onclick=&quot;closeExitModal(true)&quot; style=&quot;width:100%;height:44px;border-radius:12px;border:1.5px solid #cbd5e1;background:#f8fafc;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:#dc2626;cursor:pointer;&quot;>Sair sem salvar</button>
+        <button onclick=&quot;saveDraftAndExit()&quot; style=&quot;width:100%;height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#e87838,#d06420);font-family:'Sora',sans-serif;font-size:14px;font-weight:800;color:#fff;cursor:pointer;&quot;>💾 Salvar Rascunho</button>
+        <button onclick=&quot;closeExitModal(true)&quot; style=&quot;width:100%;height:44px;border-radius:12px;border:1.5px solid var(--border-2);background:var(--bg-soft);font-family:'Sora',sans-serif;font-size:13px;font-weight:700;color:var(--danger);cursor:pointer;&quot;>Sair sem salvar</button>
       </div>
     </div>
   </div>
@@ -1789,7 +2360,7 @@ body::before {
     function runTransition(){ const o = els.transitionOverlay; o.innerHTML = ''; const line = document.createElement('div'); line.className = 'bolt-line'; o.appendChild(line); [12,24,36,48,60,72,84].forEach((top, idx) => { const bolt = document.createElement('div'); bolt.className = 'bolt-icon'; bolt.textContent = '\u26A1'; bolt.style.top = `${top}%`; bolt.style.right = `${4 + idx * 5}%`; bolt.style.animationDelay = `${idx * 0.05}s`; o.appendChild(bolt); }); o.classList.remove('run'); void o.offsetWidth; o.classList.add('run'); setTimeout(() => { o.classList.remove('run'); o.innerHTML = ''; }, 720); }
     function renderSteps(){ els.step1.classList.toggle('active', state.currentStep === 1); els.step2.classList.toggle('active', state.currentStep === 2); els.step3.classList.toggle('active', state.currentStep === 3); els.pill1.style.width = state.currentStep >= 1 ? '100%' : '0%'; els.pill2.style.width = state.currentStep >= 2 ? '100%' : '0%'; els.pill3.style.width = state.currentStep >= 3 ? '100%' : '0%'; els.hero.classList.toggle('dimmed', state.currentStep !== 1); }
     function goStep(n){ if (n < 1 || n > 3 || n === state.currentStep) return; runTransition(); state.currentStep = n; renderSteps(); updateSummary(); }
-    function hideSplash(){ if (!els.splashScreen) return; setTimeout(() => els.splashScreen.classList.add('hide'), 3000); setTimeout(() => els.splashScreen.style.display = 'none', 3800); }
+    function hideSplash(){ if (!els.splashScreen) return; els.splashScreen.style.display = 'none'; }
     function clearClient(){ els.cliente.value = ''; if(els.apelido)els.apelido.value=''; els.telefone.value = ''; setFieldError(els.cliente, els.clienteErro, false); setFieldError(els.telefone, els.telefoneErro, false); updateSummary(); showToast('\u21BA Dados do cliente limpos'); }
     function openItemModal(){ state.editItemId = null; state.modalPhotos = []; state.modalSelectedServices = []; _nomePickFirst=true; _obsPickFirst=true; els.modalNome.value = ''; els.modalLargura.value = ''; els.modalAltura.value = ''; els.modalObs.value = ''; els.modalFotosGaleria.value = ''; els.modalArea.textContent = 'Linear: 0,00 m'; els.cameraErro.classList.remove('show'); renderModalPhotos(); els.itemModal.classList.add('open'); }
     function openEditItemModal(id){ var item=state.items.find(function(x){return x.id===id;}); if(!item)return; state.editItemId=id; state.modalPhotos=[...(item.fotos||[])]; state.modalSelectedServices=[...(item.services||[])]; _nomePickFirst=false; _obsPickFirst=false; var lv=item.largura>0?String(item.largura).replace('.',','):''; var av=item.altura>0?String(item.altura).replace('.',','):''; els.modalNome.value=item.nome||''; els.modalLargura.value=lv; els.modalAltura.value=av; els.modalObs.value=item.observacao||''; els.modalFotosGaleria.value=''; updateModalArea(); els.cameraErro.classList.remove('show'); renderModalPhotos(); els.itemModal.classList.add('open'); }
@@ -1858,12 +2429,12 @@ body::before {
     function _onNomeFieldClick(){ if(_nomePickFirst){_nomePickFirst=false;openNomePick();} }
     function _onObsFieldClick(){ if(_obsPickFirst){_obsPickFirst=false;openObsPick();} }
     var NOME_SUGESTOES=%%NOME_SUGESTOES%%;
-    function openNomePick(){ document.activeElement&&document.activeElement.blur(); var g=document.getElementById('nomePickGrid'); g.innerHTML=NOME_SUGESTOES.map(function(n){ return '<button type=\'button\' onclick=\'selectNome(this.dataset.v)\' data-v=\''+n+'\' style=\'padding:10px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:#0f172a;cursor:pointer;text-align:center;\'>'+n+'</button>'; }).join(''); document.getElementById('nomePickModal').style.display='flex'; }
+    function openNomePick(){ document.activeElement&&document.activeElement.blur(); var g=document.getElementById('nomePickGrid'); g.innerHTML=NOME_SUGESTOES.map(function(n){ return '<button type=\'button\' onclick=\'selectNome(this.dataset.v)\' data-v=\''+n+'\' style=\'padding:10px 4px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg-soft);font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;text-align:center;\'>'+n+'</button>'; }).join(''); document.getElementById('nomePickModal').style.display='flex'; }
     function closeNomePick(){ document.getElementById('nomePickModal').style.display='none'; }
     function selectNome(n){ document.getElementById('modalNome').value=n; closeNomePick(); }
     var OBS_SERVICOS=%%OBS_SERVICOS%%;
     var OBS_MATERIAIS=%%OBS_MATERIAIS%%;
-    function _renderObsChips(items,cId,type){ var svcs=state.modalSelectedServices||[]; var c=document.getElementById(cId); c.innerHTML=items.map(function(s){ var sel=svcs.indexOf(s)>=0; var bg=sel?(type==='srv'?'#7c3aed':'#059669'):'#f1f5f9'; var col=sel?'#fff':(type==='srv'?'#7c3aed':'#059669'); var bdr=sel?'transparent':(type==='srv'?'#ddd6fe':'#d1fae5'); return '<button type=\'button\' onclick=\'toggleService(this.dataset.v)\' data-v=\''+s+'\' style=\'padding:7px 12px;border-radius:20px;border:1.5px solid '+bdr+';background:'+bg+';font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:'+col+';cursor:pointer;\'>'+s+'</button>'; }).join(''); }
+    function _renderObsChips(items,cId,type){ var svcs=state.modalSelectedServices||[]; var c=document.getElementById(cId); c.innerHTML=items.map(function(s){ var sel=svcs.indexOf(s)>=0; var bg=sel?(type==='srv'?'#e87838':'#059669'):'var(--bg-soft)'; var col=sel?'#fff':(type==='srv'?'#e87838':'#059669'); var bdr=sel?'transparent':(type==='srv'?'rgba(232,120,56,.25)':'#d1fae5'); return '<button type=\'button\' onclick=\'toggleService(this.dataset.v)\' data-v=\''+s+'\' style=\'padding:7px 12px;border-radius:20px;border:1.5px solid '+bdr+';background:'+bg+';font-family:Sora,sans-serif;font-size:12px;font-weight:700;color:'+col+';cursor:pointer;\'>'+s+'</button>'; }).join(''); }
     function openObsPick(){ document.activeElement&&document.activeElement.blur(); _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); document.getElementById('obsPickModal').style.display='flex'; }
     function closeObsPick(){ document.getElementById('obsPickModal').style.display='none'; }
     function toggleService(s){ var svcs=state.modalSelectedServices||[]; var i=svcs.indexOf(s); if(i>=0) svcs.splice(i,1); else svcs.push(s); state.modalSelectedServices=svcs; _renderObsChips(OBS_SERVICOS,'obsServGrid','srv'); _renderObsChips(OBS_MATERIAIS,'obsMatGrid','mat'); }
@@ -1881,13 +2452,21 @@ body::before {
   <!-- MENU LATERAL -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
-    <div class="sidebar-hdr">
-      <div style="display:flex; align-items:center; gap:12px; flex-direction: row;">
-        <!-- IMPLEMENTAÇÃO: LOGÓTIPO PADRÃO DO MENU -->
-        <img id="sidebar-logo-img" src="/public/apple-touch-icon.png" style="width:36px; height:36px; border-radius:50%; object-fit:cover; display:block; border:1.5px solid var(--bdr-input); background-color: #ffffff;">
-        <div class="hm-name" style="font-size:18px;">Menu</div>
+    <!-- Cabeçalho simples com botão fechar -->
+    <div class="sidebar-hdr" style="padding:max(20px,env(safe-area-inset-top,20px)) 16px 14px;">
+      <div style="font-size:16px;font-weight:800;color:var(--ink);">Menu</div>
+      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink2);line-height:1;"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
+    </div>
+
+    <!-- Card do usuário logado — toque vai para Configurações -->
+    <div id="sidebar-user-card" onclick="toggleSidebar(); openConfig();" style="margin:0 12px 8px;padding:14px;background:var(--bg2);border-radius:14px;border:1px solid var(--bdr);cursor:pointer;display:flex;align-items:center;gap:10px;">
+      <img id="sidebar-user-avatar" src="/public/apple-touch-icon.png"
+        style="width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--bdr);">
+      <div style="min-width:0;flex:1;">
+        <div id="sidebar-user-name" style="font-size:14px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Usuário</div>
+        <div id="sidebar-user-email" style="font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;"></div>
       </div>
-      <button onclick="toggleSidebar()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink2);"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
+      <svg class="ico" aria-hidden="true" style="flex-shrink:0;color:var(--ink3);"><use href="#ico-settings"/></svg>
     </div>
     <div class="sidebar-links">
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('home')"><svg class="ico" aria-hidden="true"><use href="#ico-home"/></svg> Início</div>
@@ -1895,15 +2474,18 @@ body::before {
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('clientes')"><svg class="ico" aria-hidden="true"><use href="#ico-users"/></svg> Contatos</div>
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('fornecedores')"><svg class="ico" aria-hidden="true"><use href="#ico-truck"/></svg> Fornecedores</div>
       <div class="sidebar-link" onclick="toggleSidebar(); homeTab('agenda')"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Agenda e Lembretes</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); homeTab('backup')"><svg class="ico" aria-hidden="true"><use href="#ico-database"/></svg> Backup</div>
-      <div class="sidebar-link" onclick="toggleSidebar(); openConfig()"><svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações</div>
       <a href="/privacy-policy.html" class="sidebar-link" style="font-weight:400; font-size:13px; color:var(--ink3); text-decoration:none;"><svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Política de Privacidade</a>
-      <div class="sidebar-link" onclick="toggleSidebar(); showTutorial()" style="margin-top:auto; font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial</div>
+      <div class="sidebar-link" onclick="toggleSidebar(); showTutorial()" style="font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial</div>
       <div class="sidebar-link" onclick="toggleSidebar(); showFaq()" style="font-weight:400; font-size:13px; color:var(--ink3);"><svg class="ico" aria-hidden="true"><use href="#ico-help"/></svg> FAQ</div>
       <div class="sidebar-link" onclick="toggleSidebar(); abrirModalSuporte()" style="font-weight:700; font-size:13px; color:var(--ink);"><svg class="ico" aria-hidden="true"><use href="#ico-headphones"/></svg> Suporte / Reportar Bug</div>
       <div class="sidebar-link" onclick="toggleSidebar(); pwaShowInstallUI()" style="font-weight:800; font-size:13px; color:#fff; background:linear-gradient(135deg,var(--bl),var(--bld)); border-radius:12px; margin:4px 10px; padding:13px 14px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M12 2v13m0 0-4-4m4 4 4-4"/><rect x="2" y="17" width="20" height="5" rx="2"/></svg>
         Instalar App
+      </div>
+      <div style="margin:8px 12px 0;border-top:1px solid var(--bdr);padding-top:8px;">
+        <div class="sidebar-link" onclick="toggleSidebar(); ppLogoutConfirm()" style="color:var(--rd);font-weight:700;">
+          <svg class="ico" aria-hidden="true"><use href="#ico-logout"/></svg> Sair da conta
+        </div>
       </div>
     </div>
   </div>
@@ -2257,30 +2839,29 @@ body::before {
     </div>
   </div>
 
-  <!-- Modal de Seleção de Modo (Flash/Foto/Detalhado) -->
+  <!-- Modal de Seleção de Modo -->
   <div id="mode-selector-modal" class="glass-overlay">
     <div class="modal-box" style="max-width: 380px;">
-      <div style="font-size: 18px; font-weight: 800; margin-bottom: 20px; font-family: 'Syne', sans-serif;">Novo Orçamento</div>
+      <div style="font-size: 18px; font-weight: 800; margin-bottom: 6px; font-family: 'Sora', sans-serif;">Novo Orçamento</div>
+      <div style="font-size: 12px; color: var(--ink3); margin-bottom: 20px;">Escolha o modo de criação</div>
 
-      <div onclick="selectMode('flash')" style="padding: 16px; background: var(--bll); border: 2px solid var(--bl); border-radius: 14px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;">
-        <div style="font-size: 24px; margin-bottom: 8px;">⚡</div>
-        <div style="font-size: 14px; font-weight: 700; color: var(--bl);">Flash</div>
-        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">3 passos rápidos, ideal para consultas rápidas</div>
+      <div onclick="selectMode('flash')" style="padding: 18px; background: rgba(232,120,56,0.08); border: 2px solid var(--bl); border-radius: 16px; cursor: pointer; margin-bottom: 10px; display:flex; gap:16px; align-items:center;">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#e87838,#d06420);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;">⚡</div>
+        <div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom:3px;">Flash</div>
+          <div style="font-size: 12px; color: var(--ink3);">Rápido, sem burocracia. Ideal para consultas no local.</div>
+        </div>
       </div>
 
-      <div onclick="selectMode('foto')" style="padding: 16px; background: rgba(88, 185, 255, 0.1); border: 2px solid rgb(88, 185, 255); border-radius: 14px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s;">
-        <div style="font-size: 24px; margin-bottom: 8px;">📷</div>
-        <div style="font-size: 14px; font-weight: 700; color: rgb(88, 185, 255);">Foto</div>
-        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">Capture fotos e organize por ambiente</div>
+      <div onclick="selectMode('detalhado')" style="padding: 18px; background: var(--bg-card); border: 1.5px solid var(--bdr); border-radius: 16px; cursor: pointer; margin-bottom: 14px; display:flex; gap:16px; align-items:center;">
+        <div style="width:48px;height:48px;border-radius:14px;background:var(--bg2);border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;">📋</div>
+        <div>
+          <div style="font-size: 15px; font-weight: 800; color: var(--ink); margin-bottom:3px;">Detalhado</div>
+          <div style="font-size: 12px; color: var(--ink3);">Ambientes, itens, fotos e formatação completa.</div>
+        </div>
       </div>
 
-      <div onclick="selectMode('detalhado')" style="padding: 16px; background: rgba(124, 58, 237, 0.1); border: 2px solid var(--bl); border-radius: 14px; cursor: pointer; margin-bottom: 14px; transition: all 0.2s;">
-        <div style="font-size: 24px; margin-bottom: 8px;">📋</div>
-        <div style="font-size: 14px; font-weight: 700; color: var(--bl);">Detalhado</div>
-        <div style="font-size: 12px; color: var(--ink3); margin-top: 4px;">Informações completas com todos os detalhes</div>
-      </div>
-
-      <button onclick="document.getElementById('mode-selector-modal').style.display='none'" style="width: 100%; height: 44px; border-radius: 12px; background: var(--bg-input); border: 1.5px solid var(--bdr-input); color: var(--ink2); font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer;">Cancelar</button>
+      <button onclick="document.getElementById('mode-selector-modal').style.display='none'" style="width: 100%; height: 44px; border-radius: 12px; background: var(--bg-input); border: 1.5px solid var(--bdr-input); color: var(--ink3); font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; font-size:13px;">Cancelar</button>
     </div>
   </div>
 
@@ -2350,7 +2931,7 @@ body::before {
       <div id="item-modal-body" style="flex:1;overflow-y:auto;padding:20px;"></div>
       <div style="padding:16px 20px;border-top:1px solid var(--bdr);display:flex;gap:12px;background:var(--bg-card-alt);flex-shrink:0;">
         <button onclick="cancelItemModal()" style="flex:1;height:52px;border-radius:14px;background:var(--bg-input);border:1.5px solid var(--bdr-input);font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:var(--ink2);cursor:pointer;">Cancelar</button>
-        <button onclick="saveItemModal()" id="btn-salvar-item-modal" style="flex:1;height:52px;border-radius:14px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(124,58,237,0.3);">Salvar Item</button>
+        <button onclick="saveItemModal()" id="btn-salvar-item-modal" style="flex:1;height:52px;border-radius:14px;background:var(--bl);border:none;font-family:'Sora',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;box-shadow:0 4px 12px rgba(232,120,56,0.3);">Salvar Item</button>
       </div>
     </div>
   </div>
@@ -2377,6 +2958,40 @@ body::before {
         <button onclick="closeDetailNamePick()" aria-label="Fechar" style="background:var(--bg2);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);flex-shrink:0;"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button>
       </div>
       <div id="detail-nome-pick-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: Fotos no PDF? -->
+  <div id="pdf-photos-modal" class="glass-overlay" onclick="if(event.target===this) this.style.display='none'">
+    <div class="modal-box" style="max-width:320px; text-align:center;">
+      <div style="font-size:40px; margin-bottom:12px;"><svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg></div>
+      <div style="font-size:16px; font-weight:800; color:var(--ink); margin-bottom:6px;">Incluir fotos no PDF?</div>
+      <div id="pdf-photos-count" style="font-size:13px; color:var(--ink3); margin-bottom:20px;"></div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button onclick="closePdfPhotosModal(true)" style="width:100%;height:50px;border-radius:14px;background:var(--bl);border:none;color:#fff;font-weight:800;font-family:'Sora',sans-serif;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Sim, com fotos
+        </button>
+        <button onclick="closePdfPhotosModal(false)" style="width:100%;height:50px;border-radius:14px;background:var(--bg-input);border:1.5px solid var(--bdr-input);color:var(--ink2);font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <svg class="ico" aria-hidden="true"><use href="#ico-file"/></svg> Não, só texto
+        </button>
+        <button onclick="document.getElementById('pdf-photos-modal').style.display='none'" style="width:100%;height:40px;border:none;background:transparent;color:var(--ink3);font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;font-size:13px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Compartilhar (fallback quando share nativo não suporta PDF) -->
+  <div id="share-opts-modal" class="glass-overlay" onclick="if(event.target===this)document.getElementById('share-opts-modal').style.display='none'" style="align-items:flex-end;padding:0;">
+    <div class="modal-box" style="border-radius:20px 20px 0 0;max-width:480px;padding:20px 16px max(36px,calc(env(safe-area-inset-bottom,0px) + 20px));">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <span style="font-size:15px;font-weight:800;color:var(--ink);">Compartilhar Orçamento</span>
+        <button onclick="document.getElementById('share-opts-modal').style.display='none'" style="background:var(--bg2);border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer;color:var(--ink);">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="_shareDoNative()" style="width:100%;height:48px;border-radius:12px;border:none;background:var(--bl);font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-send"/></svg> Compartilhar mensagem</button>
+        <button onclick="_shareDoWA()" style="width:100%;height:48px;border-radius:12px;border:none;background:#25D366;font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Abrir no WhatsApp</button>
+        <button onclick="_shareDoCopy()" style="width:100%;height:48px;border-radius:12px;border:1.5px solid var(--bdr-input);background:var(--bg2);font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-clipboard"/></svg> Copiar mensagem</button>
+        <button onclick="_shareDoSave()" style="width:100%;height:48px;border-radius:12px;border:1.5px solid var(--bdr-input);background:var(--bg2);font-family:'Sora',sans-serif;font-size:13px;font-weight:800;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"><svg class="ico" aria-hidden="true"><use href="#ico-download"/></svg> Salvar PDF</button>
+      </div>
     </div>
   </div>
 
@@ -3013,6 +3628,507 @@ function calcTotal(){ return calcOrcTotal({ rooms: S.rooms, preco: parseFloat(do
 
 function openImg(url) { document.getElementById('img-modal-el').src = url; document.getElementById('img-modal-dl').href = url; document.getElementById('img-modal-dl').download = `foto_${Date.now()}.jpg`; document.getElementById('img-modal').style.display = 'flex'; }
 
+// ── FUNÇÕES DE ROOMS/ITENS (do ANTIGO) ────────────────────────────────────────
+
+let curRi = null, curIi = null, isNewItem = false;
+let _detailNomeFirst = false, _detailObsFirst = false;
+
+function _updateItemPrecoDisplay() {
+  const el = document.getElementById('item-preco-total-display');
+  if (!el) return;
+  if (!S.tempItem.perMeter || !S.tempItem.price) { el.style.display = 'none'; return; }
+  const alt = ptFloat(S.tempItem.alt);
+  const comp = ptFloat(S.tempItem.comp);
+  const m2 = (alt && comp) ? alt * comp : (alt || comp);
+  const total = S.tempItem.price * m2;
+  el.style.display = 'block';
+  el.textContent = m2 > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (' + m2.toFixed(2).replace('.',',') + ' m²)'
+    : 'Preencha as medidas do item para calcular o total';
+}
+function _updatePrecoBaseDisplay(ri) {
+  const el = document.getElementById('preco-base-total-' + ri);
+  if (!el) return;
+  const r = S.rooms[ri];
+  if (!r || !r.precoPerM2) { el.style.display = 'none'; return; }
+  const m2 = getRoomMeds(r).m2;
+  const total = (r.preco || 0) * m2;
+  el.style.display = 'block';
+  el.textContent = m2 > 0
+    ? '= R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2}) + ' (' + m2.toFixed(2).replace('.',',') + ' m²)'
+    : 'Adicione itens com medidas para calcular o total';
+}
+
+function renderRooms(){
+  const wrap=document.getElementById('rooms-wrap');
+  if(!wrap) return;
+  if(!S.rooms.length) S.rooms=[{id:Date.now().toString(), name:'Geral', items:[], services:S.DEFAULT_SERVICES.slice(), collapsed:false}];
+  wrap.innerHTML='';
+
+  S.rooms.forEach((r,ri)=>{
+    if(r.collapsed === undefined) r.collapsed = false; if(!r.items) r.items=[]; if(!r.services) r.services=S.DEFAULT_SERVICES.slice();
+    const meds = getRoomMeds(r); const medTxt = [];
+    if(meds.m2>0) medTxt.push(`${f1(meds.m2)} m²`); if(meds.ml>0) medTxt.push(`${f1(meds.ml)} ml`);
+    const medLabel = medTxt.length ? medTxt.join(' + ') : '—';
+
+    const itemsHtml=r.items.map((it,ii)=>{
+      const a=ptFloat(it.alt), c=ptFloat(it.comp); let badge = (a&&c) ? f1(a*c)+' m²' : (a||c) ? f1(a||c)+' ml' : 'Sem medidas';
+      return `<div class="item-summary" onclick="editItem(${ri}, ${ii})"><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${it.name || 'Item '+(ii+1)}</div><div style="font-size:12px; color:var(--ink3); margin-top:3px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${badge} • ${(it.services||[]).length} serv.</div></div><button class="item-del" onclick="event.stopPropagation();removeItem(${ri},${ii})"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>`;
+    }).join('');
+
+    const card=document.createElement('div'); card.className='rcard' + (r.collapsed ? ' collapsed' : ''); card.id='rcard'+ri;
+    const hasMult = S.rooms.length > 1;
+    const headerHtml = hasMult ? `
+      <div class="rcard-head" onclick="tCard('rcard${ri}')" style="gap:10px;"><span class="rcard-em" style="font-size:26px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg></span><div style="flex:1;min-width:0;"><input class="rcard-name" style="border:none;outline:none;background:transparent;font-family:'Sora',sans-serif;font-weight:700;font-size:17px;color:var(--ink);width:100%;" value="${r.name.replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onchange="S.rooms[${ri}].name=this.value;renderRooms();">${medLabel !== '—' ? `<div style="font-size:13px;color:var(--ink3);margin-top:2px;"><svg class="ico" aria-hidden="true"><use href="#ico-ruler"/></svg> ${medLabel} (Soma)</div>` : `<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:#FEF3C7;border:1.5px solid #F59E0B;border-radius:10px;padding:5px 12px;font-size:13px;font-weight:700;color:#92400E;">+ Adicionar itens</div>`}</div><button class="rcard-del" onclick="event.stopPropagation();delRoom(${ri},event)"><svg class="ico" aria-hidden="true"><use href="#ico-x"/></svg></button></div>
+    ` : '';
+
+    card.innerHTML=`${headerHtml}
+      <div class="rcard-body">
+        <div style="margin-bottom:16px;">
+          <div style="font-size:13px;font-weight:800;color:var(--ink2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;"><svg class="ico" aria-hidden="true"><use href="#ico-banknote"/></svg> ${hasMult?'Preço base do local':'Preço Total Base'}</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div style="flex:1;"><div style="position:relative;"><span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;font-weight:700;color:var(--ink3);">R$</span><input type="text" inputmode="decimal" placeholder="0,00" value="${r.preco?String(r.preco).replace('.',','):''}" style="width:100%;height:52px;background:var(--bg-input);border:2px solid var(--bdr-input);border-radius:14px;padding:0 14px 0 42px;font-family:'JetBrains Mono','Calibri',monospace;font-size:18px;color:var(--gn);outline:none;" onfocus="this.style.borderColor='var(--gn)'; this.select();" onblur="if(this.value){const v=ptFloat(this.value);this.value=v?v.toFixed(2).replace('.',','):'';S.rooms[${ri}].preco=v;}; this.style.borderColor='var(--bdr-input)';" oninput="this.value=this.value.replace('.',',');S.rooms[${ri}].preco=ptFloat(this.value);calcTotal();_updatePrecoBaseDisplay(${ri});"></div><div id="preco-base-total-${ri}" style="display:${r.precoPerM2?'block':'none'};margin-top:6px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div></div>
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="fixo" ${!r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=false;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Fixo</label>
+              <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--ink3);cursor:pointer;white-space:nowrap;"><input type="radio" name="preco-tipo-${ri}" value="m2" ${r.precoPerM2?'checked':''} onchange="S.rooms[${ri}].precoPerM2=true;calcTotal();_updatePrecoBaseDisplay(${ri});" style="accent-color:var(--bl);width:16px;height:16px;"> Por m²</label>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1.5px solid var(--bdr);padding-top:16px;">
+          <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px;">Itens</div>
+          <div id="items-wrap-${ri}">${itemsHtml}</div>
+          <button onclick="addItem(${ri})" class="add-room-btn">＋ Adicionar Novo Item</button>
+        </div>
+      </div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function tCard(id){ document.getElementById(id)?.classList.toggle('collapsed'); }
+function delRoom(ri,e){ if(e)e.stopPropagation(); askDelete('Deseja excluir este local e suas medidas?', () => { S.rooms.splice(ri,1); renderRooms(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Local Removido'); S.isDirty=true; }); }
+function addItem(ri){ curRi = ri; S.tempItem = {name:'',alt:'',comp:'',services:[],price:0,perMeter:false,obs:'',photos:[]}; isNewItem = true; _detailNomeFirst = true; _detailObsFirst = true; S.rooms[ri].collapsed = false; document.getElementById('item-modal-form').style.display = 'flex'; renderItemModal(); }
+function editItem(ri, ii){ curRi = ri; curIi = ii; S.tempItem = JSON.parse(JSON.stringify(S.rooms[ri].items[ii])); isNewItem = false; _detailNomeFirst = false; _detailObsFirst = false; document.getElementById('item-modal-form').style.display = 'flex'; renderItemModal(); }
+function removeItem(ri,ii){ askDelete('Excluir este item permanentemente?', () => { S.rooms[ri].items.splice(ii,1); renderRooms(); S.isDirty=true; }); }
+
+function openPhotoChoice() { document.getElementById('photo-choice-modal').style.display = 'flex'; }
+function triggerPhoto(source) {
+  document.getElementById('photo-choice-modal').style.display = 'none';
+  const id = `file-${source}`;
+  const el = document.getElementById(id);
+  if (el) el.click();
+}
+
+function handlePhotoFile(input, isCamera) {
+  const file = input.files[0]; if(!file) return;
+  compressImage(file, dataUrl => {
+    if(!S.tempItem.photos) S.tempItem.photos=[];
+    const fName = file.name || `Foto_${Date.now()}.jpg`;
+    S.tempItem.photos.push({url: dataUrl, filename: fName});
+    renderItemModal(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-camera"/></svg> Foto adicionada!');
+    if(isCamera) {
+      const a = document.createElement('a'); a.href = dataUrl; a.download = fName; a.click();
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-save"/></svg> Salvando na Galeria...');
+    }
+  });
+  input.value = '';
+}
+
+function compressImage(file, callback) {
+  const reader = new FileReader(); reader.readAsDataURL(file);
+  reader.onload = event => {
+    const img = new Image(); img.src = event.target.result;
+    img.onload = () => {
+      const canvas = document.createElement('canvas'); let w = img.width, h = img.height; const MAX = 1024;
+      if (w > h && w > MAX) { h *= MAX / w; w = MAX; } else if (h > MAX) { w *= MAX / h; h = MAX; }
+      canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.6));
+    };
+  };
+}
+
+function delItemPhotoModalIdx(idx) {
+  askDelete('Remover esta foto?', () => {
+    S.tempItem.photos.splice(idx, 1);
+    renderItemModal();
+  });
+}
+
+function renderItemModal() {
+  const it = S.tempItem;
+  const _areaLbl = _detailGetAreaLabel(it.comp, it.alt);
+  document.getElementById('item-modal-body').innerHTML = `
+    <div class="fld">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <label class="flbl" style="margin-bottom:0;">NOME DO ITEM</label>
+        <button type="button" onclick="openDetailNamePick()" style="background:#ede9fe;border:none;border-radius:8px;padding:4px 10px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#7c3aed;cursor:pointer;">☰ Sugestões</button>
+      </div>
+      <input class="finput item-title-inp" value="${it.name.replace(/"/g,'&quot;')}" placeholder="Ex: Parede Norte" autocomplete="off" data-form-type="other" autocapitalize="words" autocorrect="off" spellcheck="false" oninput="S.tempItem.name=this.value" onclick="_detailNomeClick()" onfocus="this.select()">
+    </div>
+    <div class="dim2-grid">
+      <div class="mbox"><div class="mlbl">Largura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="0,00" value="${it.comp?String(it.comp).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.comp=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.comp=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
+      <div class="mbox"><div class="mlbl">Altura (m)</div><input class="minp" type="text" inputmode="decimal" autocomplete="off" data-form-type="other" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="0,00" value="${it.alt?String(it.alt).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.alt=this.value;_detailUpdateArea();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';S.tempItem.alt=this.value;_detailUpdateArea();}" onfocus="this.select()"></div>
+    </div>
+    <div id="item-area-display" style="display:${_areaLbl?'block':'none'};margin-bottom:14px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;">${_areaLbl||''}</div>
+
+    <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:8px;">Fotos do Item</div>
+    <div style="display:flex;justify-content:center;gap:16px;margin:4px 0 12px;">
+      <button type="button" onclick="openDetailedCamera()" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#f97316,#fb923c);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 20px rgba(249,115,22,0.3);"><svg class="ico" aria-hidden="true" style="color:#fff;width:28px;height:28px;"><use href="#ico-camera"/></svg></button>
+      <label style="width:60px;height:60px;border-radius:50%;background:var(--bg2);border:1.5px solid var(--bdr-input);display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:6px;" title="Galeria"><svg class="ico" aria-hidden="true" style="width:24px;height:24px;color:var(--ink3);"><use href="#ico-image"/></svg><input type="file" accept="image/*" style="display:none;" onchange="handlePhotoFile(this,false)"></label>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+      ${(it.photos||[]).map((p, idx) => `
+        <div style="background:var(--bg2);border:1.5px solid var(--bdr);border-radius:12px;padding:4px;position:relative;">
+          <button onclick="delItemPhotoModalIdx(${idx})" type="button" style="position:absolute;top:3px;right:3px;width:20px;height:20px;border:none;border-radius:6px;background:rgba(239,68,68,0.9);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:2;">✕</button>
+          <img src="${p.url}" onclick="openImg('${p.url}')" style="width:100%;height:58px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" alt="Foto ${idx+1}">
+        </div>
+      `).join('')}
+    </div>
+
+    <div style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;margin-bottom:10px;">Preço Adicional (Somente para este item)</div>
+    <div class="price-check-row" style="margin-bottom:8px;">
+      <input type="text" inputmode="decimal" placeholder="R$ 0,00" value="${it.price?String(it.price).replace('.',','):''}" oninput="this.value=this.value.replace('.',',');S.tempItem.price=ptFloat(this.value);_updateItemPrecoDisplay();" onblur="if(this.value){const v=ptFloat(this.value);if(v)this.value=v.toFixed(2).replace('.',',');else this.value='';}" onfocus="this.select()">
+      <label class="pcheck" style="white-space: nowrap;"><input type="checkbox" ${it.perMeter?'checked':''} onchange="S.tempItem.perMeter=this.checked;_updateItemPrecoDisplay();"><span class="info-icon" onclick="event.preventDefault(); event.stopPropagation(); toast('Multiplicar por m².')">?</span> por m²</label>
+    </div>
+    <div id="item-preco-total-display" style="display:${it.perMeter&&it.price?'block':'none'};margin-bottom:16px;font-size:12px;font-weight:700;color:var(--gn);padding:5px 10px;background:var(--gnl,#d1fae5);border-radius:8px;"></div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:12px;font-weight:800;color:var(--ink3);text-transform:uppercase;">Observações</span>
+      <button type="button" onclick="openServicesModal()" style="background:#d1fae5;border:none;border-radius:8px;padding:5px 11px;font-family:'Sora',sans-serif;font-size:11px;font-weight:700;color:#059669;cursor:pointer;">☰ Serviços</button>
+    </div>
+    <textarea class="item-obs-inp" autocomplete="off" data-form-type="other" autocorrect="off" spellcheck="false" placeholder="Detalhes, estado da parede, cor, serviços..." oninput="S.tempItem.obs=this.value" onclick="_detailObsClick()">${it.obs||''}</textarea>
+  `;
+  document.getElementById('item-modal-body').scrollTop = 0;
+  setTimeout(() => { const inp = document.getElementById('item-modal-body').querySelector('.item-title-inp'); if(inp) inp.focus(); }, 50);
+}
+
+function openServicesModal() {
+  if (!S.tempItem) return;
+  document.getElementById('services-modal').style.display = 'flex';
+  _renderItemObsChips();
+}
+function closeServicesModal() { document.getElementById('services-modal').style.display = 'none'; }
+
+function _renderItemObsChips() {
+  const sel = S.tempItem.services || [];
+  const srvList = S.DEFAULT_SERVICES;
+  const matList = (S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean);
+  const chip = (s, type) => {
+    const on = sel.includes(s);
+    const bg = on ? (type==='srv' ? '#7c3aed' : '#059669') : '#f1f5f9';
+    const col = on ? '#fff' : (type==='srv' ? '#7c3aed' : '#059669');
+    const bdr = on ? 'transparent' : (type==='srv' ? '#ddd6fe' : '#d1fae5');
+    return `<button type="button" data-srv="${_esc(s)}" onclick="toggleItemObsSvc(this.dataset.srv)" style="padding:7px 12px;border-radius:20px;border:1.5px solid ${bdr};background:${bg};font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:${col};cursor:pointer;">${_esc(s)}</button>`;
+  };
+  document.getElementById('services-modal-body').innerHTML = srvList.map(s=>chip(s,'srv')).join('');
+  document.getElementById('services-modal-mat-body').innerHTML = matList.map(s=>chip(s,'mat')).join('');
+}
+
+function toggleItemObsSvc(s) {
+  if (!S.tempItem.services) S.tempItem.services = [];
+  const i = S.tempItem.services.indexOf(s);
+  if (i >= 0) S.tempItem.services.splice(i, 1);
+  else S.tempItem.services.push(s);
+  S.isDirty = true;
+  _renderItemObsChips();
+}
+
+function confirmItemObsPick() {
+  const ta = document.querySelector('#item-modal-body .item-obs-inp');
+  const currentText = (ta ? ta.value : '') || (S.tempItem.obs || '');
+  const allKnown = [...(S.DEFAULT_SERVICES||[]), ...(S.config.flashMateriais || defCfg.flashMateriais).split(',').map(s=>s.trim()).filter(Boolean)];
+  const customParts = currentText.split(',').map(s=>s.trim()).filter(s => s && !allKnown.includes(s));
+  const selected = S.tempItem.services || [];
+  const merged = [...customParts, ...selected];
+  S.tempItem.obs = merged.join(', ');
+  if (ta) ta.value = S.tempItem.obs;
+  closeServicesModal();
+}
+
+function _detailNomeClick() { if (_detailNomeFirst) { _detailNomeFirst = false; openDetailNamePick(); } }
+function _detailObsClick() { if (_detailObsFirst) { _detailObsFirst = false; openServicesModal(); } }
+
+function _detailGetAreaLabel(comp, alt) {
+  const c = ptFloat(comp), a = ptFloat(alt);
+  if (c > 0 && a > 0) return 'Área: ' + (c * a).toFixed(2).replace('.', ',') + ' m²';
+  if (c > 0 || a > 0) return 'Linear: ' + (c || a).toFixed(2).replace('.', ',') + ' m';
+  return null;
+}
+function _detailUpdateArea() {
+  const el = document.getElementById('item-area-display');
+  if (el) {
+    const lbl = _detailGetAreaLabel(S.tempItem.comp, S.tempItem.alt);
+    el.style.display = lbl ? 'block' : 'none';
+    if (lbl) el.textContent = lbl;
+  }
+  _updateItemPrecoDisplay();
+}
+
+function openDetailNamePick() {
+  if (!S.tempItem) return;
+  const nomes = (S.config.flashNomes || defCfg.flashNomes).split(',').map(s => s.trim()).filter(Boolean);
+  document.getElementById('detail-nome-pick-grid').innerHTML = nomes.map(n =>
+    `<button type="button" data-nm="${_esc(n)}" onclick="selectDetailNome(this.dataset.nm)" style="padding:10px 4px;border-radius:10px;border:1.5px solid var(--bdr-input);background:var(--bg2);font-family:'Sora',sans-serif;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;text-align:center;">${_esc(n)}</button>`
+  ).join('');
+  document.getElementById('detail-nome-pick-modal').style.display = 'flex';
+}
+function closeDetailNamePick() { document.getElementById('detail-nome-pick-modal').style.display = 'none'; }
+function selectDetailNome(n) {
+  S.tempItem.name = n;
+  const inp = document.querySelector('#item-modal-body .item-title-inp');
+  if (inp) inp.value = n;
+  closeDetailNamePick();
+}
+
+function saveItemModal(){ if(!S.tempItem.name.trim()) S.tempItem.name = 'Item sem nome'; if(isNewItem){ if(!S.rooms[curRi].items) S.rooms[curRi].items=[]; S.rooms[curRi].items.push(S.tempItem); } else { S.rooms[curRi].items[curIi] = S.tempItem; } S.isDirty = true; document.getElementById('item-modal-form').style.display = 'none'; renderRooms(); }
+function cancelItemModal(){ document.getElementById('item-modal-form').style.display = 'none'; curRi = null; curIi = null; S.tempItem = null; }
+
+// Stub para compatibilidade — openDetailedCamera é fornecida pelo sistema de câmera do ATUAL
+if (!window.openDetailedCamera) {
+  window.openDetailedCamera = function() { openPhotoChoice(); };
+}
+
+// ── PDF E COMPARTILHAMENTO ────────────────────────────────────────────────────
+
+function _loadHtml2PDF() {
+  if (window.html2pdf) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function _generatePDFBlob(orc, withPhotos) {
+  await _loadHtml2PDF();
+  const orcId = String(orc.id || Date.now()).slice(-6);
+  const nomeCli = (orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_');
+  const fileName = `OC_${nomeCli}_${orcId}.pdf`;
+
+  const fullHtml = genPDFHtml(orc, withPhotos);
+
+  const styleMatch = fullHtml.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  const cssText = styleMatch ? styleMatch[1] : '';
+  const bodyMatch = fullHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  let bodyContent = bodyMatch ? bodyMatch[1] : fullHtml;
+
+  bodyContent = bodyContent
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<button class="print-btn"[\s\S]*?<\/button>/g, '')
+    .replace(/<svg[^>]*>\s*<use[^>]*href="#[^"]*"[^>]*\/?>\s*<\/svg>/gi, '');
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:794px;background:#fff;z-index:-1;';
+  const styleEl = document.createElement('style');
+  styleEl.textContent = cssText;
+  wrapper.appendChild(styleEl);
+  wrapper.insertAdjacentHTML('beforeend', bodyContent);
+  document.body.appendChild(wrapper);
+
+  try {
+    const blob = await html2pdf().set({
+      margin: [10, 10, 10, 10],
+      filename: fileName,
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(wrapper).outputPdf('blob');
+    return { blob, fileName };
+  } finally {
+    document.body.removeChild(wrapper);
+  }
+}
+
+function _downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 8000);
+}
+
+async function shareOrc() {
+  const orc = collectOrc();
+  toast('<svg class="ico" aria-hidden="true"><use href="#ico-loader"/></svg> Gerando PDF…');
+  try {
+    const { blob, fileName } = await _generatePDFBlob(orc, false);
+    const pdfFile = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+      await navigator.share({ title: `Orçamento — ${orc.nome||''}`, files: [pdfFile] });
+      return true;
+    }
+    window._shareBlob = blob; window._shareFileName = fileName; window._shareOrc = orc;
+    document.getElementById('share-opts-modal').style.display = 'flex';
+    return true;
+  } catch(e) {
+    if (e?.name === 'AbortError') return false;
+    window._shareBlob = null; window._shareFileName = null; window._shareOrc = collectOrc();
+    document.getElementById('share-opts-modal').style.display = 'flex';
+    return false;
+  }
+}
+async function _shareDoNative() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  try { await navigator.share({ title: `Orçamento — ${orc.nome||''}`, text: buildWAMsg(orc) }); }
+  catch(e) { if (e?.name !== 'AbortError') _shareDoWA(); }
+}
+function _shareDoWA() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  const msg = buildWAMsg(orc); const tel = (orc.tel||'').replace(/\D/g,'');
+  window.open(tel ? `https://wa.me/55${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+async function _shareDoCopy() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  const orc = window._shareOrc; if (!orc) return;
+  try { await navigator.clipboard.writeText(buildWAMsg(orc)); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mensagem copiada!'); }
+  catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Não foi possível copiar.'); }
+}
+function _shareDoSave() {
+  document.getElementById('share-opts-modal').style.display = 'none';
+  if (window._shareBlob) {
+    _downloadBlob(window._shareBlob, window._shareFileName);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> PDF salvo!');
+  } else {
+    // Gera PDF via html2pdf (sem abrir impressão)
+    generateAndProcessPDF(false).catch(() => {
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao gerar PDF.');
+    });
+  }
+}
+
+async function generateAndProcessPDF(withPhotos) {
+  try {
+    toast('Gerando PDF...');
+    await _loadHtml2PDF();
+    const orc = collectOrc();
+    const htmlString = genPDFHtml(orc, withPhotos);
+    const opt = {
+      margin: 10,
+      filename: `Orcamento_${(orc.nome||'Orc').replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    const blob = await html2pdf().from(htmlString).set(opt).output('blob');
+    const file = new File([blob], opt.filename, { type: 'application/pdf' });
+    if (navigator.share) {
+      await navigator.share({ files: [file], title: 'Orçamento - ' + orc.nome, text: 'Segue o orçamento solicitado.' }).catch(err => console.log('Erro share:', err));
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = opt.filename; a.click(); URL.revokeObjectURL(url);
+    }
+    homeTab('orcamentos');
+  } catch (e) { console.error('Erro PDF:', e); toast('Erro ao gerar PDF.'); }
+}
+
+function askPdfPhotos() {
+  const orc = collectOrc();
+  let photoCount = 0;
+  (orc.rooms || []).forEach(r => (r.items || []).forEach(it => { photoCount += (it.photos || []).length; }));
+  if (photoCount === 0) { generateAndProcessPDF(false); return; }
+  const countEl = document.getElementById('pdf-photos-count');
+  if (countEl) countEl.textContent = photoCount + ' foto' + (photoCount > 1 ? 's' : '') + ' encontrada' + (photoCount > 1 ? 's' : '') + ' neste orçamento.';
+  document.getElementById('pdf-photos-modal').style.display = 'flex';
+}
+function closePdfPhotosModal(withPhotos) {
+  document.getElementById('pdf-photos-modal').style.display = 'none';
+  generateAndProcessPDF(withPhotos);
+}
+
+function genPDFHtml(orc, withPhotos) {
+  const total = calcOrcTotal(orc);
+  let totalM2 = 0;
+  const watermarkHtml = S.config.logo ? `<div class="pdf-watermark" style="position:absolute;top:0;left:0;right:0;bottom:0;background-image:url('${S.config.logo}');background-repeat:repeat;background-size:150px;opacity:0.08;z-index:-1;"></div>` : '';
+  const logoHtml = S.config.logo ? `<img src="${S.config.logo}" style="max-width:140px; max-height:80px; object-fit:contain; border-radius:8px;">` : `<div style="width:80px;height:80px;background:#f1f5f9;border:1px dashed #cbd5e1;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;font-weight:bold;border-radius:8px;">LOGOTIPO</div>`;
+  const roomsHtml = (orc.rooms||[]).map(r => {
+    const meds = getRoomMeds(r); totalM2 += meds.m2;
+    const items = (r.items||[]).map(it => {
+      const a = parseFloat(it.alt)||0; const c = parseFloat(it.comp)||0;
+      const measure = (a && c) ? (a*c).toFixed(2)+' m²' : (a || c ? (a||c)+' ml' : '');
+      let photosHtml = '';
+      if (withPhotos && it.photos && it.photos.length > 0) {
+        photosHtml = '<div style="display:flex; gap:12px; margin-top:8px; flex-wrap:wrap;">' + it.photos.map(p => `<div style="text-align:center;"><img src="${p.url}" style="height:100px; width:auto; border-radius:6px; border:1px solid #cbd5e1; object-fit:cover;"></div>`).join('') + '</div>';
+      }
+      let obsHtml = it.obs ? `<div style="font-size:11px; color:#64748b; margin-top:4px; font-style:italic;">Obs: ${_esc(it.obs)}</div>` : '';
+      return `<div style="padding:10px 0; border-bottom:1px dashed #e2e8f0; page-break-inside: avoid;"><div style="display:flex; justify-content:space-between;"><span style="color:#0f172a;">- ${_esc(it.name)} <span style="font-size:11px; color:#64748b;">${(it.services||[]).length ? `(${it.services.map(_esc).join(', ')})` : ''}</span></span><span style="font-size:12px; color:#64748b; font-weight:bold;">${_esc(measure)}</span></div>${obsHtml}${photosHtml}</div>`;
+    }).join('');
+    return `<div class="avoid-break" style="page-break-inside: avoid; margin-bottom:16px; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:12px; display:block;"><div style="font-weight:bold; color:#0f172a; margin-bottom:8px; font-size:14px; border-bottom:2px solid #f1f5f9; padding-bottom:4px; text-transform:uppercase;">📍 Local: ${_esc(r.name)}</div>${items}</div>`;
+  }).join('');
+  const orcId = String(orc.id || Date.now()).slice(-6);
+  const nomeCli = (orc.nome||'Orcamento').replace(/[^a-zA-ZÀ-ÿ0-9]/g,'_');
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>OC_${nomeCli}_${orcId}</title>
+  <style>
+    body { margin: 0; padding: 0; background: #e2e8f0; font-family: Arial, Helvetica, sans-serif; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-btn { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin: 20px auto; background: #7C3AED; color: #fff; border-radius: 50%; cursor: pointer; border: none; box-shadow: 0 4px 12px rgba(124,58,237,.4); font-size: 26px; }
+    .page { width: 100%; max-width: 794px; margin: 0 auto 40px; background: #ffffff; padding: 40px; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-radius: 8px; }
+    @media print {
+      body { background: #ffffff; }
+      .print-btn { display: none !important; }
+      .page { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: 100%; }
+      @page { margin: 10mm; size: A4 portrait; }
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <button class="print-btn" onclick="window.close()" title="Fechar">✕</button>
+  <div class="page">
+    ${watermarkHtml}
+    <div class="avoid-break" style="display:flex; justify-content:space-between; border-bottom:2px solid #334155; padding-bottom:20px; margin-bottom:24px;">
+      <div style="display:flex; gap:20px;">
+        ${logoHtml}
+        <div>
+          <div style="font-size:24px; font-weight:900; color:#0f172a; margin-bottom:6px; letter-spacing:-0.5px;">${_esc(S.config.empresa || 'Empresa PintorPlus')}</div>
+          ${S.config.tel ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">Tel: <b>${_esc(S.config.tel)}</b></div>` : ''}
+          ${S.config.emailEmpresa ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">Email: ${_esc(S.config.emailEmpresa)}</div>` : ''}
+          ${S.config.endEmpresa ? `<div style="font-size:14px; color:#334155; margin-bottom:2px;">${_esc(S.config.endEmpresa)}</div>` : ''}
+          ${S.config.doc ? `<div style="font-size:14px; color:#334155;">CNPJ/CPF: ${_esc(S.config.doc)}</div>` : ''}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:26px; font-weight:900; color:#7c3aed; margin-bottom:8px; letter-spacing:-0.5px;">ORÇAMENTO</div>
+        <div style="font-size:15px; color:#64748b; font-weight:bold; margin-bottom:2px;">Nº #${orcId}</div>
+        <div style="font-size:14px; color:#64748b;">Data: ${orc.date}</div>
+      </div>
+    </div>
+    <div class="avoid-break" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:20px; margin-bottom:24px; display:block;">
+      <div style="font-size:14px; font-weight:800; color:#0f172a; margin-bottom:12px; text-transform:uppercase; letter-spacing:0.5px;">Dados do Cliente</div>
+      <div style="display:flex; font-size:15px; flex-direction:column; gap:6px;">
+        <div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Nome:</div><div style="color:#0f172a;">${_esc(orc.nome||'—')}</div></div>
+        ${orc.tel ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Telefone:</div><div style="color:#0f172a;">${_esc(orc.tel)}</div></div>` : ''}
+        ${orc.email ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Email:</div><div style="color:#0f172a;">${_esc(orc.email)}</div></div>` : ''}
+        ${orc.end ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">Endereço:</div><div style="color:#0f172a;">${_esc(orc.end)}</div></div>` : ''}
+        ${orc.cpf ? `<div style="display:flex;"><div style="font-weight:bold; width:90px; color:#334155;">CPF/CNPJ:</div><div style="color:#0f172a;">${_esc(orc.cpf)}</div></div>` : ''}
+      </div>
+    </div>
+    <div style="margin-bottom:24px; display:block;">
+      <div class="avoid-break" style="font-size:16px; font-weight:800; color:#0f172a; margin-bottom:12px; padding-bottom:6px; border-bottom:2px solid #e2e8f0; text-transform:uppercase;">Serviços a Realizar</div>
+      <div style="font-size:14px; line-height:1.6;">${roomsHtml}</div>
+    </div>
+    <div class="avoid-break" style="display:flex; justify-content:space-between; margin-top:30px; border-top:3px solid #e2e8f0; padding-top:20px;">
+      <div style="font-size:14px; color:#334155; width:60%; padding-right:20px;">
+        <div style="margin-bottom:6px;"><strong>ÁREA TOTAL APROX.:</strong> ${totalM2.toFixed(2)} m²</div>
+        ${orc.tipoServico ? `<div style="margin-bottom:6px;"><strong>ESCOPO:</strong> ${_esc(orc.tipoServico)}</div>` : ''}
+        <div style="margin-bottom:6px;"><strong>VALIDADE:</strong> ${_esc(String(orc.valid))} dias</div>
+        ${(() => { const pgtoArr = Array.isArray(orc.pgto) ? orc.pgto : (typeof orc.pgto === "string" ? [orc.pgto] : []); return pgtoArr.length ? `<div style="margin-bottom:6px;"><strong>PAGAMENTO:</strong> ${pgtoArr.map(_esc).join(", ")}</div>` : ""; })()}
+        ${orc.obs ? `<div style="margin-top:16px; padding:12px; border:1px solid #fde68a; background:#fffbeb; border-radius:8px; color:#000;"><strong>Observações:</strong><br>${_esc(orc.obs)}</div>` : ''}
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:14px; font-weight:bold; color:#64748b; margin-bottom:6px; text-transform:uppercase;">Total do Orçamento</div>
+        <div style="font-size:32px; font-weight:900; color:#15803d; letter-spacing:-1px;">R$ ${total.toLocaleString('pt-BR',{minimumFractionDigits:2})}</div>
+      </div>
+    </div>
+  </div>
+  <script><\/script>
+</body>
+</html>`;
+}
+
 function collectOrc(){
   const v=id=>document.getElementById(id)?.value||'';
   const end=[v('cli-logradouro'),v('cli-numero'),v('cli-comp'),v('cli-bairro'),v('cli-cidade')].filter(Boolean).join(', ');
@@ -3146,8 +4262,10 @@ function renderClientes() {
 }
 
 function deleteClient(i) {
+  window.softDelete?.('clientes', S.clientes[i]);
   S.clientes.splice(i, 1);
   localStorage.setItem('pp-clientes', JSON.stringify(S.clientes));
+  window.scheduleSync?.();
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Contato removido!');
 }
@@ -3185,6 +4303,7 @@ function saveEditClient() {
   else S.clientes[i] = data;
   
   localStorage.setItem('pp-clientes', JSON.stringify(S.clientes));
+  window.scheduleSync?.();
   document.getElementById('modal-edit-client').style.display = 'none';
   renderClientes();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Contato salvo!');
@@ -3255,14 +4374,17 @@ function saveEditFornecedor() {
   else S.fornecedores[i] = data;
   
   localStorage.setItem('pp-fornecedores', JSON.stringify(S.fornecedores));
+  window.scheduleSync?.();
   document.getElementById('modal-edit-fornecedor').style.display = 'none';
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Fornecedor salvo!');
 }
 
 function deleteFornecedor(i) {
+  window.softDelete?.('fornecedores', S.fornecedores[i]);
   S.fornecedores.splice(i, 1);
   localStorage.setItem('pp-fornecedores', JSON.stringify(S.fornecedores));
+  window.scheduleSync?.();
   renderFornecedores();
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-trash"/></svg> Fornecedor removido!');
 }
@@ -3388,7 +4510,8 @@ function renderAgenda() {
                   <div class="hon"><svg class="ico" aria-hidden="true"><use href="#ico-hard-hat"/></svg> Início: ${o.nome}</div>
                   <div class="hos">Status: <span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span> • Valor: R$ ${calcOrcTotal(o).toFixed(2)}</div>
                   <div style="display:flex;gap:8px;margin-top:12px;">
-                      <button onclick="event.stopPropagation(); transformToAlarm('${o.nome}', '${o.inicio}')" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> Criar Alarme de Obra</button>
+                      <button onclick="event.stopPropagation(); transformToAlarm('${o.nome}', '${o.inicio}')" style="flex:1;height:38px;border-radius:10px;background:var(--bll);color:var(--bl);border:none;font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> Alarme</button>
+                      <button onclick="event.stopPropagation(); _addOrcToCalendar('${o.id}', '${o.inicio}')" style="flex:1;height:38px;border-radius:10px;background:var(--bg2);color:var(--ink2);border:1.5px solid var(--bdr);font-family:'Sora',sans-serif;font-weight:700;font-size:11px;cursor:pointer;"><svg class="ico" aria-hidden="true"><use href="#ico-calendar"/></svg> Calendário</button>
                   </div>
               </div>`;
           }
@@ -3399,6 +4522,28 @@ function renderAgenda() {
 function editOrcByObjId(id) {
   const i = S.orcs.findIndex(x => x.id === id);
   if (i >= 0) editOrc(i);
+}
+
+function _addOrcToCalendar(orcId, dataStr) {
+  const o = S.orcs.find(x => x.id === orcId);
+  if (!o || !dataStr) return toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Data de início não definida.');
+  const [year, month, day] = dataStr.split('-').map(Number);
+  const inicio = new Date(year, month - 1, day, 8, 0);
+  const fim = new Date(year, month - 1, day, 17, 0);
+  const ev = {
+    titulo: `Obra — ${o.nome || 'Cliente'}`,
+    descricao: [o.end, o.obs].filter(Boolean).join(' | '),
+    local: o.end || '',
+    inicio,
+    fim,
+    orcamentoId: orcId,
+  };
+  if (window.addToCalendar) {
+    window.addToCalendar(ev);
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Evento exportado para o calendário!');
+  } else {
+    toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Serviço de calendário não disponível.');
+  }
 }
 
 function openEventModal() { document.getElementById('ev-titulo').value = ''; document.getElementById('ev-data').value = calSelDate; document.getElementById('ev-hora').value = ''; document.getElementById('modal-evento').style.display='flex'; }
@@ -3420,7 +4565,29 @@ async function salvarEvento() {
   toast('<svg class="ico" aria-hidden="true"><use href="#ico-bell"/></svg> Lembrete salvo!');
 }
 
-function exportICS(id) { const e = S.eventos.find(x=>x.id==id); if(!e) return; const dt = e.dat.replace(/-/g,''); const hr = (e.hora||'09:00').replace(':','')+'00'; const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${e.tit}\nDTSTART:${dt}T${hr}\nDTEND:${dt}T${hr}\nEND:VEVENT\nEND:VCALENDAR`; const blob = new Blob([ics], {type: 'text/calendar'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `Lembrete_${e.tit.replace(/\s+/g,'_')}.ics`; a.click(); URL.revokeObjectURL(url); }
+function exportICS(id) {
+  const e = S.eventos.find(x => x.id == id);
+  if (!e) return;
+  const [year, month, day] = e.dat.split('-').map(Number);
+  const [hour, min] = (e.hora || '09:00').split(':').map(Number);
+  const inicio = new Date(year, month - 1, day, hour, min);
+  const fim = new Date(inicio.getTime() + 60 * 60 * 1000);
+  if (window.addToCalendar) {
+    window.addToCalendar({ titulo: e.tit, inicio, fim });
+  } else {
+    // Fallback ICS inline
+    const pad = n => String(n).padStart(2, '0');
+    const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+    const ics = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nSUMMARY:${e.tit}\r\nDTSTART:${fmt(inicio)}\r\nDTEND:${fmt(fim)}\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Lembrete_${e.tit.replace(/\s+/g, '_')}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+}
 
 // MENSAGEM & COMPARTILHAMENTO
 function buildWAMsg(orc){
@@ -3532,6 +4699,38 @@ async function fetchCep(cep){
 }
 function toggleManualEnd(){document.getElementById('end-fields').style.display='block';document.getElementById('end-manual-toggle').style.display='none';const msg=document.getElementById('cep-msg');if(msg)msg.style.display='none';document.getElementById('cli-logradouro')?.focus();}
 function toggleSidebar() { const sb = document.getElementById('sidebar'); const ov = document.getElementById('sidebar-overlay'); if(sb) sb.classList.toggle('active'); if(ov) ov.classList.toggle('active'); }
+
+// ── Sync status indicator ──────────────────────────────────────────────────────
+function renderSyncStatus() {
+  const btn  = document.getElementById('sync-status-btn');
+  const icon = document.getElementById('sync-icon');
+  if (!btn || !icon) return;
+  const s = window.getSyncStatus?.() || 'idle';
+  const configs = {
+    idle:     { color: 'var(--ink3)',  spin: false, title: 'Dados sincronizados', d: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+    pending:  { color: '#f59e0b',      spin: false, title: 'Sincronização pendente...', d: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+    syncing:  { color: '#6366f1',      spin: true,  title: 'Sincronizando...', d: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' },
+    ok:       { color: '#22c55e',      spin: false, title: 'Sincronizado com Google Drive', d: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+    error:    { color: '#ef4444',      spin: false, title: 'Erro ao sincronizar — toque para tentar de novo', d: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+    offline:  { color: 'var(--ink3)',  spin: false, title: 'Google Drive não conectado', d: 'M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01' },
+  };
+  const cfg = configs[s] || configs.idle;
+  btn.title = cfg.title;
+  btn.style.color = cfg.color;
+  icon.querySelector('path,line,polyline,circle')?.remove?.();
+  icon.innerHTML = cfg.d.split('M').filter(Boolean).map((seg,i) => i===0&&cfg.d.startsWith('M')?`<path d="M${seg}" stroke="${cfg.color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`:`<path d="M${seg}" stroke="${cfg.color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`).join('');
+  // Usa innerHTML direto para SVG composto
+  icon.innerHTML = '';
+  const paths = cfg.d.match(/[MLAHVCSQTZmlahvcsqtz][^MLAHVCSQTZmlahvcsqtz]*/g) || [];
+  icon.setAttribute('stroke', cfg.color);
+  icon.innerHTML = `<path d="${cfg.d}" stroke="${cfg.color}" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (cfg.spin) {
+    icon.style.animation = 'spin 1s linear infinite';
+  } else {
+    icon.style.animation = '';
+  }
+}
+window.renderSyncStatus = renderSyncStatus;
 
 // CONFIG E IMAGENS
 function loadLogoCfg(input) { 
@@ -3656,7 +4855,7 @@ function renderLogoPreview() {
   }
 }
 
-function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; showPage('pg-config'); }); }
+function openConfig() { canNavigateAsync(() => { S.isDirty = false; document.getElementById('cfg-empresa').value = S.config.empresa || ''; document.getElementById('cfg-tel').value = S.config.tel || ''; document.getElementById('cfg-email-empresa').value = S.config.emailEmpresa || ''; document.getElementById('cfg-end-empresa').value = S.config.endEmpresa || ''; document.getElementById('cfg-doc').value = S.config.doc || ''; document.getElementById('cfg-msg').value = S.config.msg || defCfg.msg; document.getElementById('cfg-servicos').value = S.config.servicos || defCfg.servicos; document.getElementById('cfg-pgto').value = S.config.pgto || defCfg.pgto; document.getElementById('cfg-status').value = S.config.statusList || defCfg.statusList; const fn=document.getElementById('cfg-flash-nomes'); if(fn) fn.value=S.config.flashNomes||defCfg.flashNomes; const fs=document.getElementById('cfg-flash-servicos'); if(fs) fs.value=S.config.flashServicos||defCfg.flashServicos; const fm=document.getElementById('cfg-flash-materiais'); if(fm) fm.value=S.config.flashMateriais||defCfg.flashMateriais; renderLogoPreview(); renderSigPreview(); const accSw = document.getElementById('cfg-acessibilidade-sw'); if(accSw) accSw.classList.toggle('on', !!S.config.acessibilidade); _cfgDirty = false; const cu = window.ppGetUser?.(); if(cu){ const av=document.getElementById('cfg-user-avatar'); const nm=document.getElementById('cfg-user-name'); const em=document.getElementById('cfg-user-email'); if(av&&cu.picture){av.src=cu.picture;av.style.display='block';} if(nm)nm.textContent=cu.name||'Usuário'; if(em)em.textContent=cu.email||'Modo offline'; } window.renderGoogleStatus?.(); showPage('pg-config'); }); }
 function saveConfig() {
   S.config = { empresa: document.getElementById('cfg-empresa').value, tel: document.getElementById('cfg-tel').value, emailEmpresa: document.getElementById('cfg-email-empresa').value, endEmpresa: document.getElementById('cfg-end-empresa').value, doc: document.getElementById('cfg-doc').value, msg: document.getElementById('cfg-msg').value, servicos: document.getElementById('cfg-servicos').value, pgto: document.getElementById('cfg-pgto').value, statusList: document.getElementById('cfg-status').value, skipDelConfirm: S.config.skipDelConfirm || false, skipDirtyConfirm: S.config.skipDirtyConfirm || false, logo: S.config.logo || '', assinatura: S.config.assinatura || '', acessibilidade: S.config.acessibilidade || false, flashNomes: (document.getElementById('cfg-flash-nomes')||{}).value||defCfg.flashNomes, flashServicos: (document.getElementById('cfg-flash-servicos')||{}).value||defCfg.flashServicos, flashMateriais: (document.getElementById('cfg-flash-materiais')||{}).value||defCfg.flashMateriais };
   document.body.classList.toggle('acessivel', !!S.config.acessibilidade);
@@ -3666,6 +4865,7 @@ function saveConfig() {
   try {
     localStorage.setItem('pp-config', JSON.stringify(S.config));
     _cfgDirty = false;
+    window.scheduleSync?.();
     toast('<svg class="ico" aria-hidden="true"><use href="#ico-settings"/></svg> Configurações salvas!');
     populateStatusSelect(); loadGoogleMaps(); homeTab('home');
   } catch(e) {
@@ -3677,7 +4877,31 @@ function saveConfig() {
 // BACKUP E TABS
 let backupTimerHandle; let pendingBackupData = null;
 function exportBackup() { const data = { versao: 1, dataGeracao: new Date().toISOString(), config: S.config, orcs: S.orcs, clientes: S.clientes, fornecedores: S.fornecedores, eventos: S.eventos }; const json = JSON.stringify(data); const blob = new Blob([json], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `PintorPlus_Backup_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`; a.click(); URL.revokeObjectURL(url); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Exportado!'); }
-function handleBackupFile(input) { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = e => { try { const data = JSON.parse(e.target.result); if(!data.orcs || !data.config) throw new Error("Formato inválido"); pendingBackupData = data; openBackupModal(); } catch(err) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Erro no backup'); } }; reader.readAsText(file); input.value = ''; }
+function handleBackupFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    input.value = '';
+    let raw;
+    try { raw = JSON.parse(e.target.result); }
+    catch { toast('<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> Arquivo JSON inválido.'); return; }
+
+    // Validação e sanitização segura
+    const result = window.validateBackup ? window.validateBackup(raw, file.size) : { ok: !!raw?.orcs, data: raw, warnings: [] };
+
+    if (!result.ok) {
+      toast(`<svg class="ico" aria-hidden="true"><use href="#ico-x-circle"/></svg> ${result.error || 'Backup inválido.'}`);
+      return;
+    }
+    if (result.warnings?.length) {
+      console.warn('[Backup] Avisos de importação:', result.warnings);
+    }
+    pendingBackupData = result.data;
+    openBackupModal();
+  };
+  reader.readAsText(file);
+}
 function openBackupModal() { document.getElementById('backup-confirm-modal').style.display = 'flex'; const btn = document.getElementById('btn-force-replace'); btn.classList.add('btn-disabled'); let secs = 3; btn.textContent = `Substituir Tudo (${secs}s)`; clearInterval(backupTimerHandle); backupTimerHandle = setInterval(() => { secs--; if(secs <= 0) { clearInterval(backupTimerHandle); btn.classList.remove('btn-disabled'); btn.textContent = 'Substituir Tudo'; } else { btn.textContent = `Substituir Tudo (${secs}s)`; } }, 1000); }
 function closeBackupModal(proceed) { clearInterval(backupTimerHandle); document.getElementById('backup-confirm-modal').style.display = 'none'; if(!proceed) pendingBackupData = null; }
 function executeBackupImport(mode) { if(!pendingBackupData) return; if(mode === 'replace') { S.config = pendingBackupData.config; S.orcs = pendingBackupData.orcs; S.clientes = pendingBackupData.clientes || []; S.fornecedores = pendingBackupData.fornecedores || []; S.eventos = pendingBackupData.eventos || []; localStorage.setItem('pp-config', JSON.stringify(S.config)); _saveOrcs(); localStorage.setItem('pp-clientes', JSON.stringify(S.clientes)); localStorage.setItem('pp-fornecedores', JSON.stringify(S.fornecedores)); localStorage.setItem('pp-eventos', JSON.stringify(S.eventos)); toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Backup Restaurado!'); } else if(mode === 'merge') { const importedOrcs = pendingBackupData.orcs || []; let updatedCount = 0; let addedCount = 0; importedOrcs.forEach(impOrc => { const idx = S.orcs.findIndex(o => o.id === impOrc.id); if(idx >= 0) { if((impOrc.tsEdit || 0) > (S.orcs[idx].tsEdit || 0)) { S.orcs[idx] = impOrc; updatedCount++; } } else { S.orcs.push(impOrc); addedCount++; } }); S.orcs.sort((a,b) => (b.ts || 0) - (a.ts || 0)); _saveOrcs(); toast(`<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Mesclado: ${addedCount} novos, ${updatedCount} atu.`); } closeBackupModal(true); S.DEFAULT_SERVICES = (S.config.servicos || defCfg.servicos).split(',').map(s=>s.trim()).filter(Boolean); S.statusArr = (S.config.statusList || defCfg.statusList).split(',').map(s=>s.trim()).filter(Boolean); populateStatusSelect(); loadGoogleMaps(); homeTab('home'); }
@@ -3688,7 +4912,7 @@ function homeTab(tab){
     document.getElementById('cfg-save-modal').style.display = 'flex';
     return;
   }
-  if(tab === 'config') { openConfig(); return; } if(tab === 'flash') { canNavigateAsync(() => { S.isDirty = false; openFlash(); }); return; } canNavigateAsync(() => { S.isDirty = false; ['orc-search','cli-search','forn-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); if(tab === 'home') { showPage('pg-home'); renderHomeMini(); renderHomeEvents(); renderHomeNews(); } else if(tab === 'orcamentos') { showPage('pg-orcamentos'); renderOrcamentosList(); } else if(tab === 'clientes') { showPage('pg-clientes'); renderClientes(); } else if(tab === 'fornecedores') { showPage('pg-fornecedores'); renderFornecedores(); } else if(tab === 'agenda') { showPage('pg-agenda'); renderAgenda(); } else if(tab === 'backup') { showPage('pg-backup'); } else if(tab === 'termos') { showPage('pg-termos'); } }); }
+  if(tab === 'config') { openConfig(); return; } if(tab === 'flash') { canNavigateAsync(() => { S.isDirty = false; openFlash(); }); return; } canNavigateAsync(() => { S.isDirty = false; ['orc-search','cli-search','forn-search'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); if(tab === 'home') { showPage('pg-home'); renderHomeMini(); renderHomeEvents(); renderHomeNews(); } else if(tab === 'orcamentos') { showPage('pg-orcamentos'); renderOrcamentosList(); } else if(tab === 'clientes') { showPage('pg-clientes'); renderClientes(); } else if(tab === 'fornecedores') { showPage('pg-fornecedores'); renderFornecedores(); } else if(tab === 'agenda') { showPage('pg-agenda'); renderAgenda(); } else if(tab === 'backup') { openConfig(); return; } else if(tab === 'termos') { showPage('pg-termos'); } }); }
 
 // ── TERMOS & PRIVACIDADE — LGPD ──────────────────────────────
 const TERMS_VERSION = '1';
@@ -3744,13 +4968,29 @@ function rejectTerms() {
 function buildDateLabel(ts) { if(!ts) return 'Sem data'; const d = new Date(ts); return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`; }
 
 function renderHomeMini() {
-  const sg = document.getElementById('home-saudacao'); 
-  if(sg) sg.textContent = S.config.empresa || 'Sua Empresa';
-  renderLogoPreview(); // Sincroniza todos os logos simultaneamente
-  
+  const sg = document.getElementById('home-saudacao');
+  if(sg) sg.textContent = S.config.empresa || 'Pintor Plus';
+  renderLogoPreview();
+
+  // Métricas do header
+  const totalFat = S.orcs.reduce((sum, o) => sum + calcOrcTotal(o), 0);
+  const elFat = document.getElementById('home-metric-fat');
+  const elOrc = document.getElementById('home-metric-orc');
+  const elCli = document.getElementById('home-metric-cli');
+  if(elFat) elFat.textContent = totalFat > 0 ? 'R$ ' + totalFat.toLocaleString('pt-BR',{maximumFractionDigits:0}) : 'R$ 0';
+  if(elOrc) elOrc.textContent = String(S.orcs.length || 0);
+  if(elCli) elCli.textContent = String(S.clientes?.length || 0);
+
+  // Tagline dinâmica
+  const tb = document.getElementById('home-tagline-b');
+  if(tb) {
+    const pendentes = S.orcs.filter(o => !o.status || o.status === 'Pendente').length;
+    tb.textContent = pendentes > 0 ? `${pendentes} orçamento${pendentes>1?'s':''} pendente${pendentes>1?'s':''} →` : 'Pronto para o próximo cliente →';
+  }
+
   const wrap=document.getElementById('home-orcs-mini');if(!wrap)return;
   if(!S.orcs.length){ wrap.innerHTML='<div style="text-align:center;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--bdr);font-size:12px;color:var(--ink3);margin-bottom:8px;">Nenhum orçamento registado ainda.</div>'; return; }
-  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div>`; }).join('');
+  wrap.innerHTML=S.orcs.slice(0,3).map((o,sliceIdx)=>{ const realIdx=sliceIdx; let tot=calcOrcTotal(o); const isR=(o.status||'').includes('Rascunho'); const badgeHtml=isR?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`; const menuId=`cm-h-${realIdx}`; const orcShortId=String(o.id||'').slice(-6); return `<div class="hoc${isR?' card-rascunho':''}" style="margin-bottom:8px;cursor:pointer;" onclick="viewOrc(${realIdx})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span></div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,realIdx,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><div style="display:flex;align-items:center;gap:8px;">${badgeHtml}<span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div></div>`; }).join('');
 }
 
 // --- MÓDULO: EVENTOS DA SEMANA NA HOME ---
@@ -3810,14 +5050,15 @@ async function renderHomeNews() {
            if(match) imgUrl = match[1];
         }
         if(!imgUrl) imgUrl = 'https://www.pintorabrapp.com.br/wp-content/uploads/2023/10/logo-abrapp.png';
-        
+        const safeImg = _safeUrl(imgUrl) || '';
+        const safeLink = _safeUrl(item.link) || '#';
+        const safeTitle = _esc(item.title || '');
         const date = new Date(item.pubDate.replace(/-/g, '/')).toLocaleDateString('pt-BR');
-        
         return `
-        <div class="news-card" onclick="const _u=_safeUrl('${_esc(item.link)}');if(_u)window.open(_u,'_blank')">
-          <img src="${imgUrl}" onerror="this.src='https://lh3.googleusercontent.com/d/1mwtQDispSbBU3HBvLa0T46vOoHAmWNNN'">
+        <div class="news-card" onclick="window.open('${_esc(safeLink)}','_blank')">
+          <img src="${_esc(safeImg)}" onerror="this.style.display='none'">
           <div style="flex:1;">
-            <div class="news-title">${item.title}</div>
+            <div class="news-title">${safeTitle}</div>
             <div class="news-date">${date}</div>
           </div>
         </div>`;
@@ -3854,7 +5095,7 @@ function renderOrcamentosList() {
     const isRascunho=(o.status||'')==='Rascunho';
     const badgeHtml=isRascunho?`<span class="badge-rascunho">Rascunho</span>`:`<span class="hbadge ${getStatusBadgeClass(o.status)}">${o.status||'Pendente'}</span>`;
     const orcShortId=String(o.id||'').slice(-6);
-    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span>${badgeHtml}</div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;"><span class="hood" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${o.end||'—'} · ${infoTxt}</span><span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div><span class="hos">${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span></div>`;
+    const menuId=`cm-l-${i}`; return `<div class="hoc${isRascunho?' card-rascunho':''}" style="margin-bottom:10px;cursor:pointer;" onclick="viewOrc(${i})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:6px;min-width:0;flex:1;overflow:hidden;pointer-events:none;"><span class="hon" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${o.nome||'(sem nome)'}</span><span style="font-size:10px;color:var(--ink3);font-weight:400;flex-shrink:0;">#${orcShortId}</span></div><div onclick="event.stopPropagation()">${_buildCardMenu(menuId,i,o)}</div></div><div style="display:flex;align-items:center;justify-content:space-between;pointer-events:none;"><span class="hos" style="display:flex;align-items:center;gap:4px;"><svg class="ico" aria-hidden="true"><use href="#ico-pin"/></svg>${o.end||'—'} · ${infoTxt} · ${buildDateLabel(o.tsEdit||o.ts||Date.now())}</span><div style="display:flex;align-items:center;gap:8px;">${badgeHtml}<span class="hoov">${tot>0?'R$ '+tot.toLocaleString('pt-BR',{minimumFractionDigits:2}):'—'}</span></div></div></div>`;
   }).join('');
 }
 
@@ -3992,12 +5233,21 @@ function gerarReciboPDF() {
   fecharModalRecibo();
 
   showSpinner('Gerando recibo…');
-  const html = gerarReciboHTML(data);
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const w    = window.open(url, '_blank');
-  if (!w) { hideSpinner(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Pop-up bloqueado. Permita pop-ups para abrir o recibo.'); }
-  else setTimeout(() => { URL.revokeObjectURL(url); hideSpinner(); }, 1500);
+  _loadHtml2PDF().then(async () => {
+    const html = gerarReciboHTML(data);
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:210mm;';
+    wrapper.innerHTML = html;
+    document.body.appendChild(wrapper);
+    try {
+      const fileName = `Recibo_${data.id}.pdf`;
+      const opt = { margin: 8, filename: fileName, image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+      const pdfBlob = await window.html2pdf().from(wrapper.querySelector('.doc') || wrapper).set(opt).output('blob');
+      _downloadBlob(pdfBlob, fileName);
+      toast('<svg class="ico" aria-hidden="true"><use href="#ico-check-circle"/></svg> Recibo gerado!');
+    } catch(e) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao gerar recibo.'); }
+    finally { document.body.removeChild(wrapper); hideSpinner(); }
+  }).catch(() => { hideSpinner(); toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Erro ao carregar gerador de PDF.'); });
 }
 
 function gerarReciboHTML(d) {
@@ -4007,7 +5257,7 @@ function gerarReciboHTML(d) {
   const cidade     = (d.empresa.end || '').split('—').pop().trim() || 'Local';
   const logoHtml   = d.empresa.logo
     ? `<img src="${d.empresa.logo}" style="width:60px;height:60px;border-radius:10px;object-fit:cover;" alt="Logo">`
-    : `<div style="width:60px;height:60px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#7C3AED;">${(d.empresa.nome||'P').charAt(0)}</div>`;
+    : `<div style="width:60px;height:60px;border-radius:10px 0 10px 10px;background:rgba(232,120,56,0.15);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#e87838;font-family:'Sora',sans-serif;">${(d.empresa.nome||'P').charAt(0)}</div>`;
   const sigHtml    = d.sigPintor
     ? `<img src="${d.sigPintor}" style="max-height:70px;max-width:220px;object-fit:contain;" alt="Assinatura">`
     : `<div style="height:50px;border-bottom:1.5px solid #334155;width:220px;"></div>`;
@@ -4030,13 +5280,13 @@ function gerarReciboHTML(d) {
   .company-info .name{font-size:17px;font-weight:800;color:#0F172A;}
   .company-info .detail{font-size:11px;color:#64748B;line-height:1.7;margin-top:4px;}
   .title-block{text-align:right;}
-  .rec-title{font-size:26px;font-weight:800;color:#7C3AED;letter-spacing:-0.5px;}
+  .rec-title{font-size:26px;font-weight:800;color:#e87838;letter-spacing:-0.5px;font-family:'Sora',sans-serif;}
   .rec-id{font-family:monospace;font-size:12px;color:#475569;margin-top:3px;}
   .rec-date{font-size:11px;color:#64748B;margin-top:4px;}
   .legal-text{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:18px 20px;font-size:13.5px;color:#1E293B;line-height:1.85;margin-bottom:22px;}
   .legal-text strong{color:#0F172A;}
   .section{margin-bottom:18px;}
-  .section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#7C3AED;margin-bottom:8px;}
+  .section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#e87838;margin-bottom:8px;font-family:'Sora',sans-serif;}
   .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;}
   .info-item{display:flex;flex-direction:column;gap:1px;}
   .info-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#94A3B8;}
@@ -4049,7 +5299,7 @@ function gerarReciboHTML(d) {
   .footer{margin-top:18px;text-align:center;font-size:10px;color:#94A3B8;border-top:1px solid #E2E8F0;padding-top:12px;}
 </style>
 </head>
-<body onload="setTimeout(()=>window.print(),400)">
+<body>
 <div class="doc">
   <div class="head">
     <div class="company-row">
@@ -4222,11 +5472,101 @@ const FIELD_ORDER = { 's1': ['cli-nome','cli-tel','cli-email','cli-cpf','cli-cep
 function nextField(currentId, pageKey) { const order = FIELD_ORDER[pageKey]; if (!order) return; const idx = order.indexOf(currentId); if (idx === -1) return; for (let i = idx + 1; i < order.length; i++) { const el = document.getElementById(order[i]); if (el && !el.disabled && el.offsetParent !== null) { el.focus(); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } } }
 function attachEnterNav() { Object.entries(FIELD_ORDER).forEach(([pageKey, ids]) => { ids.forEach((id, i) => { const el = document.getElementById(id); if (!el) return; el.addEventListener('input', () => { S.isDirty = true; }); el.setAttribute('enterkeyhint', i === ids.length - 1 ? 'done' : 'next'); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); nextField(id, pageKey); } }); }); }); }
 
+// ── Auth UI ──────────────────────────────────────────────────────────────────
+
+function _ppUpdateSidebar(user) {
+  if (!user) return;
+  const name    = user.name  || 'Usuário';
+  const email   = user.email || (user.uid === 'offline-' + user.uid.slice(8) ? 'Modo Offline' : '');
+  const picture = user.picture || '';
+
+  // Sidebar
+  const sAvatar = document.getElementById('sidebar-user-avatar');
+  const sName   = document.getElementById('sidebar-user-name');
+  const sEmail  = document.getElementById('sidebar-user-email');
+  if (sAvatar && picture) { sAvatar.src = picture; sAvatar.onerror = () => { sAvatar.src = '/public/apple-touch-icon.png'; }; }
+  if (sName)  sName.textContent  = name;
+  if (sEmail) sEmail.textContent = email;
+
+  // Config page account card
+  const cAvatar = document.getElementById('cfg-user-avatar');
+  const cName   = document.getElementById('cfg-user-name');
+  const cEmail  = document.getElementById('cfg-user-email');
+  if (cAvatar && picture) { cAvatar.src = picture; cAvatar.onerror = () => { cAvatar.src = '/public/apple-touch-icon.png'; }; }
+  if (cName)  cName.textContent  = name;
+  if (cEmail) cEmail.textContent = email || 'Modo offline — dados salvos localmente';
+}
+
+function _ppShowApp(user) {
+  const loginEl = document.getElementById('pg-login');
+  if (loginEl) { loginEl.style.opacity = '0'; loginEl.style.visibility = 'hidden'; setTimeout(() => { loginEl.style.display = 'none'; }, 400); }
+  _ppUpdateSidebar(user);
+}
+
+function _ppShowLogin() {
+  const loginEl = document.getElementById('pg-login');
+  if (!loginEl) return;
+  loginEl.style.display = 'flex';
+  loginEl.style.visibility = 'visible';
+  setTimeout(() => { loginEl.style.opacity = '1'; }, 10);
+}
+
+async function _ppTriggerLogin() {
+  const user = await window.ppSignIn?.();
+  if (user) _ppShowApp(user);
+}
+
+async function ppLoginOffline() {
+  // Cria sessão local sem Google
+  const offlineUser = { uid: 'offline-' + Date.now(), email: '', name: 'Modo Offline', picture: '', signedInAt: new Date().toISOString() };
+  localStorage.setItem('pp-auth-user', JSON.stringify(offlineUser));
+  _ppShowApp(offlineUser);
+}
+
+function ppLogoutConfirm() {
+  const ok = confirm('Sair da conta? Seus dados locais serão mantidos no dispositivo.');
+  if (!ok) return;
+  window.ppSignOut?.().then(() => { _ppShowLogin(); }).catch(() => { _ppShowLogin(); });
+}
+
 window.addEventListener('load', () => {
   try { history.replaceState({ page: 'pg-home' }, '', '#pg-home'); } catch(e) {}
   renderHomeMini(); renderHomeEvents(); renderHomeNews(); buildSteps(1); attachEnterNav(); populateStatusSelect(); loadGoogleMaps();
-  // Sincroniza lembretes com SW ao abrir o app (para notificações em background)
   navigator.serviceWorker?.ready.then(() => _syncAlarmsToSW()).catch(()=>{});
+
+  // ── Auth gate ──
+  const storedUser = window.ppGetUser?.();
+  if (storedUser) {
+    _ppShowApp(storedUser);
+  } else {
+    _ppShowLogin();
+    // Carrega GIS e renderiza o botão Google
+    const s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => {
+      const CLIENT_ID = window.__VITE_GOOGLE_CLIENT_ID__;
+      if (!CLIENT_ID) return;
+      window.google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: (response) => {
+          // Decodifica o credential JWT e armazena a sessão diretamente
+          const user = window.ppHandleCredential?.(response.credential);
+          if (user) _ppShowApp(user);
+        },
+        auto_select: false,
+        cancel_on_tap_outside: false,
+      });
+      const btnEl = document.getElementById('google-signin-btn');
+      if (btnEl) {
+        window.google.accounts.id.renderButton(btnEl, {
+          type: 'standard', shape: 'pill', theme: 'outline',
+          size: 'large', text: 'signin_with', locale: 'pt-BR', width: 280,
+        });
+      }
+    };
+    document.head.appendChild(s);
+  }
 });
 
 function showTutorial() { document.getElementById('info-modal-title').textContent = '<svg class="ico" aria-hidden="true"><use href="#ico-book"/></svg> Tutorial'; document.getElementById('info-modal-body').innerHTML = `<div style="margin-bottom: 16px;"><b>Bem-vindo ao Pintor Plus!</b></div><ul style="margin-left: 18px; display: flex; flex-direction: column; gap: 12px;"><li><b>1. Criação de Orçamento:</b> Na página inicial, toque em "Criar Novo Orçamento". Preencha os dados e avance.</li><li><b>2. Inserindo Medidas:</b> Clique no grande botão laranja "+ Adicionar Novo Item" para abrir o formulário.</li><li><b>3. CRM e Lembretes:</b> Seus clientes são salvos automaticamente. Utilize a aba "Agenda" para gerenciar retornos.</li></ul>`; document.getElementById('info-modal').style.display = 'flex'; }
@@ -4928,15 +6268,13 @@ async function _gRestoreFile(fileId) {
   const json = await window.downloadFromDrive?.(fileId);
   hideSpinner();
   if (!json) { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Falha ao baixar backup.'); return; }
-  // reuse existing handleBackupFile logic via fake file
   try {
-    const data = JSON.parse(json);
-    const fakeFile = new File([json], 'backup.json', { type: 'application/json' });
-    const dt = new DataTransfer();
-    dt.items.add(fakeFile);
-    const input = document.getElementById('backup-file');
-    input.files = dt.files;
-    handleBackupFile(input);
+    const raw = JSON.parse(json);
+    const result = window.validateBackup ? window.validateBackup(raw, json.length) : { ok: !!raw?.orcs, data: raw, warnings: [] };
+    if (!result.ok) { toast(`<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> ${result.error || 'Backup inválido.'}`); return; }
+    if (result.warnings?.length) console.warn('[Drive Restore] Avisos:', result.warnings);
+    pendingBackupData = result.data;
+    openBackupModal();
   } catch { toast('<svg class="ico" aria-hidden="true"><use href="#ico-alert"/></svg> Arquivo de backup inválido.'); }
 }
 
@@ -4986,7 +6324,7 @@ async function gDriveSyncClientes() {
   </div>
   <div style="width:100%;max-width:480px;display:flex;justify-content:space-around;align-items:center;padding:16px 12px max(24px,env(safe-area-inset-bottom,24px));background:rgba(15,23,42,0.9);border-top:1px solid rgba(255,255,255,0.08);flex-shrink:0;">
     <button id="pv-btn-annotate" onclick="pvAnnotate()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:#fff;cursor:pointer;padding:6px 12px;">
-      <span style="width:48px;height:48px;border-radius:50%;background:rgba(124,58,237,0.85);display:flex;align-items:center;justify-content:center;font-size:22px;">✏️</span>
+      <span style="width:48px;height:48px;border-radius:50%;background:rgba(232,120,56,0.85);display:flex;align-items:center;justify-content:center;font-size:22px;">✏️</span>
       <span style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);">Anotar</span>
     </button>
     <button onclick="pvDelete()" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;color:#fff;cursor:pointer;padding:6px 12px;">

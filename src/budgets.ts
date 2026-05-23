@@ -93,7 +93,7 @@ function selectMode(mode: 'flash' | 'foto' | 'detalhado'): void {
   const modal = document.getElementById('mode-selector-modal');
   if (modal) modal.style.display = 'none';
 
-  if (mode === 'flash') newOrcFlash();
+  if (mode === 'flash') (window as any).openFlash?.();
   else if (mode === 'foto') newOrcFoto();
   else newOrcDetalhado();
 }
